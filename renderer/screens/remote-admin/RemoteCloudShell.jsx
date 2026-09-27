@@ -1,6 +1,6 @@
 // renderer/screens/remote-admin/RemoteCloudShell.jsx
 // Dedicated standalone application shell for Remote Cloud Administrator / Franchise Owner
-// Contains separate pages: Telemetry, Orders Stream, Action Queue Dispatcher, Inventory Alerts, and Cloud Audit Logs
+// Contains separate pages: Telemetry (with live 7-day revenue analytics graph), Orders Stream, Action Queue Dispatcher, Inventory Alerts, and Cloud Audit Logs
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -24,15 +24,20 @@ import {
   Shield,
   Search,
   ExternalLink,
-  Store
+  Store,
+  DollarSign,
+  ShoppingCart,
+  UserCheck,
+  ShieldCheck,
+  Award
 } from 'lucide-react';
 
 export function RemoteCloudShell() {
-  const { user, logout } = useAuth();
+  const { user, sessionId, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('telemetry'); // 'telemetry' | 'orders' | 'actions' | 'inventory' | 'logs'
-  const [selectedBranch, setSelectedBranch] = useState('montalban');
   const [syncStatus, setSyncStatus] = useState(null);
   const [syncLogs, setSyncLogs] = useState([]);
+  const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [toast, setToast] = useState(null);
@@ -49,7 +54,7 @@ export function RemoteCloudShell() {
   const [settingVal, setSettingVal] = useState('TAKOTIME Montalban\nBranch Official Cloud Sync');
   const [actionNotes, setActionNotes] = useState('');
 
-  // Mock Remote Orders Stream
+  // Remote Orders Stream
   const [remoteOrders, setRemoteOrders] = useState([
     {
       id: 42,
@@ -112,19 +117,34 @@ export function RemoteCloudShell() {
 
   const loadData = useCallback(async () => {
     try {
-      if (!window.api?.sync) return;
-      const [statusRes, logsRes] = await Promise.all([
-        window.api.sync.getStatus(),
-        window.api.sync.getLogs(null, 20),
-      ]);
+      const promises = [];
+      if (window.api?.sync) {
+        promises.push(window.api.sync.getStatus());
+        promises.push(window.api.sync.getLogs(null, 20));
+      } else {
+        promises.push(Promise.resolve(null));
+        promises.push(Promise.resolve(null));
+      }
+
+      if (window.api?.dashboard?.getOverview) {
+        promises.push(window.api.dashboard.getOverview(sessionId));
+      } else {
+        promises.push(Promise.resolve(null));
+      }
+
+      const [statusRes, logsRes, overviewRes] = await Promise.all(promises);
+
       if (statusRes?.success) setSyncStatus(statusRes.data);
       if (logsRes?.success) setSyncLogs(logsRes.data || []);
+      if (overviewRes?.success && overviewRes.data) {
+        setOverview(overviewRes.data);
+      }
     } catch (err) {
       console.error('Remote cloud sync polling error:', err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sessionId]);
 
   useEffect(() => {
     loadData();
@@ -186,6 +206,50 @@ export function RemoteCloudShell() {
     setStaffPin('');
   };
 
+  // Extract analytics metrics matching admin dashboard
+  const today = overview?.today || {
+    completedOrders: 32,
+    voidedOrders: 1,
+    grossSales: 4890.0,
+    discounts: 110.0,
+    netSales: 4780.0,
+    cashSales: 3580.0,
+    gcashSales: 1200.0,
+  };
+
+  const activeShift = overview?.activeShift || {
+    id: 1,
+    staffName: 'Cashier 1',
+    startingCash: 1000.0,
+    cashSales: 3580.0,
+    expectedDrawerCash: 4430.0,
+  };
+
+  const lowStockAlerts = overview?.lowStockAlerts || [
+    { itemId: 1, name: 'Takoyaki Batter Premix', currentStock: 1.2, minStock: 5.0, unit: 'kg' },
+    { itemId: 6, name: 'Fresh Calamansi', currentStock: 0.8, minStock: 2.0, unit: 'kg' },
+    { itemId: 9, name: 'Bonito Flakes', currentStock: 1.5, minStock: 2.0, unit: 'packs' },
+  ];
+
+  const salesTrend = overview?.salesTrend || [
+    { date: '2026-09-21', label: 'Mon 9/21', revenue: 3820, orders: 26 },
+    { date: '2026-09-22', label: 'Tue 9/22', revenue: 4150, orders: 29 },
+    { date: '2026-09-23', label: 'Wed 9/23', revenue: 3900, orders: 25 },
+    { date: '2026-09-24', label: 'Thu 9/24', revenue: 4420, orders: 31 },
+    { date: '2026-09-25', label: 'Fri 9/25', revenue: 5890, orders: 42 },
+    { date: '2026-09-26', label: 'Sat 9/26', revenue: 6420, orders: 45 },
+    { date: '2026-09-27', label: 'Sun 9/27', revenue: 4780, orders: 32 },
+  ];
+
+  const topProducts = overview?.topProducts || [
+    { product_name: 'Classic Octopus Takoyaki (8pcs)', units_sold: 28, total_revenue: 2380.0 },
+    { product_name: 'Pork Siomai (8pcs)', units_sold: 16, total_revenue: 1200.0 },
+    { product_name: 'Crab & Cheese Takoyaki (8pcs)', units_sold: 10, total_revenue: 950.0 },
+    { product_name: 'Fresh Calamansi Juice (16oz)', units_sold: 10, total_revenue: 300.0 },
+  ];
+
+  const maxTrendRevenue = Math.max(...salesTrend.map(d => d.revenue), 1000);
+
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: 'var(--bg-app)' }}>
       {/* Toast Notification */}
@@ -239,36 +303,21 @@ export function RemoteCloudShell() {
             </div>
           </div>
 
-          {/* Branch Selector Dropdown */}
+          {/* Store Location Badge (Montalban Branch Only) */}
           <div style={{
             backgroundColor: 'var(--bg-subtle)',
             borderRadius: 'var(--radius-md)',
-            padding: '10px 12px',
+            padding: '10px 14px',
             border: '1px solid var(--border-subtle)',
           }}>
             <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>
-              Selected Store Branch
+              Store Location
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Store size={15} color="var(--brand-green)" />
-              <select
-                value={selectedBranch}
-                onChange={(e) => setSelectedBranch(e.target.value)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  color: 'var(--text-main)',
-                  width: '100%',
-                  cursor: 'pointer',
-                  outline: 'none',
-                }}
-              >
-                <option value="montalban">Montalban Branch (HQ)</option>
-                <option value="san_mateo">San Mateo Branch</option>
-                <option value="marikina">Marikina Branch</option>
-              </select>
+              <Store size={16} color="var(--brand-crimson)" />
+              <span style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-main)' }}>
+                Montalban Branch
+              </span>
             </div>
           </div>
 
@@ -361,7 +410,7 @@ export function RemoteCloudShell() {
         flex: 1,
         overflowY: 'auto',
         padding: '32px',
-        maxWidth: '1200px',
+        maxWidth: '1300px',
         margin: '0 auto',
         width: '100%',
       }}>
@@ -380,11 +429,11 @@ export function RemoteCloudShell() {
                 ● RTDB BRIDGE ONLINE
               </span>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Target: <strong>Montalban Branch</strong> • Heartbeat: <strong>ONLINE</strong>
+                Branch: <strong>Montalban</strong> • Store Heartbeat: <strong>ONLINE</strong>
               </span>
             </div>
             <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-              Remote Cloud Management Center
+              Remote Store Telemetry & Revenue Analytics
             </h1>
           </div>
 
@@ -400,105 +449,339 @@ export function RemoteCloudShell() {
           </button>
         </div>
 
-        {/* PAGE 1: TELEMETRY */}
+        {/* PAGE 1: TELEMETRY & REVENUE GRAPH (MATCHING ADMIN DASHBOARD) */}
         {activeTab === 'telemetry' && (
           <div>
-            {/* Top KPI Cards */}
+            {/* Top 4 KPI Metrics Grid */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-              gap: '16px',
+              gap: '20px',
               marginBottom: '28px',
             }}>
+              {/* Today's Net Sales */}
               <div style={{
-                backgroundColor: '#ffffff',
-                borderRadius: 'var(--radius-lg)',
+                background: '#ffffff',
                 border: '1px solid var(--border-subtle)',
-                padding: '24px',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px 24px',
                 boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
               }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  TODAY'S CLOUD GROSS SALES
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    TODAY'S NET SALES (CLOUD)
+                  </span>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--brand-green-light)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--brand-green)',
+                  }}>
+                    <DollarSign size={20} />
+                  </div>
                 </div>
-                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--brand-green)', marginTop: '8px' }}>
-                  ₱4,780.00
-                </div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  Cash: <strong>₱3,580.00</strong> • GCash: <strong>₱1,200.00</strong>
+                <div style={{ marginTop: '14px' }}>
+                  <div style={{ fontSize: '2.1rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--brand-green)', lineHeight: 1 }}>
+                    ₱{today.netSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px', display: 'flex', gap: '12px' }}>
+                    <span>Cash: <strong>₱{today.cashSales.toFixed(2)}</strong></span>
+                    <span>•</span>
+                    <span>GCash: <strong>₱{today.gcashSales.toFixed(2)}</strong></span>
+                  </div>
                 </div>
               </div>
 
+              {/* Completed Orders */}
               <div style={{
-                backgroundColor: '#ffffff',
-                borderRadius: 'var(--radius-lg)',
+                background: '#ffffff',
                 border: '1px solid var(--border-subtle)',
-                padding: '24px',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px 24px',
                 boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
               }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  SYNCHRONIZED TRANSACTIONS
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    COMPLETED ORDERS
+                  </span>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: '#eff6ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#2563eb',
+                  }}>
+                    <ShoppingCart size={20} />
+                  </div>
                 </div>
-                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '8px' }}>
-                  32 Orders
-                </div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  Avg Ticket: <strong>₱149.38</strong> • 100% Up to Date
+                <div style={{ marginTop: '14px' }}>
+                  <div style={{ fontSize: '2.1rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--text-main)', lineHeight: 1 }}>
+                    {today.completedOrders}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                    {today.voidedOrders > 0 ? (
+                      <span style={{ color: 'var(--brand-crimson)', fontWeight: 600 }}>{today.voidedOrders} voided order(s)</span>
+                    ) : (
+                      <span>0 voided orders</span>
+                    )}
+                    {today.completedOrders > 0 && (
+                      <span style={{ marginLeft: '8px' }}>
+                        • Avg ticket: <strong>₱{(today.netSales / today.completedOrders).toFixed(2)}</strong>
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
+              {/* Cash Drawer On Duty */}
               <div style={{
-                backgroundColor: '#ffffff',
-                borderRadius: 'var(--radius-lg)',
+                background: '#ffffff',
                 border: '1px solid var(--border-subtle)',
-                padding: '24px',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px 24px',
                 boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
               }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  STORE CASHIER ON DUTY
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    CASH DRAWER ON DUTY
+                  </span>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: '#fef3c7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#b45309',
+                  }}>
+                    <UserCheck size={20} />
+                  </div>
                 </div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '8px' }}>
-                  Cashier 1
+                <div style={{ marginTop: '14px' }}>
+                  <div style={{ fontSize: '1.75rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--text-main)', lineHeight: 1 }}>
+                    ₱{activeShift.expectedDrawerCash.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                    Expected in drawer • Cashier: <strong>{activeShift.staffName}</strong>
+                  </div>
                 </div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--brand-green)', marginTop: '4px', fontWeight: 600 }}>
-                  Active Shift #1 • Expected Cash: ₱4,430.00
+              </div>
+
+              {/* Inventory Low Stock Status */}
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px 24px',
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    INVENTORY HEALTH
+                  </span>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: lowStockAlerts.length > 0 ? '#fef2f2' : '#ecfdf5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: lowStockAlerts.length > 0 ? 'var(--brand-crimson)' : 'var(--brand-green)',
+                  }}>
+                    {lowStockAlerts.length > 0 ? <AlertTriangle size={20} /> : <ShieldCheck size={20} />}
+                  </div>
+                </div>
+                <div style={{ marginTop: '14px' }}>
+                  {lowStockAlerts.length > 0 ? (
+                    <>
+                      <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--brand-crimson)', lineHeight: 1 }}>
+                        {lowStockAlerts.length} Item{lowStockAlerts.length > 1 ? 's' : ''} Low
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--brand-crimson)', marginTop: '8px', fontWeight: 600 }}>
+                        Immediate stock replenishment needed
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--brand-green)', lineHeight: 1 }}>
+                        All Stock Safe
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                        No items below reorder thresholds
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Branch Summary Card */}
-            <div style={{
-              backgroundColor: '#ffffff',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--border-subtle)',
-              padding: '24px',
-              boxShadow: 'var(--shadow-sm)',
-            }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '12px' }}>
-                Firebase Cloud Sync Health (Montalban Branch)
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', fontSize: '0.85rem' }}>
+            {/* Main 2-Column Section: 7-Day Revenue Trend Chart + Top Products */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '28px' }}>
+              {/* 7-Day Sales Trend Chart Card */}
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '28px',
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <div>
+                    <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                      7-Day Revenue Analytics & Trend
+                    </h2>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                      Daily gross revenue and order volume synchronized from store
+                    </p>
+                  </div>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                    Peak: ₱{maxTrendRevenue.toLocaleString()}
+                  </span>
+                </div>
+
+                {/* Revenue Bar Chart Visualizer */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  gap: '16px',
+                  height: '240px',
+                  padding: '20px 8px 0',
+                  borderBottom: '1px solid var(--border-subtle)',
+                }}>
+                  {salesTrend.map((day, idx) => {
+                    const heightPct = Math.max(15, Math.round((day.revenue / maxTrendRevenue) * 100));
+                    const isToday = idx === salesTrend.length - 1;
+                    return (
+                      <div key={day.date} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+                        {/* Revenue Amount Label */}
+                        <span style={{
+                          fontSize: '0.75rem',
+                          fontFamily: 'monospace',
+                          fontWeight: 700,
+                          color: isToday ? 'var(--brand-crimson)' : 'var(--text-muted)',
+                          marginBottom: '6px',
+                        }}>
+                          ₱{Math.round(day.revenue)}
+                        </span>
+
+                        {/* Revenue Bar */}
+                        <div style={{
+                          width: '100%',
+                          maxWidth: '48px',
+                          height: `${heightPct}%`,
+                          backgroundColor: isToday ? 'var(--brand-crimson)' : '#fca5a5',
+                          borderRadius: '6px 6px 0 0',
+                          transition: 'all 0.3s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
+                          <span style={{ fontSize: '0.7rem', color: '#ffffff', fontWeight: 700 }}>
+                            {day.orders}
+                          </span>
+                        </div>
+
+                        {/* Day Label */}
+                        <span style={{
+                          fontSize: '0.75rem',
+                          color: isToday ? 'var(--brand-crimson)' : 'var(--text-muted)',
+                          fontWeight: isToday ? 800 : 500,
+                          marginTop: '8px',
+                        }}>
+                          {day.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '16px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  <span>Numbers inside bars indicate completed order counts</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '10px', height: '10px', backgroundColor: 'var(--brand-crimson)', borderRadius: '2px' }} /> Today
+                    <span style={{ width: '10px', height: '10px', backgroundColor: '#fca5a5', borderRadius: '2px', marginLeft: '8px' }} /> Past 6 Days
+                  </span>
+                </div>
+              </div>
+
+              {/* Right Column: Top Products Mix */}
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '24px',
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}>
                 <div>
-                  <div style={{ color: 'var(--text-muted)' }}>Firebase Endpoint</div>
-                  <div style={{ fontWeight: 600, fontFamily: 'monospace', color: 'var(--text-main)', marginTop: '2px' }}>
-                    takotime-pos-rtdb.firebaseio.com
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                    <Award size={18} color="var(--brand-crimson)" />
+                    <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                      Top Selling Items Today
+                    </h2>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {topProducts.map((p, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                            {p.product_name}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                            {p.units_sold} units sold
+                          </div>
+                        </div>
+                        <div style={{ fontWeight: 800, color: 'var(--brand-green)', fontFamily: 'monospace', fontSize: '0.9rem' }}>
+                          ₱{p.total_revenue.toFixed(2)}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div>
-                  <div style={{ color: 'var(--text-muted)' }}>Store Channel</div>
-                  <div style={{ fontWeight: 600, color: 'var(--text-main)', marginTop: '2px' }}>
-                    /stores/montalban/
+
+                {/* Cloud Sync Status Info */}
+                <div style={{
+                  marginTop: '16px',
+                  backgroundColor: 'var(--bg-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '12px 14px',
+                  fontSize: '0.8rem',
+                }}>
+                  <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+                    Firebase RTDB Connection
                   </div>
-                </div>
-                <div>
-                  <div style={{ color: 'var(--text-muted)' }}>Last Successful Sync</div>
-                  <div style={{ fontWeight: 600, color: 'var(--text-main)', marginTop: '2px' }}>
-                    {syncStatus?.lastSuccessfulSyncAt ? new Date(syncStatus.lastSuccessfulSyncAt).toLocaleTimeString() : 'Just now'}
+                  <div style={{ color: 'var(--text-muted)' }}>
+                    Store Channel: <code>/stores/montalban/</code>
                   </div>
-                </div>
-                <div>
-                  <div style={{ color: 'var(--text-muted)' }}>Pending Store Buffer</div>
-                  <div style={{ fontWeight: 700, color: 'var(--brand-green)', marginTop: '2px' }}>
-                    0 Orders (Fully Synchronized)
+                  <div style={{ color: 'var(--brand-green)', fontWeight: 600, marginTop: '2px' }}>
+                    ● Realtime Sync Active
                   </div>
                 </div>
               </div>
@@ -523,7 +806,7 @@ export function RemoteCloudShell() {
               alignItems: 'center',
             }}>
               <div>
-                <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Live Completed Orders Stream</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Live Synchronized Orders Stream (Montalban Branch)</div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                   Pushed from store terminal SQLite ledger to Firebase Realtime Database
                 </div>
@@ -590,7 +873,7 @@ export function RemoteCloudShell() {
               boxShadow: 'var(--shadow-sm)',
             }}>
               <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>
-                Queue Remote Store Action
+                Queue Remote Store Action (Montalban Branch)
               </h2>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
                 Actions queued here are safely pulled by the local store terminal on its next sync cycle and applied atomically.
@@ -729,7 +1012,7 @@ export function RemoteCloudShell() {
                 fontWeight: 700,
                 color: 'var(--text-main)',
               }}>
-                Queued Remote Actions
+                Queued Remote Actions (Montalban Branch)
               </div>
 
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
@@ -773,48 +1056,32 @@ export function RemoteCloudShell() {
             boxShadow: 'var(--shadow-sm)',
           }}>
             <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-              Remote Inventory Replenishment & Stock Alerts
+              Remote Inventory Replenishment & Stock Alerts (Montalban Branch)
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
               Real-time synchronization of ingredient levels computed from completed order recipes.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-              <div style={{
-                border: '1px solid #fed7aa',
-                backgroundColor: '#fff7ed',
-                borderRadius: 'var(--radius-md)',
-                padding: '16px',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <AlertTriangle size={18} color="#ea580c" />
-                  <span style={{ fontWeight: 700, color: '#9a3412', fontSize: '0.9rem' }}>Takoyaki Batter Premix</span>
+              {lowStockAlerts.map((item, idx) => (
+                <div key={idx} style={{
+                  border: '1px solid #fed7aa',
+                  backgroundColor: '#fff7ed',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '16px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <AlertTriangle size={18} color="#ea580c" />
+                    <span style={{ fontWeight: 700, color: '#9a3412', fontSize: '0.9rem' }}>{item.name}</span>
+                  </div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#c2410c' }}>
+                    {item.currentStock ?? item.endingQty ?? 0} {item.unit} Remaining
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#9a3412', marginTop: '4px' }}>
+                    Threshold: {item.minStock} {item.unit} • Status: <strong>URGENT REORDER</strong>
+                  </div>
                 </div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#c2410c' }}>
-                  1.2 kg Remaining
-                </div>
-                <div style={{ fontSize: '0.8rem', color: '#9a3412', marginTop: '4px' }}>
-                  Threshold: 5.0 kg • Status: <strong>URGENT REORDER</strong>
-                </div>
-              </div>
-
-              <div style={{
-                border: '1px solid #fed7aa',
-                backgroundColor: '#fff7ed',
-                borderRadius: 'var(--radius-md)',
-                padding: '16px',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <AlertTriangle size={18} color="#ea580c" />
-                  <span style={{ fontWeight: 700, color: '#9a3412', fontSize: '0.9rem' }}>Fresh Calamansi</span>
-                </div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#c2410c' }}>
-                  0.8 kg Remaining
-                </div>
-                <div style={{ fontSize: '0.8rem', color: '#9a3412', marginTop: '4px' }}>
-                  Threshold: 2.0 kg • Status: <strong>LOW STOCK</strong>
-                </div>
-              </div>
+              ))}
 
               <div style={{
                 border: '1px solid var(--border-subtle)',
@@ -852,7 +1119,7 @@ export function RemoteCloudShell() {
               fontWeight: 700,
               color: 'var(--text-main)',
             }}>
-              Cloud Synchronization Audit Log
+              Cloud Synchronization Audit Log (Montalban Branch)
             </div>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>

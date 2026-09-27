@@ -4,6 +4,7 @@
 :root {
   /* Brand Colors (extracted from TAKOTIME logo) */
   --brand-red: #e01a22;
+  --brand-crimson: #e01a22;
   --brand-red-hover: #c7141c;
   --brand-red-dark: #a30e15;
   --brand-red-light: rgba(224, 26, 34, 0.08);
