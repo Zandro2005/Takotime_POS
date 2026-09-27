@@ -38,8 +38,8 @@ export function ShiftCloseModal({ onClose }) {
       position: 'fixed',
       inset: 0,
       zIndex: 9998,
-      backgroundColor: 'rgba(9, 13, 22, 0.95)',
-      backdropFilter: 'blur(16px)',
+      backgroundColor: 'rgba(15, 23, 42, 0.55)',
+      backdropFilter: 'blur(4px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -47,12 +47,12 @@ export function ShiftCloseModal({ onClose }) {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '520px',
-        backgroundColor: 'var(--bg-surface)',
-        border: '1px solid var(--border-light)',
+        maxWidth: '500px',
+        backgroundColor: '#ffffff',
+        border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
         padding: '32px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
+        boxShadow: 'var(--shadow-lg)',
         display: 'flex',
         flexDirection: 'column',
         gap: '20px',
@@ -60,7 +60,7 @@ export function ShiftCloseModal({ onClose }) {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Close Work Shift #{currentShift?.id}</h2>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>Close Shift #{currentShift?.id}</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
               Opened at: {new Date(currentShift?.opened_at).toLocaleTimeString()} • Starting: ₱{(currentShift?.starting_cash || 0).toFixed(2)}
             </p>
@@ -83,8 +83,8 @@ export function ShiftCloseModal({ onClose }) {
           /* Shift Closed Confirmation Card */
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{
-              background: 'rgba(16, 185, 129, 0.1)',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
+              background: 'rgba(5, 150, 105, 0.08)',
+              border: '1px solid rgba(5, 150, 105, 0.25)',
               borderRadius: 'var(--radius-md)',
               padding: '20px',
               textAlign: 'center',
@@ -93,17 +93,18 @@ export function ShiftCloseModal({ onClose }) {
               alignItems: 'center',
               gap: '8px',
             }}>
-              <CheckCircle size={40} color="var(--brand-accent)" />
-              <h3 style={{ color: 'var(--brand-accent)' }}>Shift Successfully Closed</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                Cash breakdown recorded in audit database.
+              <CheckCircle size={36} color="var(--brand-green)" />
+              <h3 style={{ color: 'var(--brand-green)', fontWeight: 800 }}>Shift Successfully Closed</h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                Cash breakdown recorded in audit ledger.
               </p>
             </div>
 
             <div style={{
               background: 'var(--bg-surface-elevated)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-md)',
-              padding: '16px',
+              padding: '16px 20px',
               display: 'flex',
               flexDirection: 'column',
               gap: '8px',
@@ -119,7 +120,7 @@ export function ShiftCloseModal({ onClose }) {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px' }}>
                 <span style={{ fontWeight: 700 }}>Expected Drawer Cash:</span>
-                <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--brand-primary)' }}>
+                <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--brand-red)' }}>
                   ₱{(closedResult.breakdown?.expectedCash || 0).toFixed(2)}
                 </span>
               </div>
@@ -132,8 +133,10 @@ export function ShiftCloseModal({ onClose }) {
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                color: closedResult.discrepancy === 0 ? 'var(--brand-accent)' : '#fca5a5',
+                color: closedResult.discrepancy === 0 ? 'var(--brand-green)' : '#dc2626',
                 fontWeight: 800,
+                borderTop: '1px solid var(--border-subtle)',
+                paddingTop: '8px',
               }}>
                 <span>Cash Discrepancy:</span>
                 <span style={{ fontFamily: 'var(--font-mono)' }}>
@@ -154,9 +157,9 @@ export function ShiftCloseModal({ onClose }) {
           </div>
         ) : (
           /* Ending Cash Input Form */
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px' }}>
                 Counted Cash Drawer Balance (₱)
               </label>
               <div style={{ position: 'relative' }}>
@@ -167,7 +170,7 @@ export function ShiftCloseModal({ onClose }) {
                   transform: 'translateY(-50%)',
                   fontSize: '1.4rem',
                   fontWeight: 800,
-                  color: 'var(--brand-primary)',
+                  color: 'var(--brand-red)',
                   fontFamily: 'var(--font-mono)',
                 }}>
                   ₱
@@ -182,7 +185,7 @@ export function ShiftCloseModal({ onClose }) {
                     fontSize: '1.6rem',
                     fontWeight: 800,
                     fontFamily: 'var(--font-mono)',
-                    height: '60px',
+                    height: '58px',
                   }}
                   placeholder="0.00"
                   value={endingCash}
@@ -193,7 +196,7 @@ export function ShiftCloseModal({ onClose }) {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                 Closing Notes
               </label>
               <input
@@ -205,7 +208,7 @@ export function ShiftCloseModal({ onClose }) {
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 type="button"
                 className="btn btn-secondary"

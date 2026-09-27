@@ -1,7 +1,7 @@
-// renderer/screens/Login/LoginScreen.jsx
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Flame, Lock, User, KeyRound, ArrowRight, Delete } from 'lucide-react';
+import { Lock, User, KeyRound, ArrowRight, Delete } from 'lucide-react';
+import logoImg from '../../assets/logo.png';
 import './LoginScreen.css';
 
 export function LoginScreen() {
@@ -86,9 +86,7 @@ export function LoginScreen() {
       <div className="login-card animate-fade-in">
         {/* Header */}
         <div className="login-header">
-          <div className="brand-icon-wrapper">
-            <Flame size={36} strokeWidth={2.5} />
-          </div>
+          <img src={logoImg} alt="TAKOTIME Logo" className="brand-logo-img" />
           <h1 className="brand-title">TAKOTIME</h1>
           <p className="brand-subtitle">Branch: Montalban • Point of Sale</p>
         </div>

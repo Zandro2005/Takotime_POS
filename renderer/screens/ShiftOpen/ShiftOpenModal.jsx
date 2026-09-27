@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { useShift } from '../../context/ShiftContext';
 import { useAuth } from '../../context/AuthContext';
-import { Coins, ArrowRight, LogOut, DollarSign } from 'lucide-react';
+import { Coins, ArrowRight, LogOut } from 'lucide-react';
+import logoImg from '../../assets/logo.png';
 
 export function ShiftOpenModal() {
   const { openShift } = useShift();
@@ -38,8 +39,8 @@ export function ShiftOpenModal() {
       position: 'fixed',
       inset: 0,
       zIndex: 9998,
-      backgroundColor: 'rgba(9, 13, 22, 0.95)',
-      backdropFilter: 'blur(16px)',
+      backgroundColor: 'rgba(15, 23, 42, 0.55)',
+      backdropFilter: 'blur(4px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -47,43 +48,31 @@ export function ShiftOpenModal() {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '480px',
-        backgroundColor: 'var(--bg-surface)',
-        border: '1px solid var(--border-light)',
+        maxWidth: '460px',
+        backgroundColor: '#ffffff',
+        border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
         padding: '32px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 87, 34, 0.2)',
+        boxShadow: 'var(--shadow-lg)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '24px',
+        gap: '22px',
       }}>
         {/* Header */}
         <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #ff5722, #ea580c)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            boxShadow: '0 8px 20px rgba(255, 87, 34, 0.4)',
-          }}>
-            <Coins size={32} />
-          </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Open Work Shift</h2>
+          <img src={logoImg} alt="TAKOTIME" style={{ width: '64px', height: '64px', objectFit: 'contain' }} />
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)' }}>Open Work Shift</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-            Cashier: <strong style={{ color: 'var(--text-main)' }}>{user?.name}</strong> • Montalban Stall
+            Cashier: <strong style={{ color: 'var(--text-main)' }}>{user?.name}</strong> • Montalban Branch
           </p>
         </div>
 
         {error && <div className="error-banner">{error}</div>}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
-              Starting Cash Drawer Amount (₱)
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+              Starting Cash Drawer Float (₱)
             </label>
             <div style={{ position: 'relative' }}>
               <span style={{
@@ -93,7 +82,7 @@ export function ShiftOpenModal() {
                 transform: 'translateY(-50%)',
                 fontSize: '1.4rem',
                 fontWeight: 800,
-                color: 'var(--brand-primary)',
+                color: 'var(--brand-red)',
                 fontFamily: 'var(--font-mono)',
               }}>
                 ₱
@@ -108,7 +97,7 @@ export function ShiftOpenModal() {
                   fontSize: '1.6rem',
                   fontWeight: 800,
                   fontFamily: 'var(--font-mono)',
-                  height: '64px',
+                  height: '60px',
                 }}
                 value={startingCash}
                 onChange={(e) => setStartingCash(e.target.value)}
@@ -117,7 +106,7 @@ export function ShiftOpenModal() {
             </div>
 
             {/* Quick Amount Pills */}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
               {quickAmounts.map((amt) => (
                 <button
                   key={amt}
@@ -128,7 +117,10 @@ export function ShiftOpenModal() {
                     padding: '8px',
                     fontSize: '0.85rem',
                     fontFamily: 'var(--font-mono)',
-                    borderColor: startingCash === amt.toString() ? 'var(--brand-primary)' : undefined,
+                    fontWeight: 700,
+                    borderColor: startingCash === amt.toString() ? 'var(--brand-red)' : undefined,
+                    backgroundColor: startingCash === amt.toString() ? 'var(--brand-red-light)' : undefined,
+                    color: startingCash === amt.toString() ? 'var(--brand-red)' : undefined,
                   }}
                   onClick={() => setStartingCash(amt.toString())}
                 >
@@ -139,7 +131,7 @@ export function ShiftOpenModal() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
               Opening Notes (Optional)
             </label>
             <input
@@ -151,11 +143,11 @@ export function ShiftOpenModal() {
             />
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ flex: 1, padding: '14px' }}
+              style={{ flex: 1, padding: '12px' }}
               onClick={logout}
             >
               <LogOut size={16} />
@@ -165,7 +157,7 @@ export function ShiftOpenModal() {
             <button
               type="submit"
               className="btn btn-primary"
-              style={{ flex: 2, padding: '14px' }}
+              style={{ flex: 2, padding: '12px' }}
               disabled={loading}
             >
               {loading ? 'Opening...' : 'Start Shift'}

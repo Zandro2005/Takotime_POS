@@ -3,7 +3,7 @@
   display: flex;
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(circle at 20% 20%, #171f38 0%, #090d16 100%);
+  background-color: var(--bg-app);
   align-items: center;
   justify-content: center;
   padding: 24px;
@@ -11,16 +11,15 @@
 
 .login-card {
   width: 100%;
-  max-width: 480px;
-  background: rgba(17, 24, 39, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 440px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 87, 34, 0.15);
-  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
   padding: 36px 32px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 22px;
 }
 
 .login-header {
@@ -28,42 +27,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.brand-icon-wrapper {
-  width: 68px;
-  height: 68px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #ff5722, #ea580c);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 10px 25px rgba(255, 87, 34, 0.4);
-  margin-bottom: 4px;
+.brand-logo-img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
 }
 
 .brand-title {
-  font-size: 1.85rem;
+  font-size: 1.6rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
-  background: linear-gradient(to right, #ffffff, #fed7aa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+  text-transform: uppercase;
 }
 
 .brand-subtitle {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .auth-toggle {
   display: flex;
-  background: var(--bg-surface-elevated);
+  background-color: var(--bg-surface-elevated);
   border-radius: var(--radius-md);
   padding: 4px;
   border: 1px solid var(--border-subtle);
@@ -71,21 +62,21 @@
 
 .auth-toggle-btn {
   flex: 1;
-  padding: 10px;
+  padding: 9px 12px;
   font-size: 0.85rem;
   font-weight: 600;
   border: none;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.12s ease;
 }
 
 .auth-toggle-btn.active {
-  background: var(--brand-primary);
-  color: white;
-  box-shadow: 0 2px 8px rgba(255, 87, 34, 0.4);
+  background-color: var(--brand-red);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(224, 26, 34, 0.3);
 }
 
 /* PIN Display */
@@ -94,45 +85,44 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 8px 0;
+  padding: 6px 0;
 }
 
 .pin-dots {
   display: flex;
   gap: 16px;
-  height: 32px;
+  height: 28px;
   align-items: center;
 }
 
 .pin-dot {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  border: 2px solid var(--border-light);
-  background: transparent;
-  transition: all 0.2s ease;
+  border: 2px solid var(--border-strong);
+  background-color: transparent;
+  transition: all 0.15s ease;
 }
 
 .pin-dot.filled {
-  background: var(--brand-primary);
-  border-color: var(--brand-primary);
-  box-shadow: 0 0 12px rgba(255, 87, 34, 0.7);
-  transform: scale(1.15);
+  background-color: var(--brand-red);
+  border-color: var(--brand-red);
+  transform: scale(1.1);
 }
 
 /* Numeric Keypad */
 .numpad-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 10px;
 }
 
 .numpad-btn {
-  height: 60px;
-  font-size: 1.45rem;
+  height: 58px;
+  font-size: 1.4rem;
   font-weight: 700;
   font-family: var(--font-mono);
-  background: var(--bg-surface-elevated);
+  background-color: var(--bg-surface-elevated);
   border: 1px solid var(--border-subtle);
   color: var(--text-main);
   border-radius: var(--radius-md);
@@ -140,21 +130,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  transition: all 0.1s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .numpad-btn:hover {
-  background: var(--bg-surface-hover);
+  background-color: var(--bg-surface-hover);
   border-color: var(--border-light);
 }
 
 .numpad-btn:active {
-  transform: scale(0.95);
-  background: var(--bg-surface-active);
+  transform: translateY(1px);
+  background-color: var(--bg-surface-active);
 }
 
 .numpad-btn.action {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-family: var(--font-sans);
   color: var(--text-muted);
 }
@@ -173,20 +164,9 @@
 }
 
 .form-label {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  color: var(--text-muted);
-}
-
-.error-banner {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #fca5a5;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  font-size: 0.85rem;
-  font-weight: 500;
-  text-align: center;
+  color: var(--text-secondary);
 }
 
 /* Quick test badges */
@@ -199,33 +179,35 @@
 }
 
 .demo-title {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-faint);
+  color: var(--text-muted);
   text-align: center;
+  font-weight: 700;
 }
 
 .demo-pills {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .demo-pill {
   font-size: 0.75rem;
-  padding: 4px 10px;
-  background: var(--bg-surface-elevated);
+  font-weight: 600;
+  padding: 5px 12px;
+  background-color: var(--bg-surface-elevated);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.12s ease;
 }
 
 .demo-pill:hover {
-  background: var(--bg-surface-hover);
+  background-color: var(--bg-surface-hover);
   color: var(--text-main);
-  border-color: var(--brand-primary);
+  border-color: var(--border-light);
 }

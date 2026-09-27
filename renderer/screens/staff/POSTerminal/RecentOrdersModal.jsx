@@ -1,11 +1,11 @@
 // renderer/screens/staff/POSTerminal/RecentOrdersModal.jsx
 import React, { useState, useEffect } from 'react';
-import { X, Receipt, Trash2, RotateCcw, AlertTriangle } from 'lucide-react';
+import { X, Receipt, Trash2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { ORDER_STATUS } from '@shared/constants.js';
 
 export function RecentOrdersModal({ shiftId, onClose }) {
-  const { sessionId, user } = useAuth();
+  const { sessionId } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedReceiptText, setSelectedReceiptText] = useState(null);
@@ -69,8 +69,8 @@ export function RecentOrdersModal({ shiftId, onClose }) {
       position: 'fixed',
       inset: 0,
       zIndex: 9994,
-      backgroundColor: 'rgba(9, 13, 22, 0.9)',
-      backdropFilter: 'blur(10px)',
+      backgroundColor: 'rgba(15, 23, 42, 0.55)',
+      backdropFilter: 'blur(4px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -78,21 +78,21 @@ export function RecentOrdersModal({ shiftId, onClose }) {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: selectedReceiptText ? '900px' : '700px',
+        maxWidth: selectedReceiptText ? '900px' : '680px',
         maxHeight: '85vh',
-        backgroundColor: 'var(--bg-surface)',
-        border: '1px solid var(--border-light)',
+        backgroundColor: '#ffffff',
+        border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
         padding: '28px',
         display: 'flex',
         flexDirection: 'column',
         gap: '20px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
+        boxShadow: 'var(--shadow-lg)',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Recent Shift Orders</h2>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>Recent Shift Orders</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Last 20 transactions for Shift #{shiftId}</p>
           </div>
           <button type="button" className="btn btn-secondary" style={{ padding: '6px', borderRadius: '50%' }} onClick={onClose}>
@@ -116,14 +116,14 @@ export function RecentOrdersModal({ shiftId, onClose }) {
                   <div
                     key={ord.id}
                     style={{
-                      background: 'var(--bg-surface-elevated)',
-                      border: `1px solid ${isVoided ? 'rgba(239, 68, 68, 0.3)' : 'var(--border-subtle)'}`,
+                      background: isVoided ? '#fef2f2' : 'var(--bg-surface-elevated)',
+                      border: `1px solid ${isVoided ? '#fecaca' : 'var(--border-subtle)'}`,
                       borderRadius: 'var(--radius-md)',
                       padding: '14px 18px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      opacity: isVoided ? 0.7 : 1,
+                      opacity: isVoided ? 0.75 : 1,
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -131,15 +131,15 @@ export function RecentOrdersModal({ shiftId, onClose }) {
                         fontSize: '1.4rem',
                         fontWeight: 900,
                         fontFamily: 'var(--font-mono)',
-                        color: isVoided ? '#f87171' : 'var(--brand-primary)',
+                        color: isVoided ? '#dc2626' : 'var(--brand-red)',
                       }}>
                         #{String(ord.queue_no).padStart(3, '0')}
                       </span>
 
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>
                           Order #{ord.id} • {new Date(ord.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          {isVoided && <span style={{ color: '#f87171', marginLeft: '8px', fontSize: '0.75rem', fontWeight: 800 }}>[VOIDED]</span>}
+                          {isVoided && <span style={{ color: '#dc2626', marginLeft: '8px', fontSize: '0.75rem', fontWeight: 800 }}>[VOIDED]</span>}
                         </div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                           {ord.items?.map(it => `${it.qty}x ${it.product_name} (${it.variant_label})`).join(', ')}
@@ -153,11 +153,12 @@ export function RecentOrdersModal({ shiftId, onClose }) {
                           fontFamily: 'var(--font-mono)',
                           fontWeight: 800,
                           fontSize: '1.1rem',
+                          color: 'var(--text-main)',
                           textDecoration: isVoided ? 'line-through' : 'none',
                         }}>
                           ₱{ord.total.toFixed(2)}
                         </div>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-faint)', textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
                           {ord.payment_method}
                         </span>
                       </div>
@@ -203,9 +204,9 @@ export function RecentOrdersModal({ shiftId, onClose }) {
               overflowY: 'auto',
               whiteSpace: 'pre-wrap',
               lineHeight: 1.25,
-              border: '1px solid #ccc',
+              border: '1px solid #cbd5e1',
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid #ccc', paddingBottom: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px' }}>
                 <span style={{ fontWeight: 'bold' }}>RECEIPT PREVIEW</span>
                 <button
                   type="button"
@@ -223,22 +224,22 @@ export function RecentOrdersModal({ shiftId, onClose }) {
         {/* Void Reason Confirmation Prompt */}
         {voidingOrderId && (
           <div style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.4)',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
             borderRadius: 'var(--radius-md)',
             padding: '16px',
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171', fontWeight: 700, fontSize: '0.9rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b91c1c', fontWeight: 700, fontSize: '0.9rem' }}>
               <AlertTriangle size={18} />
               Voiding Order #{voidingOrderId} — Audit Reason Required
             </div>
             <input
               type="text"
               className="input-field"
-              placeholder="e.g. Customer cancelled / Made duplicate order by accident"
+              placeholder="e.g. Customer cancelled / Duplicate punch by accident"
               value={voidReason}
               onChange={(e) => setVoidReason(e.target.value)}
               autoFocus

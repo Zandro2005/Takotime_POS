@@ -11,3 +11,4 @@ logs/
 .env
 .DS_Store
 Thumbs.db
+.playwright-mcp/

@@ -36,8 +36,8 @@ export function DiscountModal({ currentDiscount, subtotal, onApply, onClose }) {
       position: 'fixed',
       inset: 0,
       zIndex: 9992,
-      backgroundColor: 'rgba(9, 13, 22, 0.85)',
-      backdropFilter: 'blur(8px)',
+      backgroundColor: 'rgba(15, 23, 42, 0.55)',
+      backdropFilter: 'blur(4px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -46,16 +46,20 @@ export function DiscountModal({ currentDiscount, subtotal, onApply, onClose }) {
       <div style={{
         width: '100%',
         maxWidth: '460px',
-        backgroundColor: 'var(--bg-surface)',
-        border: '1px solid var(--border-light)',
+        backgroundColor: '#ffffff',
+        border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
         padding: '28px',
+        boxShadow: 'var(--shadow-lg)',
         display: 'flex',
         flexDirection: 'column',
         gap: '20px',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 800 }}>Apply Order Discount</h2>
+          <div>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-main)' }}>Apply Order Discount</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Select discount category and input reference</p>
+          </div>
           <button type="button" className="btn btn-secondary" style={{ padding: '6px', borderRadius: '50%' }} onClick={onClose}>
             <X size={18} />
           </button>
@@ -65,8 +69,15 @@ export function DiscountModal({ currentDiscount, subtotal, onApply, onClose }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
           <button
             type="button"
-            className={`btn ${discountType === DISCOUNT_TYPES.SENIOR ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ flexDirection: 'column', padding: '12px 6px', gap: '4px' }}
+            className="btn"
+            style={{
+              flexDirection: 'column',
+              padding: '12px 6px',
+              gap: '4px',
+              backgroundColor: discountType === DISCOUNT_TYPES.SENIOR ? 'var(--brand-red)' : 'var(--bg-surface-elevated)',
+              color: discountType === DISCOUNT_TYPES.SENIOR ? '#ffffff' : 'var(--text-main)',
+              borderColor: discountType === DISCOUNT_TYPES.SENIOR ? 'var(--brand-red)' : 'var(--border-subtle)',
+            }}
             onClick={() => setDiscountType(DISCOUNT_TYPES.SENIOR)}
           >
             <UserCheck size={20} />
@@ -75,8 +86,15 @@ export function DiscountModal({ currentDiscount, subtotal, onApply, onClose }) {
 
           <button
             type="button"
-            className={`btn ${discountType === DISCOUNT_TYPES.PWD ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ flexDirection: 'column', padding: '12px 6px', gap: '4px' }}
+            className="btn"
+            style={{
+              flexDirection: 'column',
+              padding: '12px 6px',
+              gap: '4px',
+              backgroundColor: discountType === DISCOUNT_TYPES.PWD ? 'var(--brand-red)' : 'var(--bg-surface-elevated)',
+              color: discountType === DISCOUNT_TYPES.PWD ? '#ffffff' : 'var(--text-main)',
+              borderColor: discountType === DISCOUNT_TYPES.PWD ? 'var(--brand-red)' : 'var(--border-subtle)',
+            }}
             onClick={() => setDiscountType(DISCOUNT_TYPES.PWD)}
           >
             <Percent size={20} />
@@ -85,8 +103,15 @@ export function DiscountModal({ currentDiscount, subtotal, onApply, onClose }) {
 
           <button
             type="button"
-            className={`btn ${discountType === DISCOUNT_TYPES.PROMO ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ flexDirection: 'column', padding: '12px 6px', gap: '4px' }}
+            className="btn"
+            style={{
+              flexDirection: 'column',
+              padding: '12px 6px',
+              gap: '4px',
+              backgroundColor: discountType === DISCOUNT_TYPES.PROMO ? 'var(--brand-red)' : 'var(--bg-surface-elevated)',
+              color: discountType === DISCOUNT_TYPES.PROMO ? '#ffffff' : 'var(--text-main)',
+              borderColor: discountType === DISCOUNT_TYPES.PROMO ? 'var(--brand-red)' : 'var(--border-subtle)',
+            }}
             onClick={() => setDiscountType(DISCOUNT_TYPES.PROMO)}
           >
             <Tag size={20} />
@@ -96,7 +121,7 @@ export function DiscountModal({ currentDiscount, subtotal, onApply, onClose }) {
 
         {discountType === DISCOUNT_TYPES.PROMO && (
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
               Discount Amount (₱)
             </label>
             <input
@@ -113,7 +138,7 @@ export function DiscountModal({ currentDiscount, subtotal, onApply, onClose }) {
         )}
 
         <div>
-          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
             ID / Reference / Reason
           </label>
           <input
@@ -128,6 +153,7 @@ export function DiscountModal({ currentDiscount, subtotal, onApply, onClose }) {
         {/* Calculated preview */}
         <div style={{
           background: 'var(--bg-surface-elevated)',
+          border: '1px solid var(--border-subtle)',
           padding: '14px 18px',
           borderRadius: 'var(--radius-md)',
           display: 'flex',
@@ -135,7 +161,7 @@ export function DiscountModal({ currentDiscount, subtotal, onApply, onClose }) {
           alignItems: 'center',
         }}>
           <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Estimated Deduction:</span>
-          <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-accent)', fontFamily: 'var(--font-mono)' }}>
+          <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-green)', fontFamily: 'var(--font-mono)' }}>
             -₱{calculatePreview().toFixed(2)}
           </span>
         </div>

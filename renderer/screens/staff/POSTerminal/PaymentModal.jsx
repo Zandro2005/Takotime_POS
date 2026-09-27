@@ -1,6 +1,6 @@
 // renderer/screens/staff/POSTerminal/PaymentModal.jsx
 import React, { useState } from 'react';
-import { X, Banknote, QrCode, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { X, Banknote, QrCode, ArrowRight } from 'lucide-react';
 import { PAYMENT_METHODS } from '@shared/constants.js';
 
 export function PaymentModal({ totalDue, onComplete, onClose }) {
@@ -58,8 +58,8 @@ export function PaymentModal({ totalDue, onComplete, onClose }) {
       position: 'fixed',
       inset: 0,
       zIndex: 9993,
-      backgroundColor: 'rgba(9, 13, 22, 0.88)',
-      backdropFilter: 'blur(10px)',
+      backgroundColor: 'rgba(15, 23, 42, 0.55)',
+      backdropFilter: 'blur(4px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -67,20 +67,20 @@ export function PaymentModal({ totalDue, onComplete, onClose }) {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '520px',
-        backgroundColor: 'var(--bg-surface)',
-        border: '1px solid var(--border-light)',
+        maxWidth: '500px',
+        backgroundColor: '#ffffff',
+        border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
         padding: '32px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '24px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
+        gap: '22px',
+        boxShadow: 'var(--shadow-lg)',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Collect Payment</h2>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>Collect Payment</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Select tender method and confirm</p>
           </div>
           <button type="button" className="btn btn-secondary" style={{ padding: '6px', borderRadius: '50%' }} onClick={onClose}>
@@ -90,16 +90,16 @@ export function PaymentModal({ totalDue, onComplete, onClose }) {
 
         {/* Total Banner */}
         <div style={{
-          background: 'linear-gradient(135deg, rgba(255, 87, 34, 0.15), rgba(245, 158, 11, 0.15))',
-          border: '1px solid rgba(255, 87, 34, 0.3)',
+          background: '#fef2f2',
+          border: '1px solid #fee2e2',
           borderRadius: 'var(--radius-md)',
-          padding: '18px 24px',
+          padding: '16px 20px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
         }}>
-          <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-muted)' }}>TOTAL DUE:</span>
-          <span style={{ fontSize: '2.2rem', fontWeight: 900, fontFamily: 'var(--font-mono)', color: 'var(--brand-primary)' }}>
+          <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-secondary)' }}>TOTAL DUE:</span>
+          <span style={{ fontSize: '2.2rem', fontWeight: 900, fontFamily: 'var(--font-mono)', color: 'var(--brand-red)' }}>
             ₱{totalDue.toFixed(2)}
           </span>
         </div>
@@ -110,32 +110,46 @@ export function PaymentModal({ totalDue, onComplete, onClose }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
           <button
             type="button"
-            className={`btn ${method === PAYMENT_METHODS.CASH ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '14px', fontSize: '1rem' }}
+            className="btn"
+            style={{
+              padding: '14px',
+              fontSize: '1rem',
+              backgroundColor: method === PAYMENT_METHODS.CASH ? 'var(--brand-red)' : 'var(--bg-surface-elevated)',
+              color: method === PAYMENT_METHODS.CASH ? '#ffffff' : 'var(--text-main)',
+              borderColor: method === PAYMENT_METHODS.CASH ? 'var(--brand-red)' : 'var(--border-subtle)',
+              fontWeight: 700,
+            }}
             onClick={() => setMethod(PAYMENT_METHODS.CASH)}
           >
             <Banknote size={20} />
-            Cash
+            Cash Tender
           </button>
 
           <button
             type="button"
-            className={`btn ${method === PAYMENT_METHODS.GCASH ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '14px', fontSize: '1rem' }}
+            className="btn"
+            style={{
+              padding: '14px',
+              fontSize: '1rem',
+              backgroundColor: method === PAYMENT_METHODS.GCASH ? 'var(--brand-red)' : 'var(--bg-surface-elevated)',
+              color: method === PAYMENT_METHODS.GCASH ? '#ffffff' : 'var(--text-main)',
+              borderColor: method === PAYMENT_METHODS.GCASH ? 'var(--brand-red)' : 'var(--border-subtle)',
+              fontWeight: 700,
+            }}
             onClick={() => setMethod(PAYMENT_METHODS.GCASH)}
           >
             <QrCode size={20} />
-            GCash
+            GCash QR
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           {method === PAYMENT_METHODS.CASH ? (
             <>
               {/* Quick Cash Bills */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px' }}>
-                  Quick Cash Amount
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                  Quick Cash Denomination
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                   {quickBills.map((b, idx) => (
@@ -147,8 +161,9 @@ export function PaymentModal({ totalDue, onComplete, onClose }) {
                         padding: '10px',
                         fontFamily: 'var(--font-mono)',
                         fontWeight: 700,
-                        borderColor: parsedTendered === b.value ? 'var(--brand-primary)' : undefined,
-                        backgroundColor: parsedTendered === b.value ? 'rgba(255, 87, 34, 0.15)' : undefined,
+                        borderColor: parsedTendered === b.value ? 'var(--brand-red)' : undefined,
+                        backgroundColor: parsedTendered === b.value ? 'var(--brand-red-light)' : undefined,
+                        color: parsedTendered === b.value ? 'var(--brand-red)' : undefined,
                       }}
                       onClick={() => setAmountTendered(b.value.toString())}
                     >
@@ -160,7 +175,7 @@ export function PaymentModal({ totalDue, onComplete, onClose }) {
 
               {/* Amount Tendered Input */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                   Amount Tendered (₱)
                 </label>
                 <input
@@ -182,22 +197,22 @@ export function PaymentModal({ totalDue, onComplete, onClose }) {
 
               {/* Change Due Display */}
               <div style={{
-                background: isUnderpaid ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                border: `1px solid ${isUnderpaid ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
+                background: isUnderpaid ? '#fef2f2' : '#f0fdf4',
+                border: `1px solid ${isUnderpaid ? '#fecaca' : '#bbf7d0'}`,
                 borderRadius: 'var(--radius-md)',
-                padding: '16px 20px',
+                padding: '14px 18px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
               }}>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: isUnderpaid ? '#fca5a5' : 'var(--text-muted)' }}>
-                  {isUnderpaid ? 'Underpaid by:' : 'Change Due:'}
+                <span style={{ fontSize: '0.95rem', fontWeight: 700, color: isUnderpaid ? '#b91c1c' : '#166534' }}>
+                  {isUnderpaid ? 'Underpaid Shortage:' : 'Change Due:'}
                 </span>
                 <span style={{
                   fontSize: '1.8rem',
                   fontWeight: 900,
                   fontFamily: 'var(--font-mono)',
-                  color: isUnderpaid ? '#f87171' : 'var(--brand-accent)',
+                  color: isUnderpaid ? '#dc2626' : '#16a34a',
                 }}>
                   ₱{(isUnderpaid ? totalDue - parsedTendered : changeDue).toFixed(2)}
                 </span>
@@ -206,7 +221,7 @@ export function PaymentModal({ totalDue, onComplete, onClose }) {
           ) : (
             /* GCash Ref Input */
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                 GCash Reference Number
               </label>
               <input
@@ -218,8 +233,8 @@ export function PaymentModal({ totalDue, onComplete, onClose }) {
                 style={{ fontSize: '1.1rem', fontFamily: 'var(--font-mono)', height: '52px' }}
                 autoFocus
               />
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-faint)', marginTop: '6px' }}>
-                Check customer's GCash receipt on their phone to verify transaction ref number.
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                Verify the payment on customer's GCash receipt screen before completing.
               </p>
             </div>
           )}
@@ -227,10 +242,10 @@ export function PaymentModal({ totalDue, onComplete, onClose }) {
           <button
             type="submit"
             className="btn btn-primary"
-            style={{ width: '100%', padding: '16px', fontSize: '1.1rem' }}
+            style={{ width: '100%', padding: '16px', fontSize: '1.05rem', fontWeight: 700 }}
             disabled={loading || isUnderpaid}
           >
-            {loading ? 'Processing Order...' : 'Complete Sale'}
+            {loading ? 'Processing Sale...' : 'Complete Sale'}
             <ArrowRight size={20} />
           </button>
         </form>

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { POSTerminal } from '../staff/POSTerminal/POSTerminal';
+import logoImg from '../../assets/logo.png';
 import {
   LayoutDashboard,
   UtensilsCrossed,
@@ -11,7 +12,6 @@ import {
   ShoppingCart,
   Lock,
   LogOut,
-  Flame,
   CheckCircle2,
   Database,
   Cloud
@@ -26,28 +26,22 @@ export function AdminShell() {
       {/* Left Sidebar */}
       <aside style={{
         width: '260px',
-        backgroundColor: 'var(--bg-surface)',
+        backgroundColor: '#ffffff',
         borderRight: '1px solid var(--border-subtle)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
         padding: '20px 16px',
+        boxShadow: 'var(--shadow-sm)',
+        zIndex: 5,
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Brand */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 8px' }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #10b981, #059669)',
-              padding: '8px',
-              borderRadius: '10px',
-              color: 'white',
-              display: 'flex',
-            }}>
-              <Flame size={22} />
-            </div>
+            <img src={logoImg} alt="TAKOTIME" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
             <div>
-              <div style={{ fontWeight: 800, fontSize: '1.15rem' }}>TAKOTIME</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Admin Portal</div>
+              <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--text-main)', lineHeight: 1.1 }}>TAKOTIME</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Admin Portal</div>
             </div>
           </div>
 
@@ -119,7 +113,7 @@ export function AdminShell() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
             <div>
-              <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{user?.name}</div>
+              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>{user?.name}</div>
               <span className="badge badge-admin" style={{ marginTop: '4px' }}>Admin</span>
             </div>
             <button
@@ -147,12 +141,12 @@ export function AdminShell() {
 
       {/* Content Area */}
       <main style={{ flex: 1, backgroundColor: 'var(--bg-app)', overflowY: 'auto' }}>
-        {activeTab === 'pos' && <POSTerminalShell />}
+        {activeTab === 'pos' && <POSTerminal embedded={true} />}
 
         {activeTab === 'dashboard' && (
           <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px' }}>Store Overview</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
+            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>Store Overview</h1>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '0.9rem' }}>
               Real-time metrics from the local SQLite database.
             </p>
 
@@ -163,43 +157,46 @@ export function AdminShell() {
               marginBottom: '32px',
             }}>
               <div style={{
-                background: 'var(--bg-surface)',
+                background: '#ffffff',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '24px',
+                boxShadow: 'var(--shadow-sm)',
               }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>TODAY'S SALES</div>
-                <div style={{ fontSize: '2rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--brand-accent)', marginTop: '8px' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em' }}>TODAY'S SALES</div>
+                <div style={{ fontSize: '2rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--brand-green)', marginTop: '8px' }}>
                   ₱0.00
                 </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-faint)', marginTop: '4px' }}>0 completed orders</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>0 completed orders</div>
               </div>
 
               <div style={{
-                background: 'var(--bg-surface)',
+                background: '#ffffff',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '24px',
+                boxShadow: 'var(--shadow-sm)',
               }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>ACTIVE SHIFT</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '8px' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em' }}>ACTIVE SHIFT</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '8px' }}>
                   No Open Shift
                 </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-faint)', marginTop: '4px' }}>Ready for Phase 2 opening</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>Shift opens from POS terminal</div>
               </div>
 
               <div style={{
-                background: 'var(--bg-surface)',
+                background: '#ffffff',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '24px',
+                boxShadow: 'var(--shadow-sm)',
               }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>DATABASE INTEGRITY</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--brand-accent)', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em' }}>DATABASE INTEGRITY</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--brand-green)', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <CheckCircle2 size={22} />
                   OK (WAL Mode)
                 </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-faint)', marginTop: '4px' }}>pos.db healthy</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>pos.db operational</div>
               </div>
             </div>
           </div>
@@ -207,97 +204,101 @@ export function AdminShell() {
 
         {activeTab === 'menu' && (
           <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px' }}>Menu & Recipe Management</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
+            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>Menu & Recipe Management</h1>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
               Configure categories, products, prices, modifier add-ons, and bill-of-materials.
             </p>
             <div style={{
-              background: 'var(--bg-surface)',
+              background: '#ffffff',
               border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-lg)',
               padding: '40px',
               textAlign: 'center',
+              boxShadow: 'var(--shadow-sm)',
             }}>
-              <UtensilsCrossed size={48} color="var(--brand-primary)" style={{ margin: '0 auto 16px' }} />
-              <h3 style={{ marginBottom: '8px' }}>Menu Engine Seeded</h3>
-              <p style={{ color: 'var(--text-muted)' }}>Initial catalog is stored in SQLite. Phase 4 will provide full in-app editing.</p>
+              <UtensilsCrossed size={48} color="var(--brand-red)" style={{ margin: '0 auto 16px' }} />
+              <h3 style={{ marginBottom: '8px', fontWeight: 800, color: 'var(--text-main)' }}>Menu Engine Seeded</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Initial catalog is stored in SQLite. Phase 4 will provide full in-app editing.</p>
             </div>
           </div>
         )}
 
         {activeTab === 'staff' && (
           <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px' }}>Staff Accounts</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
+            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>Staff Accounts</h1>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
               Manage cashier accounts, role permissions, and fast-login PINs.
             </p>
             <div style={{
-              background: 'var(--bg-surface)',
+              background: '#ffffff',
               border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-lg)',
               padding: '40px',
               textAlign: 'center',
+              boxShadow: 'var(--shadow-sm)',
             }}>
-              <Users size={48} color="var(--brand-secondary)" style={{ margin: '0 auto 16px' }} />
-              <h3 style={{ marginBottom: '8px' }}>Accounts Database Active</h3>
-              <p style={{ color: 'var(--text-muted)' }}>Default accounts seeded: Cashier (PIN 1111), Supervisor (PIN 5678), Admin (PIN 1234).</p>
+              <Users size={48} color="var(--brand-gold)" style={{ margin: '0 auto 16px' }} />
+              <h3 style={{ marginBottom: '8px', fontWeight: 800, color: 'var(--text-main)' }}>Accounts Database Active</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Default accounts seeded: Cashier (PIN 1111), Supervisor (PIN 5678), Admin (PIN 1234).</p>
             </div>
           </div>
         )}
 
         {activeTab === 'settings' && (
           <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px' }}>Store Settings</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
+            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>Store Settings</h1>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
               Receipt headers, store location, timeouts, and backup preferences.
             </p>
             <div style={{
-              background: 'var(--bg-surface)',
+              background: '#ffffff',
               border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-lg)',
               padding: '40px',
               textAlign: 'center',
+              boxShadow: 'var(--shadow-sm)',
             }}>
               <Settings size={48} color="var(--text-muted)" style={{ margin: '0 auto 16px' }} />
-              <h3 style={{ marginBottom: '8px' }}>Settings Table Initialized</h3>
-              <p style={{ color: 'var(--text-muted)' }}>Phase 5 will add the full visual configuration screen.</p>
+              <h3 style={{ marginBottom: '8px', fontWeight: 800, color: 'var(--text-main)' }}>Settings Table Initialized</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Phase 5 will add the full visual configuration screen.</p>
             </div>
           </div>
         )}
 
         {activeTab === 'health' && (
           <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px' }}>System Health & Diagnostics</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
+            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>System Health & Diagnostics</h1>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
               Monitor SQLite WAL status, rotating log files, and automated backups.
             </p>
             <div style={{
-              background: 'var(--bg-surface)',
+              background: '#ffffff',
               border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-lg)',
               padding: '32px',
               display: 'flex',
               flexDirection: 'column',
               gap: '16px',
+              boxShadow: 'var(--shadow-sm)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Database size={24} color="var(--brand-accent)" />
+                <Database size={24} color="var(--brand-green)" />
                 <div>
-                  <div style={{ fontWeight: 700 }}>Local Database: Healthy</div>
+                  <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Local Database: Healthy</div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>data/pos.db • PRAGMA journal_mode = WAL</div>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Activity size={24} color="var(--brand-secondary)" />
+                <Activity size={24} color="var(--brand-gold)" />
                 <div>
-                  <div style={{ fontWeight: 700 }}>Diagnostics Logging: Active</div>
+                  <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Diagnostics Logging: Active</div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>logs/app.log • Rotating 5 × 5MB buffer</div>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <Cloud size={24} color="var(--text-faint)" />
                 <div>
-                  <div style={{ fontWeight: 700 }}>Cloud Sync Bridge: Standby</div>
+                  <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Cloud Sync Bridge: Standby</div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Scheduled for Phase 6 (Store operates 100% offline)</div>
                 </div>
               </div>

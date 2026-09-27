@@ -46,8 +46,8 @@ export function VariantPickerModal({ product, onAddToCart, onClose }) {
       position: 'fixed',
       inset: 0,
       zIndex: 9990,
-      backgroundColor: 'rgba(9, 13, 22, 0.85)',
-      backdropFilter: 'blur(8px)',
+      backgroundColor: 'rgba(15, 23, 42, 0.55)',
+      backdropFilter: 'blur(4px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -56,11 +56,11 @@ export function VariantPickerModal({ product, onAddToCart, onClose }) {
       <div style={{
         width: '100%',
         maxWidth: '500px',
-        backgroundColor: 'var(--bg-surface)',
-        border: '1px solid var(--border-light)',
+        backgroundColor: '#ffffff',
+        border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
         padding: '28px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+        boxShadow: 'var(--shadow-lg)',
         display: 'flex',
         flexDirection: 'column',
         gap: '20px',
@@ -68,7 +68,7 @@ export function VariantPickerModal({ product, onAddToCart, onClose }) {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 800 }}>{product.name}</h2>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>{product.name}</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Select size / variant and add-ons</p>
           </div>
           <button
@@ -83,37 +83,44 @@ export function VariantPickerModal({ product, onAddToCart, onClose }) {
 
         {/* Variants Selection */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px' }}>
+          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px' }}>
             Choose Variant / Size
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(3, product.variants.length)}, 1fr)`, gap: '10px' }}>
-            {product.variants.map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                className={`btn ${selectedVariant?.id === v.id ? 'btn-primary' : 'btn-secondary'}`}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '12px 8px',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-                onClick={() => setSelectedVariant(v)}
-              >
-                <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{v.label}</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.1rem', fontWeight: 800 }}>
-                  ₱{v.price.toFixed(2)}
-                </span>
-              </button>
-            ))}
+            {product.variants.map((v) => {
+              const isSelected = selectedVariant?.id === v.id;
+              return (
+                <button
+                  key={v.id}
+                  type="button"
+                  className="btn"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '12px 8px',
+                    alignItems: 'center',
+                    gap: '4px',
+                    backgroundColor: isSelected ? 'var(--brand-red)' : 'var(--bg-surface-elevated)',
+                    color: isSelected ? '#ffffff' : 'var(--text-main)',
+                    borderColor: isSelected ? 'var(--brand-red)' : 'var(--border-subtle)',
+                    boxShadow: isSelected ? '0 2px 4px rgba(224, 26, 34, 0.25)' : 'none',
+                  }}
+                  onClick={() => setSelectedVariant(v)}
+                >
+                  <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{v.label}</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.15rem', fontWeight: 800 }}>
+                    ₱{v.price.toFixed(2)}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Modifiers Selection */}
         {product.modifiers && product.modifiers.length > 0 && (
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px' }}>
               Add-ons & Modifiers (Optional)
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -125,17 +132,18 @@ export function VariantPickerModal({ product, onAddToCart, onClose }) {
                     type="button"
                     className="btn"
                     style={{
-                      backgroundColor: isChecked ? 'rgba(255, 87, 34, 0.15)' : 'var(--bg-surface-elevated)',
-                      borderColor: isChecked ? 'var(--brand-primary)' : 'var(--border-subtle)',
-                      color: isChecked ? 'white' : 'var(--text-main)',
+                      backgroundColor: isChecked ? 'var(--brand-red-light)' : 'var(--bg-surface-elevated)',
+                      borderColor: isChecked ? 'var(--brand-red)' : 'var(--border-subtle)',
+                      color: isChecked ? 'var(--brand-red-dark)' : 'var(--text-secondary)',
                       padding: '8px 12px',
                       fontSize: '0.85rem',
+                      fontWeight: 600,
                     }}
                     onClick={() => toggleModifier(mod.id)}
                   >
-                    {isChecked ? <Check size={14} color="var(--brand-primary)" /> : null}
+                    {isChecked ? <Check size={14} color="var(--brand-red)" /> : null}
                     <span>{mod.name}</span>
-                    <span style={{ color: 'var(--brand-secondary)', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.8rem' }}>
+                    <span style={{ color: isChecked ? 'var(--brand-red)' : 'var(--brand-gold)', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.8rem' }}>
                       {mod.price_delta > 0 ? `+₱${mod.price_delta}` : 'Free'}
                     </span>
                   </button>
@@ -147,12 +155,12 @@ export function VariantPickerModal({ product, onAddToCart, onClose }) {
 
         {/* Quantity Stepper */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
-          <span style={{ fontSize: '0.95rem', fontWeight: 700 }}>Quantity</span>
+          <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>Quantity</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ width: '42px', height: '42px', padding: 0 }}
+              style={{ width: '40px', height: '40px', padding: 0 }}
               onClick={() => setQty(prev => Math.max(1, prev - 1))}
             >
               <Minus size={18} />
@@ -163,7 +171,7 @@ export function VariantPickerModal({ product, onAddToCart, onClose }) {
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ width: '42px', height: '42px', padding: 0 }}
+              style={{ width: '40px', height: '40px', padding: 0 }}
               onClick={() => setQty(prev => prev + 1)}
             >
               <Plus size={18} />
