@@ -10,6 +10,9 @@ import { registerRecipeHandlers } from './recipeHandlers.js';
 import { registerOrderHandlers } from './orderHandlers.js';
 import { registerInventoryHandlers } from './inventoryHandlers.js';
 import { registerReportHandlers } from './reportHandlers.js';
+import { registerStaffHandlers } from './staffHandlers.js';
+import { registerSettingsHandlers } from './settingsHandlers.js';
+import { registerDashboardHandlers } from './dashboardHandlers.js';
 import { logger } from '../utils/logger.js';
 
 export function registerAllIpcHandlers() {
@@ -23,5 +26,8 @@ export function registerAllIpcHandlers() {
   registerOrderHandlers();
   registerInventoryHandlers();
   registerReportHandlers();
+  registerStaffHandlers();
+  registerSettingsHandlers();
+  registerDashboardHandlers();
   logger.info('All IPC handlers successfully registered.');
 }

@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { POSTerminal } from '../staff/POSTerminal/POSTerminal';
 import { MenuManagement } from './Menu/MenuManagement';
+import { DashboardScreen } from './Dashboard/DashboardScreen';
+import { StaffManagement } from './Staff/StaffManagement';
+import { StoreSettings } from './Settings/StoreSettings';
 import logoImg from '../../assets/logo.png';
 import {
   LayoutDashboard,
@@ -150,109 +153,10 @@ export function AdminShell() {
         height: '100%',
       }}>
         {activeTab === 'pos' && <POSTerminal embedded={true} />}
-
-        {activeTab === 'dashboard' && (
-          <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>Store Overview</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '0.9rem' }}>
-              Real-time metrics from the local SQLite database.
-            </p>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '20px',
-              marginBottom: '32px',
-            }}>
-              <div style={{
-                background: '#ffffff',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '24px',
-                boxShadow: 'var(--shadow-sm)',
-              }}>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em' }}>TODAY'S SALES</div>
-                <div style={{ fontSize: '2rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--brand-green)', marginTop: '8px' }}>
-                  ₱0.00
-                </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>0 completed orders</div>
-              </div>
-
-              <div style={{
-                background: '#ffffff',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '24px',
-                boxShadow: 'var(--shadow-sm)',
-              }}>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em' }}>ACTIVE SHIFT</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '8px' }}>
-                  No Open Shift
-                </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>Shift opens from POS terminal</div>
-              </div>
-
-              <div style={{
-                background: '#ffffff',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '24px',
-                boxShadow: 'var(--shadow-sm)',
-              }}>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em' }}>DATABASE INTEGRITY</div>
-                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--brand-green)', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <CheckCircle2 size={22} />
-                  OK (WAL Mode)
-                </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>pos.db operational</div>
-              </div>
-            </div>
-          </div>
-        )}
-
+        {activeTab === 'dashboard' && <DashboardScreen onNavigate={setActiveTab} />}
         {activeTab === 'menu' && <MenuManagement />}
-
-        {activeTab === 'staff' && (
-          <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>Staff Accounts</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
-              Manage cashier accounts, role permissions, and fast-login PINs.
-            </p>
-            <div style={{
-              background: '#ffffff',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '40px',
-              textAlign: 'center',
-              boxShadow: 'var(--shadow-sm)',
-            }}>
-              <Users size={48} color="var(--brand-gold)" style={{ margin: '0 auto 16px' }} />
-              <h3 style={{ marginBottom: '8px', fontWeight: 800, color: 'var(--text-main)' }}>Accounts Database Active</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Default accounts seeded: Cashier (PIN 1111), Supervisor (PIN 5678), Admin (PIN 1234).</p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'settings' && (
-          <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>Store Settings</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
-              Receipt headers, store location, timeouts, and backup preferences.
-            </p>
-            <div style={{
-              background: '#ffffff',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '40px',
-              textAlign: 'center',
-              boxShadow: 'var(--shadow-sm)',
-            }}>
-              <Settings size={48} color="var(--text-muted)" style={{ margin: '0 auto 16px' }} />
-              <h3 style={{ marginBottom: '8px', fontWeight: 800, color: 'var(--text-main)' }}>Settings Table Initialized</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Phase 5 will add the full visual configuration screen.</p>
-            </div>
-          </div>
-        )}
+        {activeTab === 'staff' && <StaffManagement />}
+        {activeTab === 'settings' && <StoreSettings />}
 
         {activeTab === 'health' && (
           <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto' }}>

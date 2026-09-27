@@ -108,11 +108,16 @@ export const IPC_CHANNELS = {
   STAFF_CREATE: 'pos:staff:create',
   STAFF_UPDATE: 'pos:staff:update',
   STAFF_DEACTIVATE: 'pos:staff:deactivate',
+  STAFF_REACTIVATE: 'pos:staff:reactivate',
   STAFF_RESET_PASSWORD: 'pos:staff:reset-password',
+  STAFF_RESET_PIN: 'pos:staff:reset-pin',
 
   // Settings
   SETTINGS_GET_ALL: 'pos:settings:get-all',
   SETTINGS_UPDATE: 'pos:settings:update',
+
+  // Dashboard
+  DASHBOARD_OVERVIEW: 'pos:dashboard:overview',
 
   // Cash Management
   CASH_RECORD_MOVEMENT: 'pos:cash:record-movement',

@@ -80,5 +80,24 @@ contextBridge.exposeInMainWorld('api', {
     exportCsv: (sessionId, reportType, data) => ipcRenderer.invoke('pos:reports:export-csv', { sessionId, reportType, data }),
   },
 
+  staff: {
+    list: (sessionId) => ipcRenderer.invoke('pos:staff:list', { sessionId }),
+    create: (sessionId, staffData) => ipcRenderer.invoke('pos:staff:create', { sessionId, ...staffData }),
+    update: (sessionId, staffData) => ipcRenderer.invoke('pos:staff:update', { sessionId, ...staffData }),
+    deactivate: (sessionId, id) => ipcRenderer.invoke('pos:staff:deactivate', { sessionId, id }),
+    reactivate: (sessionId, id) => ipcRenderer.invoke('pos:staff:reactivate', { sessionId, id }),
+    resetPassword: (sessionId, id, password) => ipcRenderer.invoke('pos:staff:reset-password', { sessionId, id, password }),
+    resetPin: (sessionId, id, pin) => ipcRenderer.invoke('pos:staff:reset-pin', { sessionId, id, pin }),
+  },
+
+  settings: {
+    getAll: (sessionId) => ipcRenderer.invoke('pos:settings:get-all', { sessionId }),
+    update: (sessionId, settings) => ipcRenderer.invoke('pos:settings:update', { sessionId, settings }),
+  },
+
+  dashboard: {
+    getOverview: (sessionId, date) => ipcRenderer.invoke('pos:dashboard:overview', { sessionId, date }),
+  },
+
   invoke: (channel, payload = {}) => ipcRenderer.invoke(channel, payload),
 });

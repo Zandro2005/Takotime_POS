@@ -624,5 +624,174 @@ Payment: ${ord.payment_method.toUpperCase()}
         return { success: true, data: csv };
       },
     },
+
+    staff: {
+      list: async (sessionId) => {
+        let staffList = JSON.parse(localStorage.getItem(STORAGE_KEY_PREFIX + 'staff') || 'null');
+        if (!staffList) {
+          staffList = [
+            { id: 1, name: 'Store Admin', username: 'admin', role: 'admin', active: 1, has_pin: 1, total_shifts: 2, last_shift_at: '2026-09-26 18:00:00' },
+            { id: 2, name: 'Lead Staff', username: 'supervisor', role: 'admin_staff', active: 1, has_pin: 1, total_shifts: 8, last_shift_at: '2026-09-27 15:30:00' },
+            { id: 3, name: 'Cashier 1', username: 'cashier', role: 'staff', active: 1, has_pin: 1, total_shifts: 15, last_shift_at: '2026-09-27 10:00:00' },
+          ];
+          localStorage.setItem(STORAGE_KEY_PREFIX + 'staff', JSON.stringify(staffList));
+        }
+        return { success: true, data: staffList };
+      },
+
+      create: async (sessionId, staffData) => {
+        const staffList = JSON.parse(localStorage.getItem(STORAGE_KEY_PREFIX + 'staff') || '[]');
+        const newStaff = {
+          id: Date.now(),
+          name: staffData.name,
+          username: staffData.username.toLowerCase(),
+          role: staffData.role,
+          active: 1,
+          has_pin: staffData.pin ? 1 : 0,
+          total_shifts: 0,
+          last_shift_at: null,
+          created_at: new Date().toISOString(),
+        };
+        staffList.push(newStaff);
+        localStorage.setItem(STORAGE_KEY_PREFIX + 'staff', JSON.stringify(staffList));
+        return { success: true, data: newStaff };
+      },
+
+      update: async (sessionId, staffData) => {
+        const staffList = JSON.parse(localStorage.getItem(STORAGE_KEY_PREFIX + 'staff') || '[]');
+        const idx = staffList.findIndex(s => s.id === staffData.id);
+        if (idx !== -1) {
+          staffList[idx] = {
+            ...staffList[idx],
+            name: staffData.name !== undefined ? staffData.name : staffList[idx].name,
+            role: staffData.role !== undefined ? staffData.role : staffList[idx].role,
+            active: staffData.active !== undefined ? (staffData.active ? 1 : 0) : staffList[idx].active,
+            updated_at: new Date().toISOString(),
+          };
+          localStorage.setItem(STORAGE_KEY_PREFIX + 'staff', JSON.stringify(staffList));
+          return { success: true, data: staffList[idx] };
+        }
+        return { success: false, error: 'Staff member not found' };
+      },
+
+      deactivate: async (sessionId, id) => {
+        const staffList = JSON.parse(localStorage.getItem(STORAGE_KEY_PREFIX + 'staff') || '[]');
+        const idx = staffList.findIndex(s => s.id === id);
+        if (idx !== -1) {
+          staffList[idx].active = 0;
+          localStorage.setItem(STORAGE_KEY_PREFIX + 'staff', JSON.stringify(staffList));
+          return { success: true, data: staffList[idx] };
+        }
+        return { success: false, error: 'Staff member not found' };
+      },
+
+      reactivate: async (sessionId, id) => {
+        const staffList = JSON.parse(localStorage.getItem(STORAGE_KEY_PREFIX + 'staff') || '[]');
+        const idx = staffList.findIndex(s => s.id === id);
+        if (idx !== -1) {
+          staffList[idx].active = 1;
+          localStorage.setItem(STORAGE_KEY_PREFIX + 'staff', JSON.stringify(staffList));
+          return { success: true, data: staffList[idx] };
+        }
+        return { success: false, error: 'Staff member not found' };
+      },
+
+      resetPassword: async (sessionId, id, password) => {
+        return { success: true, message: 'Password reset successfully' };
+      },
+
+      resetPin: async (sessionId, id, pin) => {
+        const staffList = JSON.parse(localStorage.getItem(STORAGE_KEY_PREFIX + 'staff') || '[]');
+        const idx = staffList.findIndex(s => s.id === id);
+        if (idx !== -1) {
+          staffList[idx].has_pin = pin ? 1 : 0;
+          localStorage.setItem(STORAGE_KEY_PREFIX + 'staff', JSON.stringify(staffList));
+        }
+        return { success: true, message: 'PIN updated successfully' };
+      },
+    },
+
+    settings: {
+      getAll: async (sessionId) => {
+        let currentSettings = JSON.parse(localStorage.getItem(STORAGE_KEY_PREFIX + 'settings') || 'null');
+        if (!currentSettings) {
+          currentSettings = {
+            store_name: 'TAKOTIME - Montalban',
+            branch_name: 'Montalban Branch',
+            branch_address: 'Rodriguez Highway, Montalban, Rizal',
+            branch_contact: '0917-123-4567',
+            receipt_header: 'TAKOTIME\nMontalban Branch\nTel: (02) 8123-4567',
+            receipt_footer: 'Maraming Salamat!\nCome Again!',
+            session_timeout_min: '30',
+            sync_interval_min: '15',
+            backup_interval_hrs: '6',
+            tax_rate: '0',
+            currency_symbol: '₱',
+          };
+          localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(currentSettings));
+        }
+        return { success: true, data: currentSettings };
+      },
+
+      update: async (sessionId, updatedFields) => {
+        let current = JSON.parse(localStorage.getItem(STORAGE_KEY_PREFIX + 'settings') || '{}');
+        const next = { ...current, ...(updatedFields || {}) };
+        localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(next));
+        return { success: true, data: next };
+      },
+    },
+
+    dashboard: {
+      getOverview: async (sessionId, date) => {
+        return {
+          success: true,
+          data: {
+            date: date || new Date().toISOString().split('T')[0],
+            today: {
+              completedOrders: 32,
+              voidedOrders: 1,
+              grossSales: 4890.0,
+              discounts: 110.0,
+              netSales: 4780.0,
+              cashSales: 3580.0,
+              gcashSales: 1200.0,
+            },
+            activeShift: {
+              shiftId: 1,
+              staffName: 'Cashier 1',
+              staffRole: 'staff',
+              openedAt: '2026-09-27 10:00:00',
+              startingCash: 1000.0,
+              cashSales: 3580.0,
+              cashIn: 0.0,
+              cashOut: 150.0,
+              expectedDrawerCash: 4430.0,
+              orderCount: 32,
+            },
+            lowStockAlerts: [
+              { itemId: 1, name: 'Takoyaki Batter Premix', unit: 'kg', currentStock: 2.2, minStock: 5.0, severity: 'warning' },
+              { itemId: 8, name: 'Fresh Calamansi', unit: 'kg', currentStock: 0.0, minStock: 2.0, severity: 'critical' },
+              { itemId: 6, name: 'Bonito Flakes', unit: 'packs', currentStock: 1.5, minStock: 3.0, severity: 'warning' },
+            ],
+            salesTrend: [
+              { date: '2026-09-21', label: 'Mon 9/21', revenue: 3820, orderCount: 26 },
+              { date: '2026-09-22', label: 'Tue 9/22', revenue: 4150, orderCount: 29 },
+              { date: '2026-09-23', label: 'Wed 9/23', revenue: 3900, orderCount: 25 },
+              { date: '2026-09-24', label: 'Thu 9/24', revenue: 4420, orderCount: 31 },
+              { date: '2026-09-25', label: 'Fri 9/25', revenue: 5890, orderCount: 42 },
+              { date: '2026-09-26', label: 'Sat 9/26', revenue: 6420, orderCount: 48 },
+              { date: '2026-09-27', label: 'Sun 9/27', revenue: 4780, orderCount: 32 },
+            ],
+            topProducts: [
+              { product_name: 'Classic Octopus Takoyaki', variant_label: '8 pcs', units_sold: 22, total_revenue: 1870.0 },
+              { product_name: 'Crab & Cheese Takoyaki', variant_label: '8 pcs', units_sold: 15, total_revenue: 1425.0 },
+              { product_name: 'Pork Siomai', variant_label: '4 pcs', units_sold: 16, total_revenue: 640.0 },
+              { product_name: 'Classic Octopus Takoyaki', variant_label: '4 pcs', units_sold: 12, total_revenue: 540.0 },
+              { product_name: 'Fresh Calamansi Juice (16oz)', variant_label: 'Regular (16oz)', units_sold: 10, total_revenue: 300.0 },
+            ],
+          },
+        };
+      },
+    },
   };
 }
