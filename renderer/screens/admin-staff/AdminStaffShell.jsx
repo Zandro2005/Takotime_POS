@@ -1,7 +1,7 @@
 // renderer/screens/admin-staff/AdminStaffShell.jsx
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { POSTerminalShell } from '../staff/POSTerminal/POSTerminalShell';
+import { POSTerminal } from '../staff/POSTerminal/POSTerminal';
 import { ClipboardList, BarChart3, ShoppingCart, Lock, LogOut, Flame, AlertCircle } from 'lucide-react';
 
 export function AdminStaffShell() {

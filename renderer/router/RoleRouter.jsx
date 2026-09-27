@@ -3,10 +3,10 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { LoginScreen } from '../screens/Login/LoginScreen';
 import { LockScreen } from '../screens/LockScreen/LockScreen';
-import { POSTerminalShell } from '../screens/staff/POSTerminal/POSTerminalShell';
+import { POSTerminal } from '../screens/staff/POSTerminal/POSTerminal';
 import { AdminStaffShell } from '../screens/admin-staff/AdminStaffShell';
 import { AdminShell } from '../screens/admin/AdminShell';
-import { ROLES } from '../../shared/constants';
+import { ROLES } from '@shared/constants.js';
 
 export function RoleRouter() {
   const { user, isLocked, isLoading } = useAuth();
@@ -36,7 +36,7 @@ export function RoleRouter() {
   let CurrentScreen = null;
   switch (user.role) {
     case ROLES.STAFF:
-      CurrentScreen = <POSTerminalShell />;
+      CurrentScreen = <POSTerminal />;
       break;
     case ROLES.ADMIN_STAFF:
       CurrentScreen = <AdminStaffShell />;

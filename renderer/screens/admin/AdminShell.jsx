@@ -1,7 +1,7 @@
 // renderer/screens/admin/AdminShell.jsx
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { POSTerminalShell } from '../staff/POSTerminal/POSTerminalShell';
+import { POSTerminal } from '../staff/POSTerminal/POSTerminal';
 import {
   LayoutDashboard,
   UtensilsCrossed,
