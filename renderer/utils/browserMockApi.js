@@ -122,6 +122,19 @@ const mockUsers = [
   { id: 3, name: 'Cashier 1', username: 'cashier', pin: '1111', password: 'cashier123', role: 'staff' },
 ];
 
+const defaultInventory = [
+  { itemId: 1, name: 'Takoyaki Batter Premix', unit: 'kg', minStock: 5.0, beginningQty: 10.0, stockIn: 5.0, suggestedOut: 1.20, confirmedOut: null, endingQty: 13.80, wasteQty: null },
+  { itemId: 2, name: 'Diced Octopus', unit: 'kg', minStock: 2.0, beginningQty: 5.0, stockIn: 2.0, suggestedOut: 0.60, confirmedOut: null, endingQty: 6.40, wasteQty: null },
+  { itemId: 3, name: 'Crab Stick', unit: 'kg', minStock: 2.0, beginningQty: 4.0, stockIn: 0, suggestedOut: 0.30, confirmedOut: null, endingQty: 3.70, wasteQty: null },
+  { itemId: 4, name: 'Cheese Cubes', unit: 'kg', minStock: 1.5, beginningQty: 3.0, stockIn: 0, suggestedOut: 0.20, confirmedOut: null, endingQty: 2.80, wasteQty: null },
+  { itemId: 5, name: 'Pork Siomai (raw)', unit: 'pcs', minStock: 100.0, beginningQty: 200.0, stockIn: 100.0, suggestedOut: 32.0, confirmedOut: null, endingQty: 268.0, wasteQty: null },
+  { itemId: 6, name: 'Beef Siomai (raw)', unit: 'pcs', minStock: 100.0, beginningQty: 150.0, stockIn: 0, suggestedOut: 24.0, confirmedOut: null, endingQty: 126.0, wasteQty: null },
+  { itemId: 7, name: 'Takoyaki Sauce', unit: 'liters', minStock: 3.0, beginningQty: 8.0, stockIn: 0, suggestedOut: 0.80, confirmedOut: null, endingQty: 7.20, wasteQty: null },
+  { itemId: 8, name: 'Japanese Mayo', unit: 'liters', minStock: 3.0, beginningQty: 8.0, stockIn: 0, suggestedOut: 0.80, confirmedOut: null, endingQty: 7.20, wasteQty: null },
+  { itemId: 9, name: 'Bonito Flakes', unit: 'packs', minStock: 2.0, beginningQty: 10.0, stockIn: 0, suggestedOut: 1.50, confirmedOut: null, endingQty: 8.50, wasteQty: null },
+  { itemId: 10, name: 'Cups 16oz', unit: 'pcs', minStock: 50.0, beginningQty: 150.0, stockIn: 0, suggestedOut: 18.0, confirmedOut: null, endingQty: 132.0, wasteQty: null },
+];
+
 export function setupBrowserMockApi() {
   if (typeof window === 'undefined' || window.api) return;
 
@@ -296,6 +309,179 @@ Payment: ${ord.payment_method.toUpperCase()}
       Thank you! Come again!
 `;
         return { success: true, data: { formattedText: text } };
+      },
+    },
+
+    inventory: {
+      getItems: async (sessionId, date) => {
+        return {
+          success: true,
+          data: defaultInventory.map(item => ({
+            ...item,
+            logDate: date || new Date().toISOString().split('T')[0],
+            isConfirmed: item.confirmedOut !== null,
+            isLowStock: (item.endingQty !== null ? item.endingQty : (item.beginningQty + item.stockIn - item.suggestedOut)) <= item.minStock,
+          })),
+        };
+      },
+
+      updateLog: async (sessionId, payload) => {
+        const item = defaultInventory.find(i => i.itemId === payload.itemId);
+        if (item) {
+          if (payload.stockIn !== undefined) {
+            item.stockIn += Number(payload.stockIn);
+          }
+          if (payload.beginningQty !== undefined) {
+            item.beginningQty = Number(payload.beginningQty);
+          }
+          if (item.confirmedOut !== null) {
+            item.endingQty = item.beginningQty + item.stockIn - item.confirmedOut;
+          }
+        }
+        return { success: true };
+      },
+
+      confirmOut: async (sessionId, payload) => {
+        const item = defaultInventory.find(i => i.itemId === payload.itemId);
+        if (item) {
+          item.confirmedOut = Number(payload.confirmedQty);
+          item.endingQty = item.beginningQty + item.stockIn - item.confirmedOut;
+          item.wasteQty = item.confirmedOut - item.suggestedOut;
+        }
+        return { success: true, data: item };
+      },
+    },
+
+    reports: {
+      getDailySales: async (sessionId, date) => {
+        const completed = orders.filter(o => o.status === 'completed');
+        const gross = completed.reduce((sum, o) => sum + o.subtotal, 0);
+        const net = completed.reduce((sum, o) => sum + o.total, 0);
+        const cash = completed.filter(o => o.payment_method === 'cash').reduce((sum, o) => sum + o.total, 0);
+        const gcash = completed.filter(o => o.payment_method === 'gcash').reduce((sum, o) => sum + o.total, 0);
+        const voided = orders.filter(o => o.status === 'voided');
+
+        return {
+          success: true,
+          data: {
+            date: date || new Date().toISOString().split('T')[0],
+            summary: {
+              completedOrders: completed.length,
+              voidedOrders: voided.length,
+              grossSales: gross,
+              discounts: gross - net,
+              netSales: net,
+              voidedAmount: voided.reduce((sum, o) => sum + o.subtotal, 0),
+              cashSales: cash,
+              gcashSales: gcash,
+            },
+            topItems: [
+              { product_name: 'Classic Octopus Takoyaki', variant_label: '8 pcs', category_name: 'Takoyaki', units_sold: 42, total_revenue: 3570.0 },
+              { product_name: 'Crab & Cheese Takoyaki', variant_label: '8 pcs', category_name: 'Takoyaki', units_sold: 28, total_revenue: 2660.0 },
+              { product_name: 'Classic Octopus Takoyaki', variant_label: '4 pcs', category_name: 'Takoyaki', units_sold: 25, total_revenue: 1125.0 },
+              { product_name: 'Pork Siomai', variant_label: '4 pcs', category_name: 'Siomai', units_sold: 22, total_revenue: 880.0 },
+              { product_name: 'Fresh Calamansi Juice (16oz)', variant_label: 'Regular (16oz)', category_name: 'Drinks', units_sold: 19, total_revenue: 570.0 },
+            ],
+            shifts: [
+              { id: 1, staff_name: 'Cashier 1', status: 'open', opened_at: '2026-09-27 08:00:00', starting_cash: 1000, ending_cash: null, expected_cash: 1000 + cash },
+            ],
+          },
+        };
+      },
+
+      getShiftSummary: async (sessionId, shiftId) => {
+        const completed = orders.filter(o => o.status === 'completed');
+        const cash = completed.filter(o => o.payment_method === 'cash').reduce((sum, o) => sum + o.total, 0);
+        return {
+          success: true,
+          data: {
+            shift: {
+              id: shiftId || 1,
+              status: 'open',
+              staffName: 'Cashier 1',
+              staffRole: 'staff',
+              openedAt: '2026-09-27 08:00:00',
+              closedAt: null,
+              startingCash: 1000,
+              endingCash: null,
+              expectedCash: 1000 + cash,
+              discrepancy: null,
+            },
+            sales: {
+              completedOrders: completed.length,
+              voidedOrders: 0,
+              grossSales: cash,
+              discounts: 0,
+              netSales: cash,
+              cashSales: cash,
+              gcashSales: 0,
+            },
+            cashAccounting: {
+              startingCash: 1000,
+              cashSales: cash,
+              cashIn: 0,
+              cashOut: 0,
+              cashDrop: 0,
+              expectedDrawerCash: 1000 + cash,
+              countedDrawerCash: null,
+              discrepancy: null,
+            },
+            movements: [],
+          },
+        };
+      },
+
+      getProductMix: async (sessionId, startDate, endDate) => {
+        return {
+          success: true,
+          data: {
+            startDate,
+            endDate,
+            totalRevenue: 8805.0,
+            totalUnits: 136,
+            items: [
+              { category_name: 'Takoyaki', product_name: 'Classic Octopus Takoyaki', variant_label: '8 pcs', unit_price: 85.0, units_sold: 42, total_revenue: 3570.0, percentOfRevenue: 40.5, percentOfUnits: 30.9 },
+              { category_name: 'Takoyaki', product_name: 'Crab & Cheese Takoyaki', variant_label: '8 pcs', unit_price: 95.0, units_sold: 28, total_revenue: 2660.0, percentOfRevenue: 30.2, percentOfUnits: 20.6 },
+              { category_name: 'Takoyaki', product_name: 'Classic Octopus Takoyaki', variant_label: '4 pcs', unit_price: 45.0, units_sold: 25, total_revenue: 1125.0, percentOfRevenue: 12.8, percentOfUnits: 18.4 },
+              { category_name: 'Siomai', product_name: 'Pork Siomai', variant_label: '4 pcs', unit_price: 40.0, units_sold: 22, total_revenue: 880.0, percentOfRevenue: 10.0, percentOfUnits: 16.2 },
+              { category_name: 'Drinks', product_name: 'Fresh Calamansi Juice (16oz)', variant_label: 'Regular (16oz)', unit_price: 30.0, units_sold: 19, total_revenue: 570.0, percentOfRevenue: 6.5, percentOfUnits: 13.9 },
+            ],
+          },
+        };
+      },
+
+      getInventory: async (sessionId, startDate, endDate) => {
+        return {
+          success: true,
+          data: {
+            startDate,
+            endDate,
+            items: defaultInventory.map(i => ({
+              item_id: i.itemId,
+              item_name: i.name,
+              unit: i.unit,
+              total_stock_in: i.stockIn,
+              total_suggested_out: i.suggestedOut,
+              total_confirmed_out: i.confirmedOut || i.suggestedOut,
+              total_waste_qty: i.wasteQty || 0,
+            })),
+          },
+        };
+      },
+
+      exportCsv: async (sessionId, reportType, data) => {
+        let csv = 'Report,Export\n';
+        if (reportType === 'daily_sales') {
+          csv = 'Product,Variant,Category,Units Sold,Revenue (PHP)\n' +
+            (data.topItems || []).map(it => `"${it.product_name}","${it.variant_label}","${it.category_name}",${it.units_sold},${it.total_revenue.toFixed(2)}`).join('\n');
+        } else if (reportType === 'product_mix') {
+          csv = 'Category,Product,Variant,Unit Price,Units Sold,Total Revenue,% Revenue,% Units\n' +
+            (data.items || []).map(it => `"${it.category_name}","${it.product_name}","${it.variant_label}",${it.unit_price},${it.units_sold},${it.total_revenue},${it.percentOfRevenue.toFixed(1)}%,${it.percentOfUnits.toFixed(1)}%`).join('\n');
+        } else {
+          csv = 'Item,Unit,Stock In,Suggested Out,Confirmed Out,Waste\n' +
+            (data.items || []).map(it => `"${it.item_name}","${it.unit}",${it.total_stock_in},${it.total_suggested_out},${it.total_confirmed_out},${it.total_waste_qty}`).join('\n');
+        }
+        return { success: true, data: csv };
       },
     },
   };

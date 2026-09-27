@@ -6,6 +6,8 @@ import { registerShiftHandlers } from './shiftHandlers.js';
 import { registerCashHandlers } from './cashHandlers.js';
 import { registerMenuHandlers } from './menuHandlers.js';
 import { registerOrderHandlers } from './orderHandlers.js';
+import { registerInventoryHandlers } from './inventoryHandlers.js';
+import { registerReportHandlers } from './reportHandlers.js';
 import { logger } from '../utils/logger.js';
 
 export function registerAllIpcHandlers() {
@@ -15,5 +17,7 @@ export function registerAllIpcHandlers() {
   registerCashHandlers();
   registerMenuHandlers();
   registerOrderHandlers();
+  registerInventoryHandlers();
+  registerReportHandlers();
   logger.info('All IPC handlers successfully registered.');
 }

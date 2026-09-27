@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { POSTerminal } from '../staff/POSTerminal/POSTerminal';
+import { InventoryLedger } from './Inventory/InventoryLedger';
+import { ReportsScreen } from './Reports/ReportsScreen';
 import logoImg from '../../assets/logo.png';
 import { ClipboardList, BarChart3, ShoppingCart, Lock, LogOut } from 'lucide-react';
 
@@ -92,54 +94,8 @@ export function AdminStaffShell() {
       {/* Main Content Area */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
         {activeTab === 'pos' && <POSTerminal embedded={true} />}
-
-        {activeTab === 'inventory' && (
-          <div style={{ padding: '32px', overflowY: 'auto', height: '100%' }}>
-            <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>Daily Inventory Ledger</h2>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
-                Track daily opening balances, stock in, recipe-computed suggested out, confirmed out, and shrinkage.
-              </p>
-
-              <div style={{
-                background: '#ffffff',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '40px',
-                textAlign: 'center',
-                boxShadow: 'var(--shadow-sm)',
-              }}>
-                <ClipboardList size={48} color="var(--brand-gold)" style={{ margin: '0 auto 16px' }} />
-                <h3 style={{ color: 'var(--text-main)', marginBottom: '8px', fontWeight: 800 }}>Inventory Engine Initialized</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Phase 3 will connect the interactive ledger to SQLite <code>inventory_logs</code> and recipes.</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'reports' && (
-          <div style={{ padding: '32px', overflowY: 'auto', height: '100%' }}>
-            <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>Shift & Sales Reports</h2>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
-                Summary of daily orders, cash accountability (expected vs actual), and CSV export.
-              </p>
-
-              <div style={{
-                background: '#ffffff',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '40px',
-                textAlign: 'center',
-                boxShadow: 'var(--shadow-sm)',
-              }}>
-                <BarChart3 size={48} color="var(--brand-green)" style={{ margin: '0 auto 16px' }} />
-                <h3 style={{ color: 'var(--text-main)', marginBottom: '8px', fontWeight: 800 }}>Reporting Engine Ready</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Phase 3 will wire up the live aggregation metrics and CSV export generator.</p>
-              </div>
-            </div>
-          </div>
-        )}
+        {activeTab === 'inventory' && <InventoryLedger />}
+        {activeTab === 'reports' && <ReportsScreen />}
       </div>
     </div>
   );

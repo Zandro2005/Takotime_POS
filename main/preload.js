@@ -44,5 +44,21 @@ contextBridge.exposeInMainWorld('api', {
     format: (sessionId, orderId) => ipcRenderer.invoke('pos:print:receipt', { sessionId, orderId }),
   },
 
+  inventory: {
+    getItems: (sessionId, date) => ipcRenderer.invoke('pos:inventory:items', { sessionId, date }),
+    getLog: (sessionId, date) => ipcRenderer.invoke('pos:inventory:log', { sessionId, date }),
+    updateLog: (sessionId, data) => ipcRenderer.invoke('pos:inventory:update-log', { sessionId, ...data }),
+    confirmOut: (sessionId, data) => ipcRenderer.invoke('pos:inventory:confirm', { sessionId, ...data }),
+    saveItem: (sessionId, itemData) => ipcRenderer.invoke('pos:inventory:save-item', { sessionId, ...itemData }),
+  },
+
+  reports: {
+    getDailySales: (sessionId, date) => ipcRenderer.invoke('pos:reports:daily-sales', { sessionId, date }),
+    getShiftSummary: (sessionId, shiftId) => ipcRenderer.invoke('pos:reports:shift-summary', { sessionId, shiftId }),
+    getProductMix: (sessionId, startDate, endDate) => ipcRenderer.invoke('pos:reports:product-mix', { sessionId, startDate, endDate }),
+    getInventory: (sessionId, startDate, endDate) => ipcRenderer.invoke('pos:reports:inventory', { sessionId, startDate, endDate }),
+    exportCsv: (sessionId, reportType, data) => ipcRenderer.invoke('pos:reports:export-csv', { sessionId, reportType, data }),
+  },
+
   invoke: (channel, payload = {}) => ipcRenderer.invoke(channel, payload),
 });
