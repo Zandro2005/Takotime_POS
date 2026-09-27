@@ -111,13 +111,10 @@ export function ReportsScreen() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div>
-            <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
               <BarChart3 size={22} color="var(--brand-green)" />
               Store Reports & Analytics
             </h1>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Sales breakdown, cash drawer accountability, product mix, and shrinkage audit
-            </p>
           </div>
 
           {/* Date Range Selectors */}

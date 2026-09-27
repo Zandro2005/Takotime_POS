@@ -570,7 +570,6 @@ export function POSTerminal({ embedded = false }) {
               }}>
                 <UtensilsCrossed size={36} strokeWidth={1.5} />
                 <p style={{ fontSize: '0.9rem', fontWeight: 600 }}>Cart is empty</p>
-                <p style={{ fontSize: '0.75rem' }}>Select items from the menu to start order</p>
               </div>
             ) : (
               cartItems.map((item, index) => (

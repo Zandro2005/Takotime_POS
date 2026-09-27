@@ -654,9 +654,6 @@ export function RemoteCloudShell() {
                     <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
                       7-Day Revenue Analytics & Trend
                     </h2>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-                      Daily gross revenue and order volume synchronized from store
-                    </p>
                   </div>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700 }}>
                     Peak: ₱{maxTrendRevenue.toLocaleString()}
@@ -719,8 +716,7 @@ export function RemoteCloudShell() {
                   })}
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '16px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  <span>Numbers inside bars indicate completed order counts</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginTop: '14px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ width: '10px', height: '10px', backgroundColor: 'var(--brand-crimson)', borderRadius: '2px' }} /> Today
                     <span style={{ width: '10px', height: '10px', backgroundColor: '#fca5a5', borderRadius: '2px', marginLeft: '8px' }} /> Past 6 Days
@@ -806,10 +802,7 @@ export function RemoteCloudShell() {
               alignItems: 'center',
             }}>
               <div>
-                <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Live Synchronized Orders Stream (Montalban Branch)</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Pushed from store terminal SQLite ledger to Firebase Realtime Database
-                </div>
+                <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Live Synchronized Orders</div>
               </div>
               <button
                 type="button"
@@ -872,12 +865,9 @@ export function RemoteCloudShell() {
               padding: '24px',
               boxShadow: 'var(--shadow-sm)',
             }}>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>
-                Queue Remote Store Action (Montalban Branch)
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '16px' }}>
+                Queue Remote Store Action
               </h2>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
-                Actions queued here are safely pulled by the local store terminal on its next sync cycle and applied atomically.
-              </p>
 
               <form onSubmit={handleQueueAction} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
@@ -1055,12 +1045,9 @@ export function RemoteCloudShell() {
             padding: '24px',
             boxShadow: 'var(--shadow-sm)',
           }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-              Remote Inventory Replenishment & Stock Alerts (Montalban Branch)
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '16px' }}>
+              Remote Inventory & Stock Alerts
             </h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
-              Real-time synchronization of ingredient levels computed from completed order recipes.
-            </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
               {lowStockAlerts.map((item, idx) => (

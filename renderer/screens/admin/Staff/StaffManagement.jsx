@@ -220,12 +220,7 @@ export function StaffManagement() {
       {/* Header bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Security & Identity Administration
-            </span>
-          </div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
             Staff & Cashier Accounts
           </h1>
         </div>
@@ -279,12 +274,9 @@ export function StaffManagement() {
       }}>
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-              Active & Inactive Staff Directory
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+              Staff Directory
             </h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Cashier accounts retain audit traceability. Deactivating prevents login while preserving shift logs.
-            </p>
           </div>
           <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)' }}>
             Total Accounts: {staffList.length}

@@ -217,8 +217,7 @@ export function POSTerminalShell() {
             gap: '8px',
           }}>
             <UtensilsCrossed size={36} strokeWidth={1.5} />
-            <p style={{ fontSize: '0.9rem' }}>Cart is currently empty</p>
-            <p style={{ fontSize: '0.8rem' }}>Phase 2 will activate full cart interactions!</p>
+            <p style={{ fontSize: '0.9rem' }}>Cart is empty</p>
           </div>
 
           <div style={{

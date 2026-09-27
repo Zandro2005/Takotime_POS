@@ -92,12 +92,7 @@ export function StoreSettings() {
       {/* Header bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Configuration & Hardware Preferences
-            </span>
-          </div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
             Store & Operational Settings
           </h1>
         </div>
@@ -242,7 +237,6 @@ export function StoreSettings() {
                   onChange={(e) => handleFieldChange('receipt_header', e.target.value)}
                   style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
                 />
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Use enter to create line breaks</span>
               </div>
 
               <div>
@@ -256,7 +250,6 @@ export function StoreSettings() {
                   onChange={(e) => handleFieldChange('receipt_footer', e.target.value)}
                   style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}
                 />
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Customer greeting, social media tags, or Wi-Fi info</span>
               </div>
             </div>
           </div>
@@ -352,13 +345,10 @@ export function StoreSettings() {
             position: 'sticky',
             top: '20px',
           }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <FileText size={18} color="var(--brand-red)" />
-              Live Thermal Slip Preview
+              Thermal Slip Preview
             </h2>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-              Simulates standard 58mm / 80mm monospace thermal paper output
-            </p>
 
             {/* Receipt Box */}
             <div style={{

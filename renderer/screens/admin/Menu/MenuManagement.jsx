@@ -263,13 +263,10 @@ export function MenuManagement() {
         zIndex: 2,
       }}>
         <div>
-          <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
             <UtensilsCrossed size={22} color="var(--brand-red)" />
-            Menu Catalog & Recipe BOM Builder
+            Menu & Recipe Catalog
           </h1>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Manage sellable categories, products, variant prices/costs, modifiers, and inventory recipe linkages
-          </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -380,12 +377,9 @@ export function MenuManagement() {
             boxShadow: 'var(--shadow-sm)',
           }}>
             <Package size={48} color="var(--brand-gold)" style={{ margin: '0 auto 16px' }} />
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '16px' }}>
               No Products in this Category
             </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px' }}>
-              Add a new item to start serving it on the store POS terminal.
-            </p>
             <button
               type="button"
               className="btn btn-primary"

@@ -433,9 +433,6 @@ export function SystemHealthScreen() {
               Uptime: <strong>{Math.floor((status?.system?.uptimeSeconds || 3600) / 60)} mins</strong> • Node: <strong>{status?.system?.nodeVersion || 'v22'}</strong>
             </div>
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', padding: '4px 0' }}>
-            Crash-Safe Single Instance Lock Verified
-          </div>
         </div>
       </div>
 
@@ -512,10 +509,7 @@ export function SystemHealthScreen() {
             alignItems: 'center',
           }}>
             <div>
-              <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Automatic & Manual Database Snapshots</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Stored locally in <code>backups/</code> • Isolated atomic copies via VACUUM INTO
-              </div>
+              <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Database Snapshots</div>
             </div>
             <button
               type="button"
@@ -692,12 +686,9 @@ export function SystemHealthScreen() {
           padding: '28px',
           boxShadow: 'var(--shadow-sm)',
         }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '20px' }}>
             ESC/POS Thermal Receipt Hardware Engine
           </h2>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
-            TAKOTIME POS implements direct ESC/POS binary command generation (initialization, bold headers, double-height queue numbers, monospace columnar formatting, and partial paper cut) with safe fallback to disk spooling.
-          </p>
 
           <div style={{
             display: 'grid',

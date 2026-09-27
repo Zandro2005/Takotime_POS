@@ -330,12 +330,9 @@ export function DashboardScreen({ onNavigate }) {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
             <div>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)' }}>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
                 7-Day Sales Performance
               </h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Daily gross revenue and order volume trend
-              </p>
             </div>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
               Peak: ₱{maxTrendRevenue.toLocaleString()}
@@ -457,7 +454,7 @@ export function DashboardScreen({ onNavigate }) {
               </div>
             ) : (
               <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                No active cashier shift currently open. Open a shift via the POS terminal to begin taking orders.
+                No active cashier shift currently open.
               </p>
             )}
           </div>
@@ -565,8 +562,8 @@ export function DashboardScreen({ onNavigate }) {
             </table>
           </div>
         ) : (
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-            No sales completed yet today. Once cashiers ring up orders, product rankings will display here in real time.
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', padding: '12px 0' }}>
+            No sales recorded today yet.
           </p>
         )}
       </div>
