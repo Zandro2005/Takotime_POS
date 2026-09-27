@@ -7,8 +7,16 @@ import { shiftService } from './shiftService.js';
 import { ORDER_STATUS, PAYMENT_METHODS, ORDER_TYPES, DISCOUNT_TYPES } from '../../shared/constants.js';
 
 export class OrderService {
+  constructor(dbInstance = null) {
+    this._db = dbInstance;
+  }
+
+  get db() {
+    return this._db || getDb();
+  }
+
   createOrder(payload) {
-    const db = getDb();
+    const db = this.db;
     const {
       shiftId,
       staffId,
@@ -178,7 +186,7 @@ export class OrderService {
   }
 
   voidOrder(orderId, voidedByUserId, reason = '') {
-    const db = getDb();
+    const db = this.db;
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
     if (!order) throw new Error(`Order #${orderId} not found`);
     if (order.status === ORDER_STATUS.VOIDED) throw new Error(`Order #${orderId} is already voided`);
@@ -202,7 +210,7 @@ export class OrderService {
   }
 
   getOrder(orderId) {
-    const db = getDb();
+    const db = this.db;
     const order = db.prepare(`
       SELECT o.*, u.name as staff_name, s.opened_at as shift_opened_at
       FROM orders o
@@ -237,7 +245,7 @@ export class OrderService {
   }
 
   getRecentOrders(shiftId, limit = 20) {
-    const db = getDb();
+    const db = this.db;
     const orders = db.prepare(`
       SELECT o.*, u.name as staff_name
       FROM orders o

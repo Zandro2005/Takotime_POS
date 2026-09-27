@@ -99,5 +99,11 @@ contextBridge.exposeInMainWorld('api', {
     getOverview: (sessionId, date) => ipcRenderer.invoke('pos:dashboard:overview', { sessionId, date }),
   },
 
+  sync: {
+    getStatus: (sessionId) => ipcRenderer.invoke('pos:sync:status', { sessionId }),
+    trigger: (sessionId) => ipcRenderer.invoke('pos:sync:trigger', { sessionId }),
+    getLogs: (sessionId, limit) => ipcRenderer.invoke('pos:sync:log', { sessionId, limit }),
+  },
+
   invoke: (channel, payload = {}) => ipcRenderer.invoke(channel, payload),
 });

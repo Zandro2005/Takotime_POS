@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAKOTIME — Overseas Remote Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-app: #f8fafc;
+      --bg-surface: #ffffff;
+      --border-subtle: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --brand-red: #e01a22;
+      --brand-red-light: #fee2e2;
+      --brand-green: #16a34a;
+      --brand-green-light: #dcfce7;
+      --brand-gold: #d97706;
+      --brand-gold-light: #fef3c7;
+      --brand-blue: #2563eb;
+      --brand-blue-light: #eff6ff;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-primary { background-color: var(--brand-red); color: #ffffff; }
+    .btn-primary:hover { background-color: #b9131a; }
+    .btn-secondary { background-color: #ffffff; color: var(--text-main); border: 1px solid var(--border-subtle); }
+    .btn-secondary:hover { background-color: #f1f5f9; }
+
+    .input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      background-color: #ffffff;
+      color: var(--text-main);
+    }
+    .input:focus { border-color: var(--brand-red); box-shadow: 0 0 0 2px rgba(224, 26, 34, 0.15); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .badge-green { background: var(--brand-green-light); color: var(--brand-green); }
+    .badge-gold { background: var(--brand-gold-light); color: var(--brand-gold); }
+    .badge-blue { background: var(--brand-blue-light); color: var(--brand-blue); }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <!-- Top Navigation Header -->
+    <header style="background: #ffffff; border-bottom: 1px solid var(--border-subtle); padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 36px; height: 36px; border-radius: 8px; background-color: var(--brand-red); display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 900; font-size: 1.1rem;">
+          T
+        </div>
+        <div>
+          <div style="font-weight: 800; font-size: 1.1rem; line-height: 1.1;">TAKOTIME CLOUD</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Remote Executive Portal • Overseas Branch View</div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+          <span style="color: var(--text-muted);">Active Store:</span>
+          <strong>Montalban Branch</strong>
+          <span class="badge badge-green">ONLINE</span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+          Last Store Sync: <strong style="color: var(--text-main);">Just now (Auto-Sync: 15m)</strong>
+        </div>
+        <button class="btn btn-primary" onclick="alert('Triggering manual store sync pull...')">
+          🔄 Refresh Cloud Data
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main style="max-width: 1400px; margin: 32px auto; padding: 0 32px;">
+      <!-- Welcome Alert Banner -->
+      <div style="background: var(--brand-blue-light); border: 1px solid #bfdbfe; border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 1.4rem;">🌐</span>
+          <div>
+            <div style="font-weight: 700; color: #1e40af; font-size: 0.95rem;">You are connected to the Live Store Bridge</div>
+            <div style="font-size: 0.8rem; color: #3b82f6;">All orders, inventory logs, and daily revenue numbers update automatically whenever the store terminal syncs.</div>
+          </div>
+        </div>
+        <span class="badge badge-blue">Firebase Realtime DB</span>
+      </div>
+
+      <!-- KPI Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 28px;">
+        <div class="card">
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted);">TODAY'S NET SALES (MONTALBAN)</div>
+          <div style="font-size: 2.2rem; font-weight: 800; font-family: var(--font-mono); color: var(--brand-green); margin-top: 8px;">₱4,780.00</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Cash: ₱3,580.00 • GCash: ₱1,200.00</div>
+        </div>
+
+        <div class="card">
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted);">COMPLETED TRANSACTIONS</div>
+          <div style="font-size: 2.2rem; font-weight: 800; font-family: var(--font-mono); color: var(--text-main); margin-top: 8px;">32</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Average order value: ₱149.38</div>
+        </div>
+
+        <div class="card">
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted);">DRAWER CASH RECONCILIATION</div>
+          <div style="font-size: 2.2rem; font-weight: 800; font-family: var(--font-mono); color: var(--text-main); margin-top: 8px;">₱4,430.00</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Expected in register (Cashier: Maria)</div>
+        </div>
+
+        <div class="card">
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted);">STORE STOCK WARNINGS</div>
+          <div style="font-size: 2.2rem; font-weight: 800; color: var(--brand-gold); margin-top: 8px;">3 Low</div>
+          <div style="font-size: 0.8rem; color: var(--brand-gold); margin-top: 4px; font-weight: 600;">Batter Premix, Calamansi, Bonito</div>
+        </div>
+      </div>
+
+      <!-- Action Queue with Conflict Prevention Section -->
+      <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 28px;">
+        <!-- Left: Queue Price Change -->
+        <div class="card">
+          <h2 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 6px;">Queue Remote Price Change</h2>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
+            Changes queued here will apply automatically on the store's next background sync.
+          </p>
+
+          <form onsubmit="event.preventDefault(); alert('Action queued to Firebase! Will apply on next store check-in.');">
+            <div style="margin-bottom: 14px;">
+              <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px;">Select Product Variant</label>
+              <select class="input">
+                <option>Classic Octopus Takoyaki (4 pcs) — Current: ₱45.00</option>
+                <option>Classic Octopus Takoyaki (8 pcs) — Current: ₱85.00</option>
+                <option>Classic Octopus Takoyaki (12 pcs) — Current: ₱125.00</option>
+                <option>Crab & Cheese Takoyaki (8 pcs) — Current: ₱95.00</option>
+              </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+              <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px;">New Price (₱)</label>
+                <input type="number" class="input" value="50.00" step="0.5" required>
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px;">New Unit Cost (₱)</label>
+                <input type="number" class="input" value="22.00" step="0.5">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+              Queue Price Change
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Recent Remote Action Logs -->
+        <div class="card">
+          <h2 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 6px;">Action Queue Telemetry</h2>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
+            History of queued and applied commands sent to the Montalban store terminal.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="padding: 12px 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <div style="font-weight: 700; font-size: 0.88rem;">Price Change: 4 pcs Classic Takoyaki → ₱50.00</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Queued by Admin • Applied at store: 14:15:02</div>
+              </div>
+              <span class="badge badge-green">APPLIED</span>
+            </div>
+
+            <div style="padding: 12px 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <div style="font-weight: 700; font-size: 0.88rem;">Update Receipt Footer: "Follow us on TikTok: @takotime_ph"</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Queued by Admin • Applied at store: 14:45:00</div>
+              </div>
+              <span class="badge badge-green">APPLIED</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

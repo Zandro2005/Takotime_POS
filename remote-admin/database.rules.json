@@ -1,0 +1,24 @@
+{
+  "rules": {
+    "stores": {
+      "$branchId": {
+        ".read": "auth != null",
+        "orders": {
+          ".write": "auth != null"
+        },
+        "daily_summaries": {
+          ".write": "auth != null"
+        },
+        "inventory_snapshot": {
+          ".write": "auth != null"
+        },
+        "heartbeat": {
+          ".write": "auth != null"
+        },
+        "admin_actions_queue": {
+          ".write": "auth != null"
+        }
+      }
+    }
+  }
+}

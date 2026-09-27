@@ -793,5 +793,47 @@ Payment: ${ord.payment_method.toUpperCase()}
         };
       },
     },
+
+    sync: {
+      getStatus: async (sessionId) => {
+        return {
+          success: true,
+          data: {
+            isEnabled: true,
+            baseUrl: 'https://takotime-pos-default-rtdb.asia-southeast1.firebasedatabase.app',
+            branchId: 'montalban',
+            pendingOrdersCount: 0,
+            totalOrdersCount: 32,
+            lastSuccessfulSyncAt: new Date().toISOString(),
+            lastSyncStatus: 'success',
+            lastSyncError: null,
+          },
+        };
+      },
+
+      trigger: async (sessionId) => {
+        return {
+          success: true,
+          data: {
+            success: true,
+            recordsSynced: 4,
+            ordersPushed: 3,
+            actionsApplied: 1,
+            timestamp: new Date().toISOString(),
+          },
+        };
+      },
+
+      getLogs: async (sessionId, limit = 20) => {
+        return {
+          success: true,
+          data: [
+            { id: 3, direction: 'push', status: 'success', records_synced: 4, error_message: null, started_at: '2026-09-27 15:45:00', completed_at: '2026-09-27 15:45:02' },
+            { id: 2, direction: 'push', status: 'success', records_synced: 6, error_message: null, started_at: '2026-09-27 15:30:00', completed_at: '2026-09-27 15:30:03' },
+            { id: 1, direction: 'push', status: 'success', records_synced: 12, error_message: null, started_at: '2026-09-27 15:15:00', completed_at: '2026-09-27 15:15:04' },
+          ],
+        };
+      },
+    },
   };
 }
