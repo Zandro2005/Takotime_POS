@@ -4,10 +4,19 @@
 import { getDb } from '../db/db.js';
 import { logger } from '../utils/logger.js';
 import { SHIFT_STATUS, PAYMENT_METHODS } from '../../shared/constants.js';
+import { backupService } from './backupService.js';
 
 export class ShiftService {
+  constructor(dbInstance = null) {
+    this._db = dbInstance;
+  }
+
+  get db() {
+    return this._db || getDb();
+  }
+
   getCurrentShift(staffId = null) {
-    const db = getDb();
+    const db = this.db;
     if (staffId) {
       return db.prepare(`
         SELECT s.*, u.name as staff_name, u.username as staff_username
@@ -30,7 +39,7 @@ export class ShiftService {
   }
 
   openShift(staffId, startingCash = 0, notes = '') {
-    const db = getDb();
+    const db = this.db;
 
     // Check if there is already an open shift for this staff or store
     const existing = this.getCurrentShift(staffId);
@@ -50,7 +59,7 @@ export class ShiftService {
   }
 
   computeExpectedCash(shiftId) {
-    const db = getDb();
+    const db = this.db;
     const shift = db.prepare('SELECT * FROM shifts WHERE id = ?').get(shiftId);
     if (!shift) throw new Error(`Shift #${shiftId} not found`);
 
@@ -88,7 +97,7 @@ export class ShiftService {
   }
 
   closeShift(shiftId, endingCash, notes = '') {
-    const db = getDb();
+    const db = this.db;
     const shift = db.prepare('SELECT * FROM shifts WHERE id = ?').get(shiftId);
     if (!shift) throw new Error(`Shift #${shiftId} not found`);
     if (shift.status !== 'open') throw new Error(`Shift #${shiftId} is already ${shift.status}`);
@@ -108,6 +117,13 @@ export class ShiftService {
 
     logger.info(`Closed shift #${shiftId}. Expected cash: ₱${cashCalc.expectedCash}, Counted ending cash: ₱${parsedEndingCash}`);
 
+    // Automated rolling backup upon shift close
+    try {
+      backupService.createBackup('shift_close');
+    } catch (bErr) {
+      logger.warn('Automated shift_close backup warning:', bErr.message);
+    }
+
     return {
       ...db.prepare('SELECT * FROM shifts WHERE id = ?').get(shiftId),
       breakdown: cashCalc,
@@ -116,7 +132,7 @@ export class ShiftService {
   }
 
   getNextQueueNo(shiftId) {
-    const db = getDb();
+    const db = this.db;
     // Atomic queue number increment
     const update = db.prepare(`
       UPDATE shifts
@@ -133,7 +149,7 @@ export class ShiftService {
   }
 
   forceCloseStaleShifts() {
-    const db = getDb();
+    const db = this.db;
     const staleShifts = db.prepare(`
       SELECT id FROM shifts
       WHERE status = 'open' AND date(opened_at) < date('now', 'localtime')

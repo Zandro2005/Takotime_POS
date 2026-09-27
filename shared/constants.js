@@ -127,18 +127,28 @@ export const IPC_CHANNELS = {
   BACKUP_RUN_NOW: 'pos:backup:run-now',
   BACKUP_LIST: 'pos:backup:list',
   BACKUP_STATUS: 'pos:backup:status',
+  BACKUP_VERIFY: 'pos:backup:verify',
+  BACKUP_PRUNE: 'pos:backup:prune',
 
   // Sync
   SYNC_STATUS: 'pos:sync:status',
   SYNC_TRIGGER: 'pos:sync:trigger',
   SYNC_LOG: 'pos:sync:log',
 
-  // Health
+  // Health & Recovery
   HEALTH_CHECK: 'pos:health:check',
   HEALTH_DB_INTEGRITY: 'pos:health:db-integrity',
   HEALTH_STATUS: 'pos:health:status',
+  HEALTH_STALE_SHIFTS: 'pos:health:stale-shifts',
+  HEALTH_FORCE_CLOSE: 'pos:health:force-close-shift',
 
-  // Printing
+  // Printing & Hardware
   PRINT_RECEIPT: 'pos:print:receipt',
   PRINT_TEST: 'pos:print:test',
+  PRINT_DRAWER: 'pos:print:drawer',
+  PRINT_STATUS: 'pos:print:status',
+
+  // Diagnostic Logs
+  LOGS_RECENT: 'pos:logs:recent',
 };
+

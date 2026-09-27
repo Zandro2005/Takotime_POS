@@ -835,5 +835,237 @@ Payment: ${ord.payment_method.toUpperCase()}
         };
       },
     },
+
+    health: {
+      getStatus: async (sessionId) => {
+        return {
+          success: true,
+          data: {
+            database: {
+              path: 'data/pos.db',
+              sizeBytes: 262144,
+              sizeFormatted: '256.0 KB',
+              walSizeBytes: 65536,
+              walSizeFormatted: '64.0 KB',
+              journalMode: 'WAL',
+              integrity: {
+                ok: true,
+                status: 'PASSED',
+                details: 'Database integrity verified. 0 corrupt pages detected.',
+                checkedAt: new Date().toISOString(),
+              },
+              counts: {
+                orders: 32,
+                products: 8,
+                users: 3,
+                shifts: 1,
+                inventoryItems: 12,
+              },
+            },
+            backups: {
+              totalCount: 3,
+              latestBackup: {
+                filename: 'pos_20260927_120000_scheduled.db',
+                filePath: 'backups/pos_20260927_120000_scheduled.db',
+                sizeBytes: 245760,
+                sizeFormatted: '240.0 KB',
+                createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+                reason: 'scheduled_6h',
+              },
+              backupDir: 'backups/',
+            },
+            shifts: {
+              activeShift: currentShift ? { ...currentShift, staff_name: 'Cashier 1' } : null,
+              staleShifts: [],
+            },
+            sync: {
+              pendingSyncCount: 0,
+            },
+            system: {
+              uptimeSeconds: 14420,
+              nodeVersion: 'v22.12.0',
+              platform: 'win32',
+              memory: {
+                rssFormatted: '64.2 MB',
+                heapUsedFormatted: '38.5 MB',
+                heapTotalFormatted: '52.0 MB',
+              },
+              timestamp: new Date().toISOString(),
+            },
+          },
+        };
+      },
+
+      checkIntegrity: async (sessionId) => {
+        return {
+          success: true,
+          data: {
+            ok: true,
+            status: 'PASSED',
+            details: 'Database integrity verified. 0 corrupt pages detected.',
+            checkedAt: new Date().toISOString(),
+          },
+        };
+      },
+
+      getStaleShifts: async (sessionId) => {
+        return { success: true, data: [] };
+      },
+
+      forceCloseShift: async (sessionId, shiftId, notes) => {
+        return { success: true, data: { shiftId, status: 'force_closed', expectedCash: 3580 } };
+      },
+    },
+
+    backup: {
+      runNow: async (sessionId, reason = 'manual') => {
+        const timestamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0];
+        const newBackup = {
+          filename: `pos_${timestamp}_${reason}.db`,
+          filePath: `backups/pos_${timestamp}_${reason}.db`,
+          sizeBytes: 256000,
+          sizeFormatted: '250.0 KB',
+          createdAt: new Date().toISOString(),
+          reason,
+          integrity: 'ok',
+        };
+        return {
+          success: true,
+          data: newBackup,
+        };
+      },
+
+      list: async (sessionId) => {
+        return {
+          success: true,
+          data: [
+            {
+              filename: 'pos_20260927_120000_scheduled.db',
+              filePath: 'backups/pos_20260927_120000_scheduled.db',
+              sizeBytes: 245760,
+              sizeFormatted: '240.0 KB',
+              createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+              reason: 'scheduled_6h',
+            },
+            {
+              filename: 'pos_20260927_060000_scheduled.db',
+              filePath: 'backups/pos_20260927_060000_scheduled.db',
+              sizeBytes: 237568,
+              sizeFormatted: '232.0 KB',
+              createdAt: new Date(Date.now() - 3600000 * 10).toISOString(),
+              reason: 'scheduled_6h',
+            },
+            {
+              filename: 'pos_20260926_220000_shift_close.db',
+              filePath: 'backups/pos_20260926_220000_shift_close.db',
+              sizeBytes: 229376,
+              sizeFormatted: '224.0 KB',
+              createdAt: new Date(Date.now() - 3600000 * 18).toISOString(),
+              reason: 'shift_close',
+            },
+          ],
+        };
+      },
+
+      getStatus: async (sessionId) => {
+        return {
+          success: true,
+          data: {
+            totalCount: 3,
+            backupDir: 'backups/',
+            retentionDays: 30,
+            latestBackup: {
+              filename: 'pos_20260927_120000_scheduled.db',
+              sizeFormatted: '240.0 KB',
+              createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+            },
+          },
+        };
+      },
+
+      verify: async (sessionId, filePath) => {
+        return {
+          success: true,
+          data: { valid: true, message: 'ok' },
+        };
+      },
+
+      prune: async (sessionId, retentionDays) => {
+        return {
+          success: true,
+          data: { prunedCount: 0, remainingCount: 3 },
+        };
+      },
+    },
+
+    print: {
+      receipt: async (sessionId, orderId, options) => {
+        return {
+          success: true,
+          data: {
+            success: true,
+            simulated: true,
+            orderId,
+            spoolFile: `spooler/receipt_${orderId}.txt`,
+            timestamp: new Date().toISOString(),
+          },
+        };
+      },
+
+      test: async (sessionId) => {
+        return {
+          success: true,
+          data: {
+            success: true,
+            simulated: true,
+            message: 'Hardware test ticket sent to thermal spooler.',
+          },
+        };
+      },
+
+      drawer: async (sessionId) => {
+        return {
+          success: true,
+          data: {
+            success: true,
+            pulseCode: 'ESC_p_0_25_250',
+            timestamp: new Date().toISOString(),
+          },
+        };
+      },
+
+      status: async (sessionId) => {
+        return {
+          success: true,
+          data: {
+            status: 'ONLINE',
+            mode: 'ESC/POS Monospace Thermal Driver',
+            paperWidth: '32 columns (58mm)',
+            spoolerPath: 'spooler/',
+            cashDrawerConnected: true,
+          },
+        };
+      },
+    },
+
+    logs: {
+      getRecent: async (sessionId, limit = 50) => {
+        const now = new Date();
+        return {
+          success: true,
+          data: [
+            { timestamp: new Date(now - 1000 * 15).toISOString(), level: 'INFO', message: 'Cashier checkout completed Order #0042 [₱125.00]' },
+            { timestamp: new Date(now - 1000 * 30).toISOString(), level: 'INFO', message: 'Thermal receipt spooled to spooler/receipt_42.txt' },
+            { timestamp: new Date(now - 1000 * 60).toISOString(), level: 'INFO', message: 'Cloud sync cycle completed: 4 records synced to Firebase' },
+            { timestamp: new Date(now - 1000 * 180).toISOString(), level: 'DEBUG', message: 'WAL checkpoint flushed successfully' },
+            { timestamp: new Date(now - 1000 * 600).toISOString(), level: 'INFO', message: 'Automated 6-hour SQLite backup created: pos_20260927_120000_scheduled.db' },
+            { timestamp: new Date(now - 1000 * 1200).toISOString(), level: 'INFO', message: 'Staff login verified: Cashier 1 (PIN 1111)' },
+            { timestamp: new Date(now - 1000 * 1800).toISOString(), level: 'INFO', message: 'Shift #1 opened with starting cash ₱1,000.00' },
+            { timestamp: new Date(now - 1000 * 3600).toISOString(), level: 'INFO', message: 'SQLite database opened at data/pos.db with WAL mode' },
+          ],
+        };
+      },
+    },
   };
 }
+

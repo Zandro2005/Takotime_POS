@@ -7,6 +7,7 @@ import { DashboardScreen } from './Dashboard/DashboardScreen';
 import { StaffManagement } from './Staff/StaffManagement';
 import { StoreSettings } from './Settings/StoreSettings';
 import { RemoteAdminPortal } from './Cloud/RemoteAdminPortal';
+import { SystemHealthScreen } from './Health/SystemHealthScreen';
 import logoImg from '../../assets/logo.png';
 import {
   LayoutDashboard,
@@ -168,47 +169,7 @@ export function AdminShell() {
         {activeTab === 'staff' && <StaffManagement />}
         {activeTab === 'settings' && <StoreSettings />}
         {activeTab === 'cloud' && <RemoteAdminPortal />}
-
-        {activeTab === 'health' && (
-          <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>System Health & Diagnostics</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
-              Monitor SQLite WAL status, rotating log files, and automated backups.
-            </p>
-            <div style={{
-              background: '#ffffff',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '32px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-              boxShadow: 'var(--shadow-sm)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Database size={24} color="var(--brand-green)" />
-                <div>
-                  <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Local Database: Healthy</div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>data/pos.db • PRAGMA journal_mode = WAL</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Activity size={24} color="var(--brand-gold)" />
-                <div>
-                  <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Diagnostics Logging: Active</div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>logs/app.log • Rotating 5 × 5MB buffer</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Cloud size={24} color="var(--text-faint)" />
-                <div>
-                  <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Cloud Sync Bridge: Standby</div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Scheduled for Phase 6 (Store operates 100% offline)</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {activeTab === 'health' && <SystemHealthScreen />}
       </main>
     </div>
   );

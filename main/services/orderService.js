@@ -3,7 +3,7 @@
 
 import { getDb } from '../db/db.js';
 import { logger } from '../utils/logger.js';
-import { shiftService } from './shiftService.js';
+import { ShiftService, shiftService } from './shiftService.js';
 import { ORDER_STATUS, PAYMENT_METHODS, ORDER_TYPES, DISCOUNT_TYPES } from '../../shared/constants.js';
 
 export class OrderService {
@@ -42,7 +42,7 @@ export class OrderService {
     // Run order creation atomically
     const createTransaction = db.transaction(() => {
       // 1. Get next queue number for this shift
-      const queueNo = shiftService.getNextQueueNo(shiftId);
+      const queueNo = new ShiftService(db).getNextQueueNo(shiftId);
 
       // 2. Fetch prices from database and calculate subtotals (never trust client amounts directly)
       let calculatedSubtotal = 0;

@@ -9,11 +9,15 @@ import { runMigrations } from './db/migrations/migrationRunner.js';
 import { seedInitialData } from './db/seed.js';
 import { registerAllIpcHandlers } from './ipc/index.js';
 import { logger } from './utils/logger.js';
+import { backupService } from './services/backupService.js';
+import { healthService } from './services/healthService.js';
+import { shiftService } from './services/shiftService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow = null;
+let backupIntervalId = null;
 
 function createWindow() {
   logger.info('Creating main application window...');
@@ -23,7 +27,7 @@ function createWindow() {
     height: 768,
     minWidth: 1024,
     minHeight: 600,
-    backgroundColor: '#0f172a', // Deep slate / dark background
+    backgroundColor: '#ffffff', // Clean white commercial background
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -85,7 +89,27 @@ if (!gotTheLock) {
       // 4. Register IPC Handlers
       registerAllIpcHandlers();
 
-      // 5. Create Window
+      // 5. Crash safety & startup integrity check
+      const integrity = healthService.runIntegrityCheck();
+      logger.info(`Startup SQLite integrity check: ${integrity.status}`);
+
+      // 6. Detect and recover stale shifts from previous days
+      const recoveredCount = shiftService.forceCloseStaleShifts();
+      if (recoveredCount > 0) {
+        logger.warn(`Startup recovery: automatically force-closed ${recoveredCount} stale open shift(s).`);
+      }
+
+      // 7. Schedule automated rolling 6-hour SQLite backups
+      const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
+      backupIntervalId = setInterval(() => {
+        try {
+          backupService.createBackup('scheduled_6h');
+        } catch (backupErr) {
+          logger.error('Scheduled backup error:', backupErr.message);
+        }
+      }, SIX_HOURS_MS);
+
+      // 8. Create Window
       createWindow();
     } catch (err) {
       logger.error('Fatal initialization error:', err);
@@ -106,7 +130,17 @@ if (!gotTheLock) {
   });
 
   app.on('before-quit', () => {
-    logger.info('Application quitting. Cleaning up resources...');
+    logger.info('Application quitting. Executing graceful shutdown...');
+    if (backupIntervalId) {
+      clearInterval(backupIntervalId);
+    }
+    try {
+      // Automatic backup before closing
+      backupService.createBackup('shutdown');
+    } catch (err) {
+      logger.warn('Shutdown backup skipped or failed:', err.message);
+    }
     closeDb();
   });
 }
+

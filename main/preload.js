@@ -105,5 +105,32 @@ contextBridge.exposeInMainWorld('api', {
     getLogs: (sessionId, limit) => ipcRenderer.invoke('pos:sync:log', { sessionId, limit }),
   },
 
+  health: {
+    getStatus: (sessionId) => ipcRenderer.invoke('pos:health:status', { sessionId }),
+    checkIntegrity: (sessionId) => ipcRenderer.invoke('pos:health:db-integrity', { sessionId }),
+    getStaleShifts: (sessionId) => ipcRenderer.invoke('pos:health:stale-shifts', { sessionId }),
+    forceCloseShift: (sessionId, shiftId, notes) => ipcRenderer.invoke('pos:health:force-close-shift', { sessionId, shiftId, notes }),
+  },
+
+  backup: {
+    runNow: (sessionId, reason) => ipcRenderer.invoke('pos:backup:run-now', { sessionId, reason }),
+    list: (sessionId) => ipcRenderer.invoke('pos:backup:list', { sessionId }),
+    getStatus: (sessionId) => ipcRenderer.invoke('pos:backup:status', { sessionId }),
+    verify: (sessionId, filePath) => ipcRenderer.invoke('pos:backup:verify', { sessionId, filePath }),
+    prune: (sessionId, retentionDays) => ipcRenderer.invoke('pos:backup:prune', { sessionId, retentionDays }),
+  },
+
+  print: {
+    receipt: (sessionId, orderId, options) => ipcRenderer.invoke('pos:print:receipt', { sessionId, orderId, options }),
+    test: (sessionId) => ipcRenderer.invoke('pos:print:test', { sessionId }),
+    drawer: (sessionId) => ipcRenderer.invoke('pos:print:drawer', { sessionId }),
+    status: (sessionId) => ipcRenderer.invoke('pos:print:status', { sessionId }),
+  },
+
+  logs: {
+    getRecent: (sessionId, limit) => ipcRenderer.invoke('pos:logs:recent', { sessionId, limit }),
+  },
+
   invoke: (channel, payload = {}) => ipcRenderer.invoke(channel, payload),
 });
+

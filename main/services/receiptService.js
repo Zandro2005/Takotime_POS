@@ -4,10 +4,21 @@
 import { getDb } from '../db/db.js';
 import { orderService } from './orderService.js';
 
+import { OrderService } from './orderService.js';
+
 export class ReceiptService {
+  constructor(dbInstance = null) {
+    this._db = dbInstance;
+  }
+
+  get db() {
+    return this._db || getDb();
+  }
+
   formatReceipt(orderId) {
-    const db = getDb();
-    const order = orderService.getOrder(orderId);
+    const db = this.db;
+    const os = new OrderService(db);
+    const order = os.getOrder(orderId);
     if (!order) throw new Error(`Order #${orderId} not found`);
 
     const settingsRows = db.prepare('SELECT key, value FROM settings').all();
