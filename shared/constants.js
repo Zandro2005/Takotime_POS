@@ -70,10 +70,15 @@ export const IPC_CHANNELS = {
   MENU_CATALOG: 'pos:menu:catalog',
 
   // Menu Admin
+  MENU_ADMIN_CREATE_CATEGORY: 'pos:menu-admin:create-category',
+  MENU_ADMIN_UPDATE_CATEGORY: 'pos:menu-admin:update-category',
   MENU_ADMIN_CREATE_PRODUCT: 'pos:menu-admin:create-product',
   MENU_ADMIN_UPDATE_PRODUCT: 'pos:menu-admin:update-product',
   MENU_ADMIN_CREATE_VARIANT: 'pos:menu-admin:create-variant',
   MENU_ADMIN_UPDATE_VARIANT: 'pos:menu-admin:update-variant',
+  MENU_ADMIN_DELETE_VARIANT: 'pos:menu-admin:delete-variant',
+  MENU_ADMIN_CREATE_MODIFIER: 'pos:menu-admin:create-modifier',
+  MENU_ADMIN_UPDATE_MODIFIER: 'pos:menu-admin:update-modifier',
   MENU_ADMIN_MANAGE_MODIFIERS: 'pos:menu-admin:manage-modifiers',
   MENU_ADMIN_REORDER: 'pos:menu-admin:reorder',
   MENU_ADMIN_TOGGLE_ACTIVE: 'pos:menu-admin:toggle-active',
@@ -81,6 +86,7 @@ export const IPC_CHANNELS = {
   // Recipes
   RECIPES_GET: 'pos:recipes:get',
   RECIPES_UPDATE: 'pos:recipes:update',
+  RECIPES_COVERAGE: 'pos:recipes:coverage',
 
   // Inventory
   INVENTORY_ITEMS: 'pos:inventory:items',

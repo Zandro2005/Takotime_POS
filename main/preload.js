@@ -33,6 +33,26 @@ contextBridge.exposeInMainWorld('api', {
     getModifiers: (sessionId, productId) => ipcRenderer.invoke('pos:menu:modifiers', { sessionId, productId }),
   },
 
+  menuAdmin: {
+    createCategory: (sessionId, data) => ipcRenderer.invoke('pos:menu-admin:create-category', { sessionId, ...data }),
+    updateCategory: (sessionId, data) => ipcRenderer.invoke('pos:menu-admin:update-category', { sessionId, ...data }),
+    createProduct: (sessionId, data) => ipcRenderer.invoke('pos:menu-admin:create-product', { sessionId, ...data }),
+    updateProduct: (sessionId, data) => ipcRenderer.invoke('pos:menu-admin:update-product', { sessionId, ...data }),
+    createVariant: (sessionId, data) => ipcRenderer.invoke('pos:menu-admin:create-variant', { sessionId, ...data }),
+    updateVariant: (sessionId, data) => ipcRenderer.invoke('pos:menu-admin:update-variant', { sessionId, ...data }),
+    deleteVariant: (sessionId, id) => ipcRenderer.invoke('pos:menu-admin:delete-variant', { sessionId, id }),
+    createModifier: (sessionId, data) => ipcRenderer.invoke('pos:menu-admin:create-modifier', { sessionId, ...data }),
+    updateModifier: (sessionId, data) => ipcRenderer.invoke('pos:menu-admin:update-modifier', { sessionId, ...data }),
+    manageModifiers: (sessionId, data) => ipcRenderer.invoke('pos:menu-admin:manage-modifiers', { sessionId, ...data }),
+    toggleActive: (sessionId, id, active) => ipcRenderer.invoke('pos:menu-admin:toggle-active', { sessionId, id, active }),
+  },
+
+  recipes: {
+    get: (sessionId, variantId) => ipcRenderer.invoke('pos:recipes:get', { sessionId, variantId }),
+    update: (sessionId, variantId, ingredients) => ipcRenderer.invoke('pos:recipes:update', { sessionId, variantId, ingredients }),
+    getCoverage: (sessionId) => ipcRenderer.invoke('pos:recipes:coverage', { sessionId }),
+  },
+
   orders: {
     create: (sessionId, orderData) => ipcRenderer.invoke('pos:orders:create', { sessionId, ...orderData }),
     void: (sessionId, orderId, reason) => ipcRenderer.invoke('pos:orders:void', { sessionId, orderId, reason }),

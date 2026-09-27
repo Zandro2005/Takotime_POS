@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { POSTerminal } from '../staff/POSTerminal/POSTerminal';
+import { MenuManagement } from './Menu/MenuManagement';
 import logoImg from '../../assets/logo.png';
 import {
   LayoutDashboard,
@@ -140,11 +141,18 @@ export function AdminShell() {
       </aside>
 
       {/* Content Area */}
-      <main style={{ flex: 1, backgroundColor: 'var(--bg-app)', overflowY: 'auto' }}>
+      <main style={{
+        flex: 1,
+        backgroundColor: 'var(--bg-app)',
+        overflowY: activeTab === 'pos' || activeTab === 'menu' ? 'hidden' : 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+      }}>
         {activeTab === 'pos' && <POSTerminal embedded={true} />}
 
         {activeTab === 'dashboard' && (
-          <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
             <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>Store Overview</h1>
             <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '0.9rem' }}>
               Real-time metrics from the local SQLite database.
@@ -202,26 +210,7 @@ export function AdminShell() {
           </div>
         )}
 
-        {activeTab === 'menu' && (
-          <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>Menu & Recipe Management</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
-              Configure categories, products, prices, modifier add-ons, and bill-of-materials.
-            </p>
-            <div style={{
-              background: '#ffffff',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '40px',
-              textAlign: 'center',
-              boxShadow: 'var(--shadow-sm)',
-            }}>
-              <UtensilsCrossed size={48} color="var(--brand-red)" style={{ margin: '0 auto 16px' }} />
-              <h3 style={{ marginBottom: '8px', fontWeight: 800, color: 'var(--text-main)' }}>Menu Engine Seeded</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Initial catalog is stored in SQLite. Phase 4 will provide full in-app editing.</p>
-            </div>
-          </div>
-        )}
+        {activeTab === 'menu' && <MenuManagement />}
 
         {activeTab === 'staff' && (
           <div style={{ padding: '36px', maxWidth: '1100px', margin: '0 auto' }}>

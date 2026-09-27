@@ -216,6 +216,146 @@ export function setupBrowserMockApi() {
 
     menu: {
       getCatalog: async () => ({ success: true, data: defaultCatalog }),
+      getCategories: async () => ({ success: true, data: defaultCatalog.map(c => ({ id: c.id, name: c.name, sort_order: c.sort_order, active: 1 })) }),
+      getProducts: async (s, catId) => ({ success: true, data: defaultCatalog.find(c => c.id === catId)?.products || [] }),
+      getVariants: async (s, prodId) => {
+        for (const c of defaultCatalog) {
+          const p = c.products.find(pr => pr.id === prodId);
+          if (p) return { success: true, data: p.variants };
+        }
+        return { success: true, data: [] };
+      },
+      getModifiers: async (s, prodId) => {
+        for (const c of defaultCatalog) {
+          const p = c.products.find(pr => pr.id === prodId);
+          if (p) return { success: true, data: p.modifiers };
+        }
+        return { success: true, data: [] };
+      },
+    },
+
+    menuAdmin: {
+      createCategory: async (s, data) => {
+        const newCat = { id: defaultCatalog.length + 1, name: data.name, sort_order: Number(data.sortOrder) || 0, products: [] };
+        defaultCatalog.push(newCat);
+        return { success: true, data: newCat };
+      },
+      updateCategory: async (s, data) => {
+        const cat = defaultCatalog.find(c => c.id === data.id);
+        if (cat && data.name) cat.name = data.name;
+        return { success: true, data: cat };
+      },
+      createProduct: async (s, data) => {
+        const cat = defaultCatalog.find(c => c.id === data.categoryId);
+        const newProd = {
+          id: Date.now(),
+          name: data.name,
+          category_id: data.categoryId,
+          sort_order: Number(data.sortOrder) || 0,
+          variants: [],
+          modifiers: [],
+        };
+        if (cat) cat.products.push(newProd);
+        return { success: true, data: newProd };
+      },
+      updateProduct: async (s, data) => {
+        for (const c of defaultCatalog) {
+          const p = c.products.find(pr => pr.id === data.id);
+          if (p) {
+            if (data.name) p.name = data.name;
+            if (data.categoryId) p.category_id = data.categoryId;
+            return { success: true, data: p };
+          }
+        }
+        return { success: true };
+      },
+      createVariant: async (s, data) => {
+        for (const c of defaultCatalog) {
+          const p = c.products.find(pr => pr.id === data.productId);
+          if (p) {
+            const newVar = {
+              id: Date.now(),
+              product_id: data.productId,
+              label: data.label,
+              price: Number(data.price),
+              cost: Number(data.cost) || 0,
+              sort_order: Number(data.sortOrder) || 0,
+            };
+            p.variants.push(newVar);
+            return { success: true, data: newVar };
+          }
+        }
+        return { success: true };
+      },
+      updateVariant: async (s, data) => {
+        for (const c of defaultCatalog) {
+          for (const p of c.products) {
+            const v = p.variants.find(va => va.id === data.id);
+            if (v) {
+              if (data.label) v.label = data.label;
+              if (data.price !== undefined) v.price = Number(data.price);
+              if (data.cost !== undefined) v.cost = Number(data.cost);
+              return { success: true, data: v };
+            }
+          }
+        }
+        return { success: true };
+      },
+      deleteVariant: async (s, id) => {
+        for (const c of defaultCatalog) {
+          for (const p of c.products) {
+            p.variants = p.variants.filter(va => va.id !== id);
+          }
+        }
+        return { success: true };
+      },
+      manageModifiers: async (s, data) => {
+        return { success: true };
+      },
+      toggleActive: async (s, id, active) => {
+        return { success: true };
+      },
+    },
+
+    recipes: {
+      get: async (s, variantId) => {
+        return {
+          success: true,
+          data: {
+            variantId,
+            ingredients: [
+              { id: 1, inventoryItemId: 1, name: 'Takoyaki Batter Premix', unit: 'kg', qtyPerUnit: 0.16 },
+              { id: 2, inventoryItemId: 2, name: 'Diced Octopus', unit: 'kg', qtyPerUnit: 0.08 },
+            ],
+          },
+        };
+      },
+      update: async (s, variantId, ingredients) => {
+        return {
+          success: true,
+          data: { variantId, ingredients },
+        };
+      },
+      getCoverage: async () => {
+        const list = [];
+        for (const c of defaultCatalog) {
+          for (const p of c.products) {
+            for (const v of p.variants) {
+              list.push({
+                category_name: c.name,
+                product_id: p.id,
+                product_name: p.name,
+                variant_id: v.id,
+                variant_label: v.label,
+                price: v.price,
+                ingredient_count: 2,
+                hasRecipe: true,
+              });
+            }
+          }
+        }
+        return { success: true, data: list };
+      },
     },
 
     orders: {

@@ -5,6 +5,8 @@ import { registerAuthHandlers } from './authHandlers.js';
 import { registerShiftHandlers } from './shiftHandlers.js';
 import { registerCashHandlers } from './cashHandlers.js';
 import { registerMenuHandlers } from './menuHandlers.js';
+import { registerMenuAdminHandlers } from './menuAdminHandlers.js';
+import { registerRecipeHandlers } from './recipeHandlers.js';
 import { registerOrderHandlers } from './orderHandlers.js';
 import { registerInventoryHandlers } from './inventoryHandlers.js';
 import { registerReportHandlers } from './reportHandlers.js';
@@ -16,6 +18,8 @@ export function registerAllIpcHandlers() {
   registerShiftHandlers();
   registerCashHandlers();
   registerMenuHandlers();
+  registerMenuAdminHandlers();
+  registerRecipeHandlers();
   registerOrderHandlers();
   registerInventoryHandlers();
   registerReportHandlers();
