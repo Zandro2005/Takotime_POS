@@ -28,6 +28,11 @@ export function seedInitialData(db) {
   const cashierPin = bcrypt.hashSync('1111', saltRounds);
   insertUser.run('Cashier 1', 'cashier', cashierPin, cashierPass, ROLES.STAFF);
 
+  const cloudAdminPass = bcrypt.hashSync('cloudpass123', saltRounds);
+  const cloudAdminPin = bcrypt.hashSync('9999', saltRounds);
+  insertUser.run('Remote Franchise Executive', 'cloudadmin', cloudAdminPin, cloudAdminPass, ROLES.REMOTE_ADMIN);
+
+
   // 2. Seed Categories
   const insertCategory = db.prepare('INSERT OR IGNORE INTO categories (id, name, sort_order) VALUES (?, ?, ?)');
   insertCategory.run(1, 'Takoyaki', 1);

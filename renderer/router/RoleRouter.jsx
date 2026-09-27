@@ -6,6 +6,7 @@ import { LockScreen } from '../screens/LockScreen/LockScreen';
 import { POSTerminal } from '../screens/staff/POSTerminal/POSTerminal';
 import { AdminStaffShell } from '../screens/admin-staff/AdminStaffShell';
 import { AdminShell } from '../screens/admin/AdminShell';
+import { RemoteCloudShell } from '../screens/remote-admin/RemoteCloudShell';
 import { ROLES } from '@shared/constants.js';
 
 export function RoleRouter() {
@@ -43,6 +44,9 @@ export function RoleRouter() {
       break;
     case ROLES.ADMIN:
       CurrentScreen = <AdminShell />;
+      break;
+    case ROLES.REMOTE_ADMIN:
+      CurrentScreen = <RemoteCloudShell />;
       break;
     default:
       CurrentScreen = <LoginScreen />;

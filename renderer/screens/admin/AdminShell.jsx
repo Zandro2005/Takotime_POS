@@ -6,7 +6,6 @@ import { MenuManagement } from './Menu/MenuManagement';
 import { DashboardScreen } from './Dashboard/DashboardScreen';
 import { StaffManagement } from './Staff/StaffManagement';
 import { StoreSettings } from './Settings/StoreSettings';
-import { RemoteAdminPortal } from './Cloud/RemoteAdminPortal';
 import { SystemHealthScreen } from './Health/SystemHealthScreen';
 import logoImg from '../../assets/logo.png';
 import {
@@ -99,15 +98,6 @@ export function AdminShell() {
             </button>
 
             <button
-              className={`btn ${activeTab === 'cloud' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
-              onClick={() => setActiveTab('cloud')}
-            >
-              <Cloud size={18} />
-              Remote Cloud Admin
-            </button>
-
-            <button
               className={`btn ${activeTab === 'health' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
               onClick={() => setActiveTab('health')}
@@ -168,7 +158,6 @@ export function AdminShell() {
         {activeTab === 'menu' && <MenuManagement />}
         {activeTab === 'staff' && <StaffManagement />}
         {activeTab === 'settings' && <StoreSettings />}
-        {activeTab === 'cloud' && <RemoteAdminPortal />}
         {activeTab === 'health' && <SystemHealthScreen />}
       </main>
     </div>

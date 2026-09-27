@@ -5,6 +5,7 @@ export const ROLES = {
   STAFF: 'staff',
   ADMIN_STAFF: 'admin_staff',
   ADMIN: 'admin',
+  REMOTE_ADMIN: 'remote_admin',
 };
 
 export const ORDER_TYPES = {

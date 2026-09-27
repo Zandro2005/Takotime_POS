@@ -78,6 +78,10 @@ export function LoginScreen() {
       setMode('password');
       setUsername('admin');
       setPassword('admin123');
+    } else if (demoType === 'cloud') {
+      setMode('password');
+      setUsername('cloudadmin');
+      setPassword('cloudpass123');
     }
   };
 
@@ -220,7 +224,15 @@ export function LoginScreen() {
               Lead Staff (PIN: 5678)
             </button>
             <button type="button" className="demo-pill" onClick={() => fillDemo('admin')}>
-              Admin (admin / admin123)
+              Store Admin (admin)
+            </button>
+            <button
+              type="button"
+              className="demo-pill"
+              style={{ borderColor: '#3b82f6', color: '#2563eb', backgroundColor: '#eff6ff' }}
+              onClick={() => fillDemo('cloud')}
+            >
+              ☁ Remote Cloud Admin (cloudadmin)
             </button>
           </div>
         </div>

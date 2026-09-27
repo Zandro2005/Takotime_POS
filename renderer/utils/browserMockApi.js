@@ -120,6 +120,7 @@ const mockUsers = [
   { id: 1, name: 'Store Admin', username: 'admin', pin: '1234', password: 'admin123', role: 'admin' },
   { id: 2, name: 'Lead Staff', username: 'supervisor', pin: '5678', password: 'staff123', role: 'admin_staff' },
   { id: 3, name: 'Cashier 1', username: 'cashier', pin: '1111', password: 'cashier123', role: 'staff' },
+  { id: 4, name: 'Franchise Owner', username: 'cloudadmin', pin: '9999', password: 'cloudpass123', role: 'remote_admin' },
 ];
 
 const defaultInventory = [
