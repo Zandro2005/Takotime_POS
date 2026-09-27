@@ -1,0 +1,29 @@
+{
+  "name": "takotime-pos",
+  "version": "1.0.0",
+  "description": "TAKOTIME POS — Offline-First Desktop Point of Sale for Takoyaki, Siomai, and Drinks Stall",
+  "main": "main/main.js",
+  "type": "module",
+  "author": "TAKOTIME",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && electron .\"",
+    "build:renderer": "vite build",
+    "start": "electron .",
+    "test": "node --test tests/unit/*.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
+    "lucide-react": "^1.48.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.1",
+    "concurrently": "^10.0.5",
+    "electron": "^44.4.5",
+    "vite": "^8.3.1",
+    "wait-on": "^9.1.0"
+  }
+}
