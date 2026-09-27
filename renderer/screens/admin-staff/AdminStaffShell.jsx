@@ -7,6 +7,8 @@ import { ReportsScreen } from './Reports/ReportsScreen';
 import logoImg from '../../assets/logo.png';
 import { ClipboardList, BarChart3, ShoppingCart, Lock, LogOut } from 'lucide-react';
 
+import { ErrorBoundary } from '../../components/ErrorBoundary';
+
 export function AdminStaffShell() {
   const { user, logout, lockScreen } = useAuth();
   const [activeTab, setActiveTab] = useState('pos'); // 'pos', 'inventory', 'reports'
@@ -92,10 +94,22 @@ export function AdminStaffShell() {
       </header>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, overflow: 'hidden' }}>
-        {activeTab === 'pos' && <POSTerminal embedded={true} />}
-        {activeTab === 'inventory' && <InventoryLedger />}
-        {activeTab === 'reports' && <ReportsScreen />}
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        {activeTab === 'pos' && (
+          <ErrorBoundary title="POS Terminal Error" message="Unable to load POS Terminal.">
+            <POSTerminal embedded={true} />
+          </ErrorBoundary>
+        )}
+        {activeTab === 'inventory' && (
+          <ErrorBoundary title="Daily Inventory Ledger Error" message="Unable to load Daily Inventory Ledger.">
+            <InventoryLedger />
+          </ErrorBoundary>
+        )}
+        {activeTab === 'reports' && (
+          <ErrorBoundary title="Reports Error" message="Unable to load Store Reports.">
+            <ReportsScreen />
+          </ErrorBoundary>
+        )}
       </div>
     </div>
   );

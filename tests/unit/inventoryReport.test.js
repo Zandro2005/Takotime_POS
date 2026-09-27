@@ -32,7 +32,14 @@ test.after(() => {
 });
 
 test('Phase 3 Inventory & Reports Suite', async (t) => {
-  const today = '2026-09-27';
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const today = `${year}-${month}-${day}`;
+  const tm = new Date(now);
+  tm.setDate(tm.getDate() + 1);
+  const tomorrow = `${tm.getFullYear()}-${String(tm.getMonth() + 1).padStart(2, '0')}-${String(tm.getDate()).padStart(2, '0')}`;
 
   // 1. Initialize Inventory Day Log
   await t.test('1. initializeDayLog populates all active inventory items for today', () => {
@@ -131,7 +138,6 @@ test('Phase 3 Inventory & Reports Suite', async (t) => {
 
   // 5. Carry forward to next day
   await t.test('5. Carry forward auto-populates tomorrow beginning_qty from today ending_qty', () => {
-    const tomorrow = '2026-09-28';
     inventoryService.initializeDayLog(tomorrow);
 
     const tomorrowItems = inventoryService.getItemsForDate(tomorrow);

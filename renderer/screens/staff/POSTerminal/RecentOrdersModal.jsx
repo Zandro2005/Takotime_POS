@@ -213,7 +213,7 @@ export function RecentOrdersModal({ shiftId, onClose }) {
                   style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
                   onClick={() => setSelectedReceiptText(null)}
                 >
-                  ✕
+                  <X size={14} />
                 </button>
               </div>
               {selectedReceiptText}

@@ -143,7 +143,8 @@ test('Phase 6 Cloud Sync Bridge Suite', async (t) => {
   });
 
   await t.test('3. pushDailySummary and pushInventorySnapshot write correctly to cloud', async () => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const d = new Date();
+    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const summaryRes = await syncService.pushDailySummary(todayStr);
     assert.strictEqual(summaryRes.success, true);
 

@@ -6,14 +6,13 @@ import { MenuManagement } from './Menu/MenuManagement';
 import { DashboardScreen } from './Dashboard/DashboardScreen';
 import { StaffManagement } from './Staff/StaffManagement';
 import { StoreSettings } from './Settings/StoreSettings';
-import { SystemHealthScreen } from './Health/SystemHealthScreen';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 import logoImg from '../../assets/logo.png';
 import {
   LayoutDashboard,
   UtensilsCrossed,
   Users,
   Settings,
-  Activity,
   ShoppingCart,
   Lock,
   LogOut,
@@ -96,15 +95,6 @@ export function AdminShell() {
               <Settings size={18} />
               Store Settings
             </button>
-
-            <button
-              className={`btn ${activeTab === 'health' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
-              onClick={() => setActiveTab('health')}
-            >
-              <Activity size={18} />
-              System Health
-            </button>
           </nav>
         </div>
 
@@ -152,13 +142,33 @@ export function AdminShell() {
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
+        minHeight: 0,
       }}>
-        {activeTab === 'pos' && <POSTerminal embedded={true} />}
-        {activeTab === 'dashboard' && <DashboardScreen onNavigate={setActiveTab} />}
-        {activeTab === 'menu' && <MenuManagement />}
-        {activeTab === 'staff' && <StaffManagement />}
-        {activeTab === 'settings' && <StoreSettings />}
-        {activeTab === 'health' && <SystemHealthScreen />}
+        {activeTab === 'pos' && (
+          <ErrorBoundary title="POS Terminal Error" message="Unable to load POS Terminal.">
+            <POSTerminal embedded={true} />
+          </ErrorBoundary>
+        )}
+        {activeTab === 'dashboard' && (
+          <ErrorBoundary title="Dashboard Error" message="Unable to load Dashboard.">
+            <DashboardScreen onNavigate={setActiveTab} />
+          </ErrorBoundary>
+        )}
+        {activeTab === 'menu' && (
+          <ErrorBoundary title="Menu Management Error" message="Unable to load Menu Management.">
+            <MenuManagement />
+          </ErrorBoundary>
+        )}
+        {activeTab === 'staff' && (
+          <ErrorBoundary title="Staff Management Error" message="Unable to load Staff Management.">
+            <StaffManagement />
+          </ErrorBoundary>
+        )}
+        {activeTab === 'settings' && (
+          <ErrorBoundary title="Store Settings Error" message="Unable to load Store Settings.">
+            <StoreSettings />
+          </ErrorBoundary>
+        )}
       </main>
     </div>
   );

@@ -457,12 +457,25 @@ Payment: ${ord.payment_method.toUpperCase()}
       getItems: async (sessionId, date) => {
         return {
           success: true,
-          data: defaultInventory.map(item => ({
-            ...item,
-            logDate: date || new Date().toISOString().split('T')[0],
-            isConfirmed: item.confirmedOut !== null,
-            isLowStock: (item.endingQty !== null ? item.endingQty : (item.beginningQty + item.stockIn - item.suggestedOut)) <= item.minStock,
-          })),
+          data: defaultInventory.map(item => {
+            const beg = Number(item.beginningQty) || 0;
+            const sin = Number(item.stockIn) || 0;
+            const sug = Number(item.suggestedOut) || 0;
+            const conf = item.confirmedOut !== null && item.confirmedOut !== undefined ? Number(item.confirmedOut) : null;
+            const end = item.endingQty !== null && item.endingQty !== undefined ? Number(item.endingQty) : (conf !== null ? beg + sin - conf : beg + sin - sug);
+            return {
+              ...item,
+              beginningQty: beg,
+              stockIn: sin,
+              suggestedOut: sug,
+              confirmedOut: conf,
+              endingQty: end,
+              wasteQty: conf !== null ? conf - sug : null,
+              logDate: date || new Date().toLocaleDateString('en-CA'),
+              isConfirmed: conf !== null,
+              isLowStock: end <= (Number(item.minStock) || 0),
+            };
+          }),
         };
       },
 
@@ -470,14 +483,16 @@ Payment: ${ord.payment_method.toUpperCase()}
         const item = defaultInventory.find(i => i.itemId === payload.itemId);
         if (item) {
           if (payload.stockIn !== undefined) {
-            item.stockIn += Number(payload.stockIn);
+            item.stockIn = (Number(item.stockIn) || 0) + Number(payload.stockIn);
           }
           if (payload.beginningQty !== undefined) {
             item.beginningQty = Number(payload.beginningQty);
           }
-          if (item.confirmedOut !== null) {
-            item.endingQty = item.beginningQty + item.stockIn - item.confirmedOut;
-          }
+          const beg = Number(item.beginningQty) || 0;
+          const sin = Number(item.stockIn) || 0;
+          const conf = item.confirmedOut !== null && item.confirmedOut !== undefined ? Number(item.confirmedOut) : null;
+          const sug = Number(item.suggestedOut) || 0;
+          item.endingQty = conf !== null ? beg + sin - conf : beg + sin - sug;
         }
         return { success: true };
       },
@@ -485,9 +500,13 @@ Payment: ${ord.payment_method.toUpperCase()}
       confirmOut: async (sessionId, payload) => {
         const item = defaultInventory.find(i => i.itemId === payload.itemId);
         if (item) {
-          item.confirmedOut = Number(payload.confirmedQty);
-          item.endingQty = item.beginningQty + item.stockIn - item.confirmedOut;
-          item.wasteQty = item.confirmedOut - item.suggestedOut;
+          const qty = Number(payload.confirmedQty) || 0;
+          item.confirmedOut = qty;
+          const beg = Number(item.beginningQty) || 0;
+          const sin = Number(item.stockIn) || 0;
+          const sug = Number(item.suggestedOut) || 0;
+          item.endingQty = beg + sin - qty;
+          item.wasteQty = qty - sug;
         }
         return { success: true, data: item };
       },
@@ -601,10 +620,10 @@ Payment: ${ord.payment_method.toUpperCase()}
               item_id: i.itemId,
               item_name: i.name,
               unit: i.unit,
-              total_stock_in: i.stockIn,
-              total_suggested_out: i.suggestedOut,
-              total_confirmed_out: i.confirmedOut || i.suggestedOut,
-              total_waste_qty: i.wasteQty || 0,
+              total_stock_in: Number(i.stockIn) || 0,
+              total_suggested_out: Number(i.suggestedOut) || 0,
+              total_confirmed_out: (i.confirmedOut !== null && i.confirmedOut !== undefined) ? Number(i.confirmedOut) : (Number(i.suggestedOut) || 0),
+              total_waste_qty: (i.wasteQty !== null && i.wasteQty !== undefined) ? Number(i.wasteQty) : 0,
             })),
           },
         };
@@ -743,11 +762,71 @@ Payment: ${ord.payment_method.toUpperCase()}
     },
 
     dashboard: {
-      getOverview: async (sessionId, date) => {
+      getSalesTrend: async (sessionId, timeframe = '7d', date) => {
+        const target = date ? new Date(date) : new Date();
+        const trend = [];
+        if (timeframe === 'semi_annual' || timeframe === 'annual') {
+          const monthsCount = timeframe === 'annual' ? 12 : 6;
+          for (let i = monthsCount - 1; i >= 0; i--) {
+            const d = new Date(target.getFullYear(), target.getMonth() - i, 1);
+            const label = d.toLocaleDateString('en-US', { month: 'short', year: monthsCount === 12 ? '2-digit' : undefined });
+            const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            const revenue = Math.round(98000 + ((i * 4700 + 13000) % 45000));
+            const orderCount = Math.round(revenue / 135);
+            trend.push({ date: monthStr, label, revenue, orderCount });
+          }
+        } else {
+          const daysCount = timeframe === '30d' ? 30 : timeframe === '15d' ? 15 : 7;
+          for (let i = daysCount - 1; i >= 0; i--) {
+            const d = new Date(target);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            const label = daysCount === 7
+              ? d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' })
+              : `${d.getMonth() + 1}/${d.getDate()}`;
+            const revenue = i === 0 ? 4780 : Math.round(3800 + ((i * 530 + 1100) % 2900));
+            const orderCount = Math.round(revenue / 140);
+            trend.push({ date: dateStr, label, revenue, orderCount });
+          }
+        }
+        return { success: true, data: trend };
+      },
+
+      getOverview: async (sessionId, date, timeframe = '7d') => {
+        const target = date ? new Date(date) : new Date();
+        const targetDate = date || target.toISOString().split('T')[0];
+        const trend = [];
+
+        if (timeframe === 'semi_annual' || timeframe === 'annual') {
+          const monthsCount = timeframe === 'annual' ? 12 : 6;
+          for (let i = monthsCount - 1; i >= 0; i--) {
+            const d = new Date(target.getFullYear(), target.getMonth() - i, 1);
+            const label = d.toLocaleDateString('en-US', { month: 'short', year: monthsCount === 12 ? '2-digit' : undefined });
+            const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            const revenue = Math.round(98000 + ((i * 4700 + 13000) % 45000));
+            const orderCount = Math.round(revenue / 135);
+            trend.push({ date: monthStr, label, revenue, orderCount });
+          }
+        } else {
+          const daysCount = timeframe === '30d' ? 30 : timeframe === '15d' ? 15 : 7;
+          for (let i = daysCount - 1; i >= 0; i--) {
+            const d = new Date(target);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            const label = daysCount === 7
+              ? d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' })
+              : `${d.getMonth() + 1}/${d.getDate()}`;
+            const revenue = i === 0 ? 4780 : Math.round(3800 + ((i * 530 + 1100) % 2900));
+            const orderCount = Math.round(revenue / 140);
+            trend.push({ date: dateStr, label, revenue, orderCount });
+          }
+        }
+
         return {
           success: true,
           data: {
-            date: date || new Date().toISOString().split('T')[0],
+            date: targetDate,
+            timeframe,
             today: {
               completedOrders: 32,
               voidedOrders: 1,
@@ -774,15 +853,7 @@ Payment: ${ord.payment_method.toUpperCase()}
               { itemId: 8, name: 'Fresh Calamansi', unit: 'kg', currentStock: 0.0, minStock: 2.0, severity: 'critical' },
               { itemId: 6, name: 'Bonito Flakes', unit: 'packs', currentStock: 1.5, minStock: 3.0, severity: 'warning' },
             ],
-            salesTrend: [
-              { date: '2026-09-21', label: 'Mon 9/21', revenue: 3820, orderCount: 26 },
-              { date: '2026-09-22', label: 'Tue 9/22', revenue: 4150, orderCount: 29 },
-              { date: '2026-09-23', label: 'Wed 9/23', revenue: 3900, orderCount: 25 },
-              { date: '2026-09-24', label: 'Thu 9/24', revenue: 4420, orderCount: 31 },
-              { date: '2026-09-25', label: 'Fri 9/25', revenue: 5890, orderCount: 42 },
-              { date: '2026-09-26', label: 'Sat 9/26', revenue: 6420, orderCount: 48 },
-              { date: '2026-09-27', label: 'Sun 9/27', revenue: 4780, orderCount: 32 },
-            ],
+            salesTrend: trend,
             topProducts: [
               { product_name: 'Classic Octopus Takoyaki', variant_label: '8 pcs', units_sold: 22, total_revenue: 1870.0 },
               { product_name: 'Crab & Cheese Takoyaki', variant_label: '8 pcs', units_sold: 15, total_revenue: 1425.0 },

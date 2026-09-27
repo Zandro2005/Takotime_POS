@@ -23,7 +23,7 @@ export class DashboardService {
   /**
    * Retrieves complete dashboard overview data.
    */
-  getOverview(targetDate = getLocalDateString()) {
+  getOverview(targetDate = getLocalDateString(), timeframe = '7d') {
     const db = this.db;
 
     // 1. Today's Live Sales
@@ -135,30 +135,8 @@ export class DashboardService {
       }
     }
 
-    // 4. Past 7-Day Trend
-    const salesTrend = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(targetDate);
-      d.setDate(d.getDate() - i);
-      const dateStr = getLocalDateString(d);
-
-      const dayStats = db.prepare(`
-        SELECT 
-          COUNT(CASE WHEN status = 'completed' THEN 1 END) as order_count,
-          COALESCE(SUM(CASE WHEN status = 'completed' THEN total ELSE 0 END), 0) as revenue
-        FROM orders
-        WHERE DATE(created_at) = DATE(?)
-      `).get(dateStr);
-
-      const dayName = d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
-
-      salesTrend.push({
-        date: dateStr,
-        label: dayName,
-        revenue: dayStats.revenue,
-        orderCount: dayStats.order_count,
-      });
-    }
+    // 4. Sales Trend
+    const salesTrend = this.getSalesTrend(targetDate, timeframe);
 
     // 5. Top 5 Products Sold Today
     const topProducts = db.prepare(`
@@ -188,11 +166,82 @@ export class DashboardService {
         cashSales: salesRow.cash_sales,
         gcashSales: salesRow.gcash_sales,
       },
+      timeframe,
       activeShift: activeShiftData,
       lowStockAlerts,
       salesTrend,
       topProducts,
     };
+  }
+
+  /**
+   * Retrieves sales trend series across requested timeframe: 7d, 15d, 30d, semi_annual (6mo), annual (12mo).
+   */
+  getSalesTrend(targetDate = getLocalDateString(), timeframe = '7d') {
+    const db = this.db;
+    const salesTrend = [];
+
+    if (timeframe === 'semi_annual' || timeframe === 'annual') {
+      const monthsCount = timeframe === 'annual' ? 12 : 6;
+      const target = new Date(targetDate);
+
+      for (let i = monthsCount - 1; i >= 0; i--) {
+        const d = new Date(target.getFullYear(), target.getMonth() - i, 1);
+        const year = d.getFullYear();
+        const month = d.getMonth() + 1;
+        const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+
+        const startDate = `${monthStr}-01`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const endDate = `${monthStr}-${String(lastDay).padStart(2, '0')}`;
+
+        const monthStats = db.prepare(`
+          SELECT 
+            COUNT(CASE WHEN status = 'completed' THEN 1 END) as order_count,
+            COALESCE(SUM(CASE WHEN status = 'completed' THEN total ELSE 0 END), 0) as revenue
+          FROM orders
+          WHERE DATE(created_at) >= DATE(?) AND DATE(created_at) <= DATE(?)
+        `).get(startDate, endDate);
+
+        const label = d.toLocaleDateString('en-US', { month: 'short', year: monthsCount === 12 ? '2-digit' : undefined });
+
+        salesTrend.push({
+          date: monthStr,
+          label,
+          revenue: monthStats?.revenue || 0,
+          orderCount: monthStats?.order_count || 0,
+          period: `${startDate} to ${endDate}`
+        });
+      }
+    } else {
+      const daysCount = timeframe === '30d' ? 30 : timeframe === '15d' ? 15 : 7;
+      for (let i = daysCount - 1; i >= 0; i--) {
+        const d = new Date(targetDate);
+        d.setDate(d.getDate() - i);
+        const dateStr = getLocalDateString(d);
+
+        const dayStats = db.prepare(`
+          SELECT 
+            COUNT(CASE WHEN status = 'completed' THEN 1 END) as order_count,
+            COALESCE(SUM(CASE WHEN status = 'completed' THEN total ELSE 0 END), 0) as revenue
+          FROM orders
+          WHERE DATE(created_at) = DATE(?)
+        `).get(dateStr);
+
+        const dayName = daysCount === 7
+          ? d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' })
+          : d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+
+        salesTrend.push({
+          date: dateStr,
+          label: dayName,
+          revenue: dayStats?.revenue || 0,
+          orderCount: dayStats?.order_count || 0,
+        });
+      }
+    }
+
+    return salesTrend;
   }
 }
 

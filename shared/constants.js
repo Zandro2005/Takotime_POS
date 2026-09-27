@@ -119,6 +119,7 @@ export const IPC_CHANNELS = {
 
   // Dashboard
   DASHBOARD_OVERVIEW: 'pos:dashboard:overview',
+  DASHBOARD_TREND: 'pos:dashboard:trend',
 
   // Cash Management
   CASH_RECORD_MOVEMENT: 'pos:cash:record-movement',

@@ -1,7 +1,7 @@
 // renderer/screens/staff/POSTerminal/POSTerminalShell.jsx
 import React from 'react';
 import { useAuth } from '../../../context/AuthContext';
-import { Flame, Lock, LogOut, ShoppingCart, UtensilsCrossed, Clock, Receipt, User } from 'lucide-react';
+import { Flame, Lock, LogOut, ShoppingCart, UtensilsCrossed, Clock, Receipt, User, Utensils, CupSoda } from 'lucide-react';
 
 export function POSTerminalShell() {
   const { user, logout, lockScreen } = useAuth();
@@ -93,15 +93,15 @@ export function POSTerminalShell() {
           gap: '20px',
         }}>
           {/* Category Tabs Preview */}
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button className="btn btn-primary" style={{ padding: '12px 24px', fontSize: '1rem' }}>
-              🐙 Takoyaki
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button className="btn btn-primary" style={{ padding: '10px 20px', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <Flame size={16} /> Takoyaki
             </button>
-            <button className="btn btn-secondary" style={{ padding: '12px 24px', fontSize: '1rem' }}>
-              🥟 Siomai
+            <button className="btn btn-secondary" style={{ padding: '10px 20px', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <Utensils size={16} /> Siomai
             </button>
-            <button className="btn btn-secondary" style={{ padding: '12px 24px', fontSize: '1rem' }}>
-              🥤 Drinks
+            <button className="btn btn-secondary" style={{ padding: '10px 20px', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <CupSoda size={16} /> Drinks
             </button>
           </div>
 

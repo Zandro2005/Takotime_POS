@@ -21,9 +21,21 @@ import {
   Minus,
   Tag,
   PauseCircle,
-  DollarSign
+  DollarSign,
+  Flame,
+  Utensils,
+  CupSoda,
+  Layers
 } from 'lucide-react';
 import { ORDER_TYPES } from '@shared/constants.js';
+
+function getCategoryIcon(name = '') {
+  const lower = name.toLowerCase();
+  if (lower.includes('tako')) return <Flame size={15} strokeWidth={2.2} />;
+  if (lower.includes('siomai')) return <Utensils size={15} strokeWidth={2.2} />;
+  if (lower.includes('drink') || lower.includes('beverage') || lower.includes('juice')) return <CupSoda size={15} strokeWidth={2.2} />;
+  return <Layers size={15} strokeWidth={2.2} />;
+}
 
 export function POSTerminal({ embedded = false }) {
   const { user, sessionId, logout, lockScreen } = useAuth();
@@ -196,7 +208,16 @@ export function POSTerminal({ embedded = false }) {
   const currentCategory = catalog.find(c => c.id === selectedCategoryId);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', backgroundColor: 'var(--bg-app)' }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: embedded ? '100%' : '100vh',
+      width: '100%',
+      backgroundColor: 'var(--bg-app)',
+      overflow: 'hidden',
+      minHeight: 0,
+      flex: 1,
+    }}>
       {/* If no shift is open, show Open Shift Modal */}
       {showOpenModal && <ShiftOpenModal />}
 
@@ -205,15 +226,16 @@ export function POSTerminal({ embedded = false }) {
 
       {/* Top Application Header */}
       <header style={{
-        height: embedded ? '48px' : '62px',
+        height: embedded ? '44px' : '62px',
         backgroundColor: '#ffffff',
         borderBottom: '1px solid var(--border-subtle)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 20px',
+        padding: embedded ? '0 16px' : '0 20px',
         boxShadow: embedded ? 'none' : 'var(--shadow-sm)',
         zIndex: 5,
+        flexShrink: 0,
       }}>
         {embedded ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -334,8 +356,9 @@ export function POSTerminal({ embedded = false }) {
       {/* Main Screen Layout */}
       <main style={{
         flex: 1,
+        minHeight: 0,
         display: 'grid',
-        gridTemplateColumns: '1fr 400px',
+        gridTemplateColumns: '1fr 390px',
         overflow: 'hidden',
       }}>
         {/* Left: Category Tabs & Product Grid */}
@@ -343,31 +366,41 @@ export function POSTerminal({ embedded = false }) {
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          padding: '20px 24px',
-          gap: '16px',
+          minHeight: 0,
+          padding: embedded ? '14px 18px' : '18px 22px',
+          gap: '14px',
         }}>
           {/* Category Tabs */}
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {catalog.map(cat => {
               const isSelected = cat.id === selectedCategoryId;
-              const emoji = cat.name.includes('Takoyaki') ? '🐙 ' : cat.name.includes('Siomai') ? '🥟 ' : '🥤 ';
               return (
                 <button
                   key={cat.id}
                   type="button"
                   className="btn"
                   style={{
-                    padding: '12px 24px',
-                    fontSize: '0.95rem',
+                    padding: embedded ? '8px 16px' : '10px 20px',
+                    fontSize: '0.88rem',
                     fontWeight: 700,
+                    letterSpacing: '0.01em',
                     backgroundColor: isSelected ? 'var(--brand-red)' : '#ffffff',
                     color: isSelected ? '#ffffff' : 'var(--text-secondary)',
                     borderColor: isSelected ? 'var(--brand-red)' : 'var(--border-subtle)',
-                    boxShadow: isSelected ? '0 2px 6px rgba(224, 26, 34, 0.25)' : 'var(--shadow-sm)',
+                    boxShadow: isSelected ? '0 2px 8px rgba(224, 26, 34, 0.25)' : 'var(--shadow-sm)',
+                    borderRadius: 'var(--radius-md)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
                   }}
                   onClick={() => setSelectedCategoryId(cat.id)}
                 >
-                  {emoji}{cat.name}
+                  <span style={{ display: 'flex', alignItems: 'center', opacity: isSelected ? 1 : 0.8 }}>
+                    {getCategoryIcon(cat.name)}
+                  </span>
+                  <span>{cat.name}</span>
                 </button>
               );
             })}
@@ -462,21 +495,24 @@ export function POSTerminal({ embedded = false }) {
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
+          minHeight: 0,
+          overflow: 'hidden',
         }}>
           {/* Cart Header */}
           <div style={{
-            padding: '16px 20px',
+            padding: embedded ? '12px 16px' : '16px 20px',
             borderBottom: '1px solid var(--border-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             backgroundColor: '#ffffff',
+            flexShrink: 0,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '1rem', color: 'var(--text-main)' }}>
-              <ShoppingCart size={18} color="var(--brand-red)" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+              <ShoppingCart size={17} color="var(--brand-red)" />
               Current Order
               {cartItems.length > 0 && (
-                <span className="badge" style={{ backgroundColor: 'var(--brand-red)', color: '#ffffff' }}>
+                <span className="badge" style={{ backgroundColor: 'var(--brand-red)', color: '#ffffff', padding: '2px 8px', fontSize: '0.75rem' }}>
                   {cartItems.reduce((sum, it) => sum + it.qty, 0)}
                 </span>
               )}
@@ -488,13 +524,15 @@ export function POSTerminal({ embedded = false }) {
                 type="button"
                 className="btn"
                 style={{
-                  padding: '5px 10px',
-                  fontSize: '0.75rem',
+                  padding: '4px 10px',
+                  fontSize: '0.74rem',
                   backgroundColor: orderType === ORDER_TYPES.DINE_IN ? 'var(--brand-red)' : 'transparent',
                   color: orderType === ORDER_TYPES.DINE_IN ? '#ffffff' : 'var(--text-secondary)',
                   border: 'none',
                   borderRadius: 'var(--radius-xs)',
                   fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
                 onClick={() => setOrderType(ORDER_TYPES.DINE_IN)}
               >
@@ -504,13 +542,15 @@ export function POSTerminal({ embedded = false }) {
                 type="button"
                 className="btn"
                 style={{
-                  padding: '5px 10px',
-                  fontSize: '0.75rem',
+                  padding: '4px 10px',
+                  fontSize: '0.74rem',
                   backgroundColor: orderType === ORDER_TYPES.TAKEOUT ? 'var(--brand-red)' : 'transparent',
                   color: orderType === ORDER_TYPES.TAKEOUT ? '#ffffff' : 'var(--text-secondary)',
                   border: 'none',
                   borderRadius: 'var(--radius-xs)',
                   fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
                 onClick={() => setOrderType(ORDER_TYPES.TAKEOUT)}
               >
@@ -524,13 +564,14 @@ export function POSTerminal({ embedded = false }) {
             <div style={{
               background: '#fffbeb',
               borderBottom: '1px solid #fef3c7',
-              padding: '8px 20px',
+              padding: embedded ? '6px 14px' : '8px 20px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              flexShrink: 0,
             }}>
-              <span style={{ fontSize: '0.8rem', color: '#b45309', fontWeight: 700 }}>
-                Parked Orders ({heldOrders.length})
+              <span style={{ fontSize: '0.78rem', color: '#b45309', fontWeight: 700 }}>
+                Parked ({heldOrders.length})
               </span>
               <div style={{ display: 'flex', gap: '6px' }}>
                 {heldOrders.map((h, idx) => (
@@ -538,7 +579,7 @@ export function POSTerminal({ embedded = false }) {
                     key={h.id}
                     type="button"
                     className="btn btn-secondary"
-                    style={{ padding: '3px 8px', fontSize: '0.75rem', color: '#b45309', borderColor: '#fde68a' }}
+                    style={{ padding: '2px 8px', fontSize: '0.72rem', color: '#b45309', borderColor: '#fde68a' }}
                     onClick={() => handleRecallOrder(h.id)}
                   >
                     Recall #{idx + 1} (₱{h.subtotal})
@@ -551,11 +592,12 @@ export function POSTerminal({ embedded = false }) {
           {/* Cart Items List */}
           <div style={{
             flex: 1,
+            minHeight: 0,
             overflowY: 'auto',
-            padding: '16px 20px',
+            padding: embedded ? '12px 14px' : '16px 20px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '10px',
+            gap: '8px',
             backgroundColor: '#ffffff',
           }}>
             {cartItems.length === 0 ? (
@@ -567,9 +609,10 @@ export function POSTerminal({ embedded = false }) {
                 justifyContent: 'center',
                 color: 'var(--text-faint)',
                 gap: '8px',
+                minHeight: '120px',
               }}>
-                <UtensilsCrossed size={36} strokeWidth={1.5} />
-                <p style={{ fontSize: '0.9rem', fontWeight: 600 }}>Cart is empty</p>
+                <UtensilsCrossed size={32} strokeWidth={1.5} />
+                <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>Cart is empty</p>
               </div>
             ) : (
               cartItems.map((item, index) => (
@@ -579,29 +622,29 @@ export function POSTerminal({ embedded = false }) {
                     background: 'var(--bg-surface-elevated)',
                     border: '1px solid var(--border-subtle)',
                     borderRadius: 'var(--radius-md)',
-                    padding: '12px 14px',
+                    padding: embedded ? '10px 12px' : '12px 14px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '6px',
+                    gap: '5px',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)' }}>{item.productName}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-main)' }}>{item.productName}</div>
+                      <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
                         Variant: {item.variantLabel}
                       </div>
                     </div>
-                    <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', fontSize: '1rem', color: 'var(--text-main)' }}>
+                    <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-main)' }}>
                       ₱{item.lineTotal.toFixed(2)}
                     </span>
                   </div>
 
                   {/* Modifiers List */}
                   {item.modifiers && item.modifiers.length > 0 && (
-                    <div style={{ fontSize: '0.75rem', color: 'var(--brand-gold)', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--brand-gold)', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       {item.modifiers.map(m => (
-                        <span key={m.id} style={{ background: 'var(--brand-gold-light)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                        <span key={m.id} style={{ background: 'var(--brand-gold-light)', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                           +{m.name} {m.price_delta > 0 ? `(₱${m.price_delta})` : ''}
                         </span>
                       ))}
@@ -609,34 +652,34 @@ export function POSTerminal({ embedded = false }) {
                   )}
 
                   {/* Qty controls & delete */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', paddingTop: '4px', borderTop: '1px solid var(--border-subtle)' }}>
                     <button
                       type="button"
-                      style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: 600 }}
+                      style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.72rem', fontWeight: 600 }}
                       onClick={() => removeItem(index)}
                     >
-                      <Trash2 size={13} /> Remove
+                      <Trash2 size={12} /> Remove
                     </button>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <button
                         type="button"
                         className="btn btn-secondary"
-                        style={{ width: '26px', height: '26px', padding: 0 }}
+                        style={{ width: '24px', height: '24px', padding: 0 }}
                         onClick={() => updateItemQty(index, -1)}
                       >
-                        <Minus size={13} />
+                        <Minus size={12} />
                       </button>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: '0.95rem', width: '20px', textAlign: 'center', color: 'var(--text-main)' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: '0.9rem', width: '18px', textAlign: 'center', color: 'var(--text-main)' }}>
                         {item.qty}
                       </span>
                       <button
                         type="button"
                         className="btn btn-secondary"
-                        style={{ width: '26px', height: '26px', padding: 0 }}
+                        style={{ width: '24px', height: '24px', padding: 0 }}
                         onClick={() => updateItemQty(index, 1)}
                       >
-                        <Plus size={13} />
+                        <Plus size={12} />
                       </button>
                     </div>
                   </div>
@@ -645,17 +688,18 @@ export function POSTerminal({ embedded = false }) {
             )}
           </div>
 
-          {/* Cart Footer & Checkout Panel */}
+          {/* Cart Footer & Checkout Panel (Firmly pinned with flexShrink: 0) */}
           <div style={{
-            padding: '16px 20px',
+            padding: embedded ? '12px 16px' : '16px 20px',
             borderTop: '1px solid var(--border-subtle)',
             backgroundColor: 'var(--bg-surface-elevated)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '10px',
+            gap: embedded ? '8px' : '10px',
+            flexShrink: 0,
           }}>
             {/* Subtotal */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               <span>Subtotal</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>₱{subtotal.toFixed(2)}</span>
             </div>
@@ -665,21 +709,21 @@ export function POSTerminal({ embedded = false }) {
               <button
                 type="button"
                 className="btn btn-secondary"
-                style={{ padding: '5px 10px', fontSize: '0.78rem', color: discount ? 'var(--brand-green)' : undefined }}
+                style={{ padding: '4px 10px', fontSize: '0.76rem', color: discount ? 'var(--brand-green)' : undefined }}
                 onClick={() => setShowDiscountModal(true)}
                 disabled={cartItems.length === 0}
               >
-                <Tag size={13} />
+                <Tag size={12} />
                 {discount ? `Discount (${discount.type.toUpperCase()})` : 'Add Discount'}
               </button>
 
-              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--brand-green)', fontWeight: 700 }}>
+              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--brand-green)', fontWeight: 700, fontSize: '0.86rem' }}>
                 {discount ? `-₱${discountAmount.toFixed(2)}` : '₱0.00'}
               </span>
             </div>
 
             {/* Total Due */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.35rem', fontWeight: 900, borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: embedded ? '1.2rem' : '1.35rem', fontWeight: 900, borderTop: '1px solid var(--border-subtle)', paddingTop: embedded ? '8px' : '10px' }}>
               <span style={{ color: 'var(--text-main)' }}>Total Due:</span>
               <span style={{ color: 'var(--brand-red)', fontFamily: 'var(--font-mono)' }}>
                 ₱{totalDue.toFixed(2)}
@@ -687,23 +731,23 @@ export function POSTerminal({ embedded = false }) {
             </div>
 
             {/* Action Buttons: Hold Order & Pay */}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
               <button
                 type="button"
                 className="btn btn-secondary"
-                style={{ padding: '13px', flex: 1, fontSize: '0.9rem' }}
+                style={{ padding: embedded ? '10px' : '12px', flex: 1, fontSize: embedded ? '0.85rem' : '0.9rem' }}
                 onClick={handleHoldOrder}
                 disabled={cartItems.length === 0}
                 title="Park this cart temporarily to serve next customer"
               >
-                <PauseCircle size={17} />
+                <PauseCircle size={15} />
                 Hold
               </button>
 
               <button
                 type="button"
                 className="btn btn-primary"
-                style={{ padding: '13px', flex: 2, fontSize: '1.05rem', fontWeight: 800 }}
+                style={{ padding: embedded ? '10px' : '12px', flex: 2, fontSize: embedded ? '0.96rem' : '1.05rem', fontWeight: 800 }}
                 onClick={() => setShowPaymentModal(true)}
                 disabled={cartItems.length === 0}
               >

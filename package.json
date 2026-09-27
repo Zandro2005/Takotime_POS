@@ -8,6 +8,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && electron .\"",
+    "dev:web": "vite",
     "build:renderer": "vite build",
     "start": "electron .",
     "test": "node --test tests/unit/*.test.js"

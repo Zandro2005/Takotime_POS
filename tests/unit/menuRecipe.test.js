@@ -137,7 +137,8 @@ test('Phase 4 Menu & Recipe Suite', async (t) => {
 
   // 6. Recipe Depletion Verification in Order Flow
   await t.test('6. Ordering newly created product depletes inventory according to custom recipe', async () => {
-    const today = '2026-09-27';
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     inventoryService.initializeDayLog(today);
 
     // Open shift

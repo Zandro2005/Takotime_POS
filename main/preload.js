@@ -96,7 +96,8 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   dashboard: {
-    getOverview: (sessionId, date) => ipcRenderer.invoke('pos:dashboard:overview', { sessionId, date }),
+    getOverview: (sessionId, date, timeframe) => ipcRenderer.invoke('pos:dashboard:overview', { sessionId, date, timeframe }),
+    getSalesTrend: (sessionId, timeframe, date) => ipcRenderer.invoke('pos:dashboard:trend', { sessionId, timeframe, date }),
   },
 
   sync: {

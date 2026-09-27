@@ -209,4 +209,43 @@ test('Phase 5 Staff, Settings & Dashboard Suite', async (t) => {
     assert.strictEqual(overview.topProducts.length >= 1, true);
     assert.strictEqual(overview.topProducts[0].product_name, 'Classic Octopus Takoyaki');
   });
+
+  test('9. DashboardService supports multi-timeframe sales trends (7d, 15d, 30d, semi-annual, annual)', () => {
+    // 7 days
+    const trend7 = dashboardService.getSalesTrend(undefined, '7d');
+    assert.strictEqual(trend7.length, 7);
+    assert.ok(trend7[6].revenue >= 170);
+
+    // 15 days
+    const trend15 = dashboardService.getSalesTrend(undefined, '15d');
+    assert.strictEqual(trend15.length, 15);
+    assert.ok(trend15[14].label);
+    assert.ok(typeof trend15[14].revenue === 'number');
+    assert.ok(typeof trend15[14].orderCount === 'number');
+
+    // 30 days
+    const trend30 = dashboardService.getSalesTrend(undefined, '30d');
+    assert.strictEqual(trend30.length, 30);
+    assert.ok(trend30[29].label);
+
+    // Semi-annually (6 months)
+    const trendSemi = dashboardService.getSalesTrend(undefined, 'semi_annual');
+    assert.strictEqual(trendSemi.length, 6);
+    assert.ok(trendSemi[5].label);
+
+    // Annually (12 months)
+    const trendAnnual = dashboardService.getSalesTrend(undefined, 'annual');
+    assert.strictEqual(trendAnnual.length, 12);
+    assert.ok(trendAnnual[11].label);
+
+    // Parameterized getOverview
+    const overview15 = dashboardService.getOverview(undefined, '15d');
+    assert.strictEqual(overview15.salesTrend.length, 15);
+    assert.strictEqual(overview15.timeframe, '15d');
+
+    const overviewAnnual = dashboardService.getOverview(undefined, 'annual');
+    assert.strictEqual(overviewAnnual.salesTrend.length, 12);
+    assert.strictEqual(overviewAnnual.timeframe, 'annual');
+  });
 });
+

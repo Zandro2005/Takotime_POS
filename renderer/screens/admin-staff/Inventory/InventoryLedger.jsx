@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import {
   ClipboardList,
-  Plus,
   RefreshCw,
   Calendar,
   AlertTriangle,
@@ -13,11 +12,26 @@ import {
   Info
 } from 'lucide-react';
 
+function getLocalDateString(d = new Date()) {
+  const date = typeof d === 'string' ? new Date(d) : d;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+const formatQty = (val, decimals = 2) => {
+  if (val === null || val === undefined || val === '') return '0.00';
+  const num = Number(val);
+  return isNaN(num) ? '0.00' : num.toFixed(decimals);
+};
+
 export function InventoryLedger() {
   const { sessionId } = useAuth();
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => getLocalDateString());
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [editingCounts, setEditingCounts] = useState({});
   const [showStockInModal, setShowStockInModal] = useState(false);
   const [selectedStockItem, setSelectedStockItem] = useState(null);
@@ -26,21 +40,33 @@ export function InventoryLedger() {
 
   const loadLedger = async (date = selectedDate) => {
     setLoading(true);
+    setError(null);
     try {
       if (window.api?.inventory?.getItems) {
         const res = await window.api.inventory.getItems(sessionId, date);
-        if (res.success && res.data) {
+        if (res && res.success && Array.isArray(res.data)) {
           setItems(res.data);
           // Initialize editable confirmed counts from data
           const initial = {};
           res.data.forEach(item => {
-            initial[item.itemId] = item.confirmedOut !== null ? item.confirmedOut : '';
+            if (item && item.itemId !== undefined) {
+              initial[item.itemId] = (item.confirmedOut !== null && item.confirmedOut !== undefined) ? String(item.confirmedOut) : '';
+            }
           });
           setEditingCounts(initial);
+        } else if (res && !res.success) {
+          setError(res.error || 'Failed to load inventory items');
+          setItems([]);
+        } else {
+          setItems([]);
         }
+      } else {
+        setItems([]);
       }
     } catch (err) {
       console.error('Failed to load inventory items:', err);
+      setError(err.message || 'Failed to load inventory items');
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -63,7 +89,7 @@ export function InventoryLedger() {
 
   const handleConfirmSingle = async (item) => {
     const rawVal = editingCounts[item.itemId];
-    const qty = rawVal === '' || rawVal === undefined ? item.suggestedOut : Number(rawVal);
+    const qty = rawVal === '' || rawVal === undefined ? (Number(item.suggestedOut) || 0) : Number(rawVal);
 
     if (isNaN(qty) || qty < 0) {
       alert('Please enter a valid non-negative number');
@@ -72,11 +98,14 @@ export function InventoryLedger() {
 
     try {
       if (window.api?.inventory?.confirmOut) {
-        await window.api.inventory.confirmOut(sessionId, {
+        const res = await window.api.inventory.confirmOut(sessionId, {
           itemId: item.itemId,
           date: selectedDate,
           confirmedQty: qty,
         });
+        if (res && res.success === false) {
+          throw new Error(res.error || 'Failed to save count');
+        }
         await loadLedger(selectedDate);
         setSaveSuccessMsg(`Saved count for ${item.name}`);
         setTimeout(() => setSaveSuccessMsg(''), 2500);
@@ -118,11 +147,14 @@ export function InventoryLedger() {
 
     try {
       if (window.api?.inventory?.updateLog) {
-        await window.api.inventory.updateLog(sessionId, {
+        const res = await window.api.inventory.updateLog(sessionId, {
           itemId: selectedStockItem.itemId,
           date: selectedDate,
           stockIn: Number(stockInQty),
         });
+        if (res && res.success === false) {
+          throw new Error(res.error || 'Failed to record stock in');
+        }
         setShowStockInModal(false);
         setStockInQty('');
         setSelectedStockItem(null);
@@ -135,8 +167,9 @@ export function InventoryLedger() {
     }
   };
 
-  const lowStockCount = items.filter(i => i.isLowStock).length;
-  const unconfirmedCount = items.filter(i => !i.isConfirmed).length;
+  const safeItems = Array.isArray(items) ? items : [];
+  const lowStockCount = safeItems.filter(i => Boolean(i?.isLowStock)).length;
+  const unconfirmedCount = safeItems.filter(i => !Boolean(i?.isConfirmed)).length;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', backgroundColor: 'var(--bg-app)' }}>
@@ -192,7 +225,7 @@ export function InventoryLedger() {
               type="button"
               className="btn btn-secondary"
               style={{ padding: '7px 12px', fontSize: '0.8rem' }}
-              onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+              onClick={() => setSelectedDate(getLocalDateString())}
             >
               Today
             </button>
@@ -233,7 +266,7 @@ export function InventoryLedger() {
             className="btn btn-secondary"
             style={{ padding: '8px 14px' }}
             onClick={() => {
-              if (items.length > 0) setSelectedStockItem(items[0]);
+              if (safeItems.length > 0) setSelectedStockItem(safeItems[0]);
               setShowStockInModal(true);
             }}
           >
@@ -246,12 +279,41 @@ export function InventoryLedger() {
             className="btn btn-primary"
             style={{ padding: '8px 16px' }}
             onClick={handleSaveAll}
+            disabled={safeItems.length === 0}
           >
             <Save size={16} />
             Confirm All Counts
           </button>
         </div>
       </div>
+
+      {/* Error alert banner if fetch failed */}
+      {error && (
+        <div style={{
+          margin: '16px 24px 0 24px',
+          padding: '12px 16px',
+          backgroundColor: 'rgba(239, 68, 68, 0.08)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          borderRadius: 'var(--radius-md)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--brand-danger)', fontSize: '0.88rem', fontWeight: 600 }}>
+            <AlertTriangle size={18} />
+            <span>{error}</span>
+          </div>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+            onClick={() => loadLedger(selectedDate)}
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Summary KPI Badges */}
       <div style={{ padding: '16px 24px 0 24px', display: 'flex', gap: '12px' }}>
@@ -266,7 +328,7 @@ export function InventoryLedger() {
           boxShadow: 'var(--shadow-sm)',
         }}>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Tracked Items</span>
-          <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>{items.length}</span>
+          <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>{safeItems.length}</span>
         </div>
 
         <div style={{
@@ -357,17 +419,23 @@ export function InventoryLedger() {
                     Loading daily ledger...
                   </td>
                 </tr>
-              ) : items.length === 0 ? (
+              ) : safeItems.length === 0 ? (
                 <tr>
                   <td colSpan={9} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                     No inventory records found for this date.
                   </td>
                 </tr>
               ) : (
-                items.map((item) => {
-                  const hasWaste = item.wasteQty !== null && item.wasteQty > 0;
-                  const isBalanced = item.wasteQty !== null && Math.abs(item.wasteQty) < 0.0001;
-                  const hasSurplus = item.wasteQty !== null && item.wasteQty < 0;
+                safeItems.map((item) => {
+                  const beginningNum = Number(item.beginningQty) || 0;
+                  const stockInNum = Number(item.stockIn) || 0;
+                  const suggestedOutNum = Number(item.suggestedOut) || 0;
+                  const endingNum = item.endingQty !== null && item.endingQty !== undefined ? Number(item.endingQty) : null;
+                  const wasteNum = item.wasteQty !== null && item.wasteQty !== undefined && item.wasteQty !== '' ? Number(item.wasteQty) : null;
+
+                  const hasWaste = wasteNum !== null && !isNaN(wasteNum) && wasteNum > 0.0001;
+                  const isBalanced = wasteNum !== null && !isNaN(wasteNum) && Math.abs(wasteNum) <= 0.0001;
+                  const hasSurplus = wasteNum !== null && !isNaN(wasteNum) && wasteNum < -0.0001;
 
                   return (
                     <tr
@@ -380,7 +448,7 @@ export function InventoryLedger() {
                       {/* Name */}
                       <td style={{ padding: '14px 18px', fontWeight: 700, color: 'var(--text-main)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {item.name}
+                          {item.name || 'Unnamed Item'}
                           {item.isLowStock && (
                             <span style={{
                               fontSize: '0.7rem',
@@ -398,22 +466,22 @@ export function InventoryLedger() {
 
                       {/* Unit */}
                       <td style={{ padding: '14px 14px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                        {item.unit}
+                        {item.unit || 'units'}
                       </td>
 
                       {/* Beginning */}
                       <td style={{ padding: '14px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                        {item.beginningQty.toFixed(2)}
+                        {formatQty(beginningNum)}
                       </td>
 
                       {/* Stock In */}
-                      <td style={{ padding: '14px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700, color: item.stockIn > 0 ? 'var(--brand-green)' : 'var(--text-muted)' }}>
-                        {item.stockIn > 0 ? `+${item.stockIn.toFixed(2)}` : '0.00'}
+                      <td style={{ padding: '14px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700, color: stockInNum > 0 ? 'var(--brand-green)' : 'var(--text-muted)' }}>
+                        {stockInNum > 0 ? `+${formatQty(stockInNum)}` : '0.00'}
                       </td>
 
                       {/* Recipe Suggested Out */}
                       <td style={{ padding: '14px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--brand-red)' }}>
-                        {item.suggestedOut > 0 ? `-${item.suggestedOut.toFixed(2)}` : '0.00'}
+                        {suggestedOutNum > 0 ? `-${formatQty(suggestedOutNum)}` : '0.00'}
                       </td>
 
                       {/* Confirmed Out Input */}
@@ -423,7 +491,7 @@ export function InventoryLedger() {
                             type="number"
                             step="any"
                             min="0"
-                            placeholder={item.suggestedOut.toFixed(2)}
+                            placeholder={formatQty(suggestedOutNum)}
                             value={editingCounts[item.itemId] ?? ''}
                             onChange={(e) => handleCountChange(item.itemId, e.target.value)}
                             style={{
@@ -445,7 +513,7 @@ export function InventoryLedger() {
                             className="btn btn-secondary"
                             style={{ padding: '8px', borderRadius: 'var(--radius-md)' }}
                             title="Auto-fill with recipe suggested quantity"
-                            onClick={() => handleCountChange(item.itemId, item.suggestedOut.toFixed(2))}
+                            onClick={() => handleCountChange(item.itemId, formatQty(suggestedOutNum))}
                           >
                             <Info size={14} color="var(--text-muted)" />
                           </button>
@@ -454,7 +522,7 @@ export function InventoryLedger() {
 
                       {/* Ending Qty */}
                       <td style={{ padding: '14px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--text-main)' }}>
-                        {item.endingQty !== null ? item.endingQty.toFixed(2) : '—'}
+                        {endingNum !== null && !isNaN(endingNum) ? formatQty(endingNum) : '—'}
                       </td>
 
                       {/* Shrinkage / Waste signal */}
@@ -470,7 +538,7 @@ export function InventoryLedger() {
                             fontWeight: 700,
                             fontFamily: 'var(--font-mono)',
                           }}>
-                            +{item.wasteQty.toFixed(2)} {item.unit} (Shrinkage)
+                            +{formatQty(wasteNum)} {item.unit || ''} (Shrinkage)
                           </span>
                         ) : hasSurplus ? (
                           <span style={{
@@ -483,7 +551,7 @@ export function InventoryLedger() {
                             fontWeight: 700,
                             fontFamily: 'var(--font-mono)',
                           }}>
-                            {item.wasteQty.toFixed(2)} {item.unit} (Surplus)
+                            {formatQty(wasteNum)} {item.unit || ''} (Surplus)
                           </span>
                         ) : isBalanced ? (
                           <span style={{
@@ -560,8 +628,8 @@ export function InventoryLedger() {
                 <select
                   value={selectedStockItem?.itemId || ''}
                   onChange={(e) => {
-                    const found = items.find(i => i.itemId === Number(e.target.value));
-                    setSelectedStockItem(found);
+                    const found = safeItems.find(i => i.itemId === Number(e.target.value));
+                    setSelectedStockItem(found || null);
                   }}
                   style={{
                     width: '100%',
@@ -575,9 +643,9 @@ export function InventoryLedger() {
                     outline: 'none',
                   }}
                 >
-                  {items.map(it => (
+                  {safeItems.map(it => (
                     <option key={it.itemId} value={it.itemId}>
-                      {it.name} ({it.unit})
+                      {it.name || 'Unnamed Item'} ({it.unit || 'units'})
                     </option>
                   ))}
                 </select>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Lock, User, KeyRound, ArrowRight, Delete } from 'lucide-react';
+import { Lock, User, KeyRound, ArrowRight, Delete, Cloud } from 'lucide-react';
 import logoImg from '../../assets/logo.png';
 import './LoginScreen.css';
 
@@ -232,7 +232,8 @@ export function LoginScreen() {
               style={{ borderColor: '#3b82f6', color: '#2563eb', backgroundColor: '#eff6ff' }}
               onClick={() => fillDemo('cloud')}
             >
-              ☁ Remote Cloud Admin (cloudadmin)
+              <Cloud size={13} style={{ display: 'inline', marginRight: '5px', verticalAlign: 'middle' }} />
+              Remote Cloud Admin (cloudadmin)
             </button>
           </div>
         </div>
