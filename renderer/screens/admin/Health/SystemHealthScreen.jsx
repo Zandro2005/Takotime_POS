@@ -510,56 +510,58 @@ export function SystemHealthScreen() {
             </button>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-            <thead>
-              <tr style={{ backgroundColor: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
-                <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)' }}>BACKUP FILENAME</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>REASON / TRIGGER</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>FILE SIZE</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>TIMESTAMP</th>
-                <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'right' }}>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {backups.length === 0 ? (
-                <tr>
-                  <td colSpan="5" style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    No backups found. Click "Backup Database Now" to generate an initial snapshot.
-                  </td>
+          <div className="responsive-table-wrapper">
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ backgroundColor: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)' }}>BACKUP FILENAME</th>
+                  <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>REASON / TRIGGER</th>
+                  <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>FILE SIZE</th>
+                  <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>TIMESTAMP</th>
+                  <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'right' }}>ACTIONS</th>
                 </tr>
-              ) : (
-                backups.map((b, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '12px 20px', fontFamily: 'monospace', fontWeight: 600, color: 'var(--text-main)' }}>
-                      {b.filename}
-                    </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span className="badge" style={{
-                        backgroundColor: b.reason === 'shift_close' ? '#eff6ff' : b.reason === 'shutdown' ? '#fef3c7' : '#f1f5f9',
-                        color: b.reason === 'shift_close' ? '#2563eb' : b.reason === 'shutdown' ? '#b45309' : 'var(--text-main)',
-                      }}>
-                        {b.reason.toUpperCase()}
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px 16px', fontWeight: 600 }}>{b.sizeFormatted}</td>
-                    <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>
-                      {new Date(b.createdAt).toLocaleString()}
-                    </td>
-                    <td style={{ padding: '12px 20px', textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={() => handleVerifyBackup(b.filePath, b.filename)}
-                        style={{ padding: '6px 12px', fontSize: '0.8rem' }}
-                      >
-                        <ShieldCheck size={14} color="var(--brand-green)" /> Verify
-                      </button>
+              </thead>
+              <tbody>
+                {backups.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                      No backups found. Click "Backup Database Now" to generate an initial snapshot.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  backups.map((b, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '12px 20px', fontFamily: 'monospace', fontWeight: 600, color: 'var(--text-main)' }}>
+                        {b.filename}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span className="badge" style={{
+                          backgroundColor: b.reason === 'shift_close' ? '#eff6ff' : b.reason === 'shutdown' ? '#fef3c7' : '#f1f5f9',
+                          color: b.reason === 'shift_close' ? '#2563eb' : b.reason === 'shutdown' ? '#b45309' : 'var(--text-main)',
+                        }}>
+                          {b.reason.toUpperCase()}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 16px', fontWeight: 600 }}>{b.sizeFormatted}</td>
+                      <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>
+                        {new Date(b.createdAt).toLocaleString()}
+                      </td>
+                      <td style={{ padding: '12px 20px', textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() => handleVerifyBackup(b.filePath, b.filename)}
+                          style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                        >
+                          <ShieldCheck size={14} color="var(--brand-green)" /> Verify
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

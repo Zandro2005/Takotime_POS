@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Lock, User, KeyRound, ArrowRight, Delete, Cloud } from 'lucide-react';
+import { Lock, User, KeyRound, ArrowRight, Delete, Cloud, Eye, EyeOff } from 'lucide-react';
 import logoImg from '../../assets/logo.png';
 import './LoginScreen.css';
 
@@ -10,6 +10,7 @@ export function LoginScreen() {
   const [pin, setPin] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState('');
 
@@ -191,14 +192,26 @@ export function LoginScreen() {
 
             <div className="form-group">
               <label className="form-label">Password</label>
-              <input
-                type="password"
-                className="input-field"
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-              />
+              <div className="password-input-wrapper">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="input-field"
+                  placeholder="Enter password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(prev => !prev)}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <button
@@ -213,27 +226,42 @@ export function LoginScreen() {
           </form>
         )}
 
-        {/* Demo Fast Access Pills for Developer / Owner Testing */}
+        {/* Demo Fast Access Pills for Developer / Owner Testing - Strictly One Line */}
         <div className="demo-accounts">
-          <div className="demo-title">Quick Demo Login</div>
+          <span className="demo-label">Demo:</span>
           <div className="demo-pills">
-            <button type="button" className="demo-pill" onClick={() => fillDemo('staff')}>
-              Staff (PIN: 1111)
-            </button>
-            <button type="button" className="demo-pill" onClick={() => fillDemo('supervisor')}>
-              Lead Staff (PIN: 5678)
-            </button>
-            <button type="button" className="demo-pill" onClick={() => fillDemo('admin')}>
-              Store Admin (admin)
+            <button
+              type="button"
+              className="demo-pill"
+              title="Staff PIN: 1111"
+              onClick={() => fillDemo('staff')}
+            >
+              Staff (1111)
             </button>
             <button
               type="button"
               className="demo-pill"
-              style={{ borderColor: '#3b82f6', color: '#2563eb', backgroundColor: '#eff6ff' }}
+              title="Lead Staff PIN: 5678"
+              onClick={() => fillDemo('supervisor')}
+            >
+              Lead (5678)
+            </button>
+            <button
+              type="button"
+              className="demo-pill"
+              title="Store Admin (admin / admin123)"
+              onClick={() => fillDemo('admin')}
+            >
+              Admin
+            </button>
+            <button
+              type="button"
+              className="demo-pill demo-pill-cloud"
+              title="Remote Cloud Admin (cloudadmin / cloudpass123)"
               onClick={() => fillDemo('cloud')}
             >
-              <Cloud size={13} style={{ display: 'inline', marginRight: '5px', verticalAlign: 'middle' }} />
-              Remote Cloud Admin (cloudadmin)
+              <Cloud size={13} style={{ display: 'inline', verticalAlign: 'middle' }} />
+              Cloud
             </button>
           </div>
         </div>

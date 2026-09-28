@@ -216,16 +216,16 @@ export function StaffManagement() {
   };
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+    <div className="responsive-page-container" style={{ maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
       {/* Header bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
             Staff & Cashier Accounts
           </h1>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           {toastMessage && (
             <span style={{
               backgroundColor: 'var(--brand-green-light)',
@@ -272,7 +272,7 @@ export function StaffManagement() {
         boxShadow: 'var(--shadow-sm)',
         overflow: 'hidden',
       }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
           <div>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
               Staff Directory
@@ -283,7 +283,7 @@ export function StaffManagement() {
           </span>
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
+        <div className="responsive-table-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
             <thead>
               <tr style={{ backgroundColor: 'var(--bg-app)', borderBottom: '1px solid var(--border-subtle)', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
@@ -457,6 +457,7 @@ export function StaffManagement() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 100,
+          padding: '16px',
         }}>
           <div style={{
             background: '#ffffff',
@@ -465,6 +466,9 @@ export function StaffManagement() {
             maxWidth: '520px',
             boxShadow: 'var(--shadow-xl)',
             overflow: 'hidden',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
           }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -476,7 +480,7 @@ export function StaffManagement() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateStaff} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={handleCreateStaff} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                   Full Name *
@@ -595,6 +599,7 @@ export function StaffManagement() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 100,
+          padding: '16px',
         }}>
           <div style={{
             background: '#ffffff',
@@ -603,6 +608,9 @@ export function StaffManagement() {
             maxWidth: '480px',
             boxShadow: 'var(--shadow-xl)',
             overflow: 'hidden',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
           }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)' }}>
@@ -613,7 +621,7 @@ export function StaffManagement() {
               </button>
             </div>
 
-            <form onSubmit={handleUpdateStaff} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={handleUpdateStaff} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                   Full Name
@@ -682,6 +690,7 @@ export function StaffManagement() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 100,
+          padding: '16px',
         }}>
           <div style={{
             background: '#ffffff',
@@ -690,6 +699,9 @@ export function StaffManagement() {
             maxWidth: '440px',
             boxShadow: 'var(--shadow-xl)',
             overflow: 'hidden',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
           }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -701,7 +713,7 @@ export function StaffManagement() {
               </button>
             </div>
 
-            <form onSubmit={handleResetPassword} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={handleResetPassword} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                   New Password (min 6 characters)
@@ -744,6 +756,7 @@ export function StaffManagement() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 100,
+          padding: '16px',
         }}>
           <div style={{
             background: '#ffffff',
@@ -752,6 +765,9 @@ export function StaffManagement() {
             maxWidth: '440px',
             boxShadow: 'var(--shadow-xl)',
             overflow: 'hidden',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
           }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>

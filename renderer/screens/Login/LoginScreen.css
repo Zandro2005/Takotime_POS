@@ -1,12 +1,16 @@
 /* renderer/screens/Login/LoginScreen.css */
 .login-container {
   display: flex;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  min-height: 100vh;
+  height: 100%;
+  flex: 1;
   background-color: var(--bg-app);
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 24px 16px;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .login-card {
@@ -16,10 +20,12 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-  padding: 36px 32px;
+  padding: 26px 24px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
+  margin: auto;
+  box-sizing: border-box;
 }
 
 .login-header {
@@ -27,12 +33,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .brand-logo-img {
-  width: 96px;
-  height: 96px;
+  width: 76px;
+  height: 76px;
   object-fit: contain;
 }
 
@@ -118,8 +124,8 @@
 }
 
 .numpad-btn {
-  height: 58px;
-  font-size: 1.4rem;
+  height: 50px;
+  font-size: 1.3rem;
   font-weight: 700;
   font-family: var(--font-mono);
   background-color: var(--bg-surface-elevated);
@@ -150,10 +156,18 @@
   color: var(--text-muted);
 }
 
+/* Both modes maintain identical height */
+.pin-mode-wrapper,
+.login-form {
+  min-height: 270px;
+  width: 100%;
+}
+
 /* Form inputs */
 .login-form {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 16px;
 }
 
@@ -169,45 +183,149 @@
   color: var(--text-secondary);
 }
 
-/* Quick test badges */
-.demo-accounts {
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 16px;
+/* Password input with toggle button */
+.password-input-wrapper {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  width: 100%;
 }
 
-.demo-title {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.password-input-wrapper .input-field {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
   color: var(--text-muted);
-  text-align: center;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+  transition: color 0.12s ease, background-color 0.12s ease;
+}
+
+.password-toggle-btn:hover {
+  color: var(--text-main);
+  background-color: var(--bg-surface-hover);
+}
+
+/* Quick test badges - strictly single line */
+.demo-accounts {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.demo-accounts::-webkit-scrollbar {
+  display: none;
+}
+
+.demo-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
   font-weight: 700;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .demo-pills {
   display: flex;
   gap: 6px;
-  justify-content: center;
-  flex-wrap: wrap;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 
 .demo-pill {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  padding: 5px 12px;
+  padding: 4px 8px;
   background-color: var(--bg-surface-elevated);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.12s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.2;
 }
 
 .demo-pill:hover {
   background-color: var(--bg-surface-hover);
   color: var(--text-main);
   border-color: var(--border-light);
+}
+
+.demo-pill.demo-pill-cloud {
+  border-color: #93c5fd;
+  color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.demo-pill.demo-pill-cloud:hover {
+  background-color: #dbeafe;
+  border-color: #60a5fa;
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    padding: 12px 8px;
+  }
+  .login-card {
+    padding: 22px 14px;
+    gap: 14px;
+  }
+  .brand-logo-img {
+    width: 64px;
+    height: 64px;
+  }
+  .brand-title {
+    font-size: 1.3rem;
+  }
+  .numpad-btn {
+    height: 46px;
+    font-size: 1.15rem;
+  }
+  .pin-mode-wrapper,
+  .login-form {
+    min-height: 250px;
+  }
+  .demo-accounts {
+    justify-content: center;
+    gap: 5px;
+    padding-top: 12px;
+  }
+  .demo-label {
+    font-size: 0.65rem;
+  }
+  .demo-pills {
+    gap: 4px;
+  }
+  .demo-pill {
+    font-size: 0.65rem;
+    padding: 3px 6px;
+  }
 }

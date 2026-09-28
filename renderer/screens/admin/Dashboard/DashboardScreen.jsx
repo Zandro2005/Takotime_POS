@@ -53,6 +53,13 @@ export function DashboardScreen({ onNavigate }) {
   const [touchStartX, setTouchStartX] = useState(null);
   const [touchEndX, setTouchEndX] = useState(null);
   const [mouseDownX, setMouseDownX] = useState(null);
+  const [isMobileScreen, setIsMobileScreen] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 640 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileScreen(window.innerWidth < 640);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const loadOverview = async (showSpinner = false) => {
     if (showSpinner) setRefreshing(true);
@@ -109,6 +116,13 @@ export function DashboardScreen({ onNavigate }) {
   }, [sessionId]);
 
   const getPageSize = (tf) => {
+    if (isMobileScreen) {
+      if (tf === 'annual') return 4;
+      if (tf === 'semi_annual') return 3;
+      if (tf === '30d') return 5;
+      if (tf === '15d') return 5;
+      return 4;
+    }
     if (tf === 'annual') return 6;
     if (tf === 'semi_annual') return 6;
     if (tf === '30d') return 8;
@@ -118,28 +132,27 @@ export function DashboardScreen({ onNavigate }) {
 
   const getChunkLabel = (tf, page, total, slice) => {
     const isLatest = page === total - 1;
-    if (tf === '30d') {
-      const start = page * 8 + 1;
-      const end = start + (slice?.length || 8) - 1;
-      return `Days ${start}–${end}${isLatest ? ' (Latest)' : ''}`;
-    }
-    if (tf === '15d') {
-      const start = page * 8 + 1;
-      const end = start + (slice?.length || 8) - 1;
+    const ps = getPageSize(tf);
+    if (tf === '30d' || tf === '15d') {
+      const start = page * ps + 1;
+      const end = start + (slice?.length || ps) - 1;
       return `Days ${start}–${end}${isLatest ? ' (Latest)' : ''}`;
     }
     if (tf === 'annual') {
       return page === 0 ? 'Months 1–6 (H1)' : 'Months 7–12 (Latest)';
     }
-    return `Page ${page + 1} of ${total}`;
+    if (tf === 'semi_annual') {
+      return `Slice ${page + 1} of ${total}${isLatest ? ' (Latest)' : ''}`;
+    }
+    return `Page ${page + 1} of ${total}${isLatest ? ' (Latest)' : ''}`;
   };
 
-  // Auto-jump to the latest page (last slide) when timeframe or trend data changes
+  // Auto-jump to the latest page (last slide) when timeframe, trend data, or screen size changes
   useEffect(() => {
     const ps = getPageSize(timeframe);
     const pages = Math.max(1, Math.ceil(salesTrend.length / ps));
     setCurrentPage(pages - 1);
-  }, [timeframe, salesTrend.length]);
+  }, [timeframe, salesTrend.length, isMobileScreen]);
 
   if (loading && !data) {
     return (
@@ -279,11 +292,11 @@ export function DashboardScreen({ onNavigate }) {
   };
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+    <div className="responsive-page-container">
       {/* Header bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px', marginBottom: '24px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -303,7 +316,7 @@ export function DashboardScreen({ onNavigate }) {
               Branch: Montalban • {data?.date || new Date().toISOString().split('T')[0]}
             </span>
           </div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
             Executive Dashboard
           </h1>
         </div>
@@ -321,12 +334,7 @@ export function DashboardScreen({ onNavigate }) {
       </div>
 
       {/* KPI Cards Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-        gap: '20px',
-        marginBottom: '28px',
-      }}>
+      <div className="grid-kpi-responsive">
         {/* Net Sales */}
         <div style={{
           background: '#ffffff',
@@ -481,21 +489,9 @@ export function DashboardScreen({ onNavigate }) {
       </div>
 
       {/* Main Content 2-Column Section: Sales Trend Chart + Active Shift / Alerts */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '24px', marginBottom: '28px' }}>
+      <div className="grid-dashboard-main">
         {/* Sales Trend Chart Card with Multi-Timeframe and Export/Print */}
-        <div style={{
-          background: '#ffffff',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '24px 28px',
-          boxShadow: 'var(--shadow-sm)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          minWidth: 0,
-          width: '100%',
-          overflow: 'hidden',
-        }}>
+        <div className="chart-card-responsive">
           {/* Card Header with Timeframe Pills and Actions */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
@@ -510,14 +506,7 @@ export function DashboardScreen({ onNavigate }) {
 
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
               {/* Timeframe Selector Pill Group */}
-              <div style={{
-                display: 'inline-flex',
-                backgroundColor: 'var(--bg-app)',
-                borderRadius: 'var(--radius-md)',
-                padding: '3px',
-                border: '1px solid var(--border-subtle)',
-                gap: '2px',
-              }}>
+              <div className="chart-timeframe-pills">
                 {TIMEFRAME_OPTIONS.map((opt) => {
                   const isActive = timeframe === opt.id;
                   return (
@@ -536,6 +525,7 @@ export function DashboardScreen({ onNavigate }) {
                         borderRadius: 'var(--radius-sm)',
                         cursor: trendLoading ? 'wait' : 'pointer',
                         transition: 'all 0.15s ease',
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {opt.label}
@@ -586,21 +576,12 @@ export function DashboardScreen({ onNavigate }) {
           </div>
 
           {/* Period Summary Metric Banner */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-            gap: '12px',
-            marginBottom: '18px',
-            padding: '12px 16px',
-            backgroundColor: 'var(--bg-app)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-subtle)',
-          }}>
+          <div className="chart-summary-banner">
             <div>
               <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                 Period Net Revenue
               </span>
-              <div style={{ fontSize: '1.15rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--brand-green)', marginTop: '2px' }}>
+              <div style={{ fontSize: isMobileScreen ? '1.0rem' : '1.15rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--brand-green)', marginTop: '2px' }}>
                 ₱{totalTrendRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </div>
@@ -608,7 +589,7 @@ export function DashboardScreen({ onNavigate }) {
               <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                 Total Orders
               </span>
-              <div style={{ fontSize: '1.15rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '2px' }}>
+              <div style={{ fontSize: isMobileScreen ? '1.0rem' : '1.15rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '2px' }}>
                 {totalTrendOrders}
               </div>
             </div>
@@ -616,7 +597,7 @@ export function DashboardScreen({ onNavigate }) {
               <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                 Avg {['semi_annual', 'annual'].includes(timeframe) ? 'Monthly' : 'Daily'} Sales
               </span>
-              <div style={{ fontSize: '1.15rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '2px' }}>
+              <div style={{ fontSize: isMobileScreen ? '1.0rem' : '1.15rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '2px' }}>
                 ₱{avgTrendRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </div>
@@ -624,7 +605,7 @@ export function DashboardScreen({ onNavigate }) {
               <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                 Avg Ticket Value
               </span>
-              <div style={{ fontSize: '1.15rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '2px' }}>
+              <div style={{ fontSize: isMobileScreen ? '1.0rem' : '1.15rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '2px' }}>
                 ₱{totalTrendOrders > 0 ? (totalTrendRevenue / totalTrendOrders).toFixed(2) : '0.00'}
               </div>
             </div>
@@ -632,14 +613,8 @@ export function DashboardScreen({ onNavigate }) {
 
           {/* Bar Chart Visualization - Fixed Height, Exactly Matching 7-Day Scale */}
           <div
+            className="chart-viewport"
             style={{
-              position: 'relative',
-              overflow: 'hidden',
-              width: '100%',
-              minWidth: 0,
-              height: '230px',
-              borderBottom: '1px solid var(--border-subtle)',
-              userSelect: 'none',
               cursor: totalPages > 1 ? 'grab' : 'default',
             }}
             onTouchStart={handleTouchStart}
@@ -666,17 +641,12 @@ export function DashboardScreen({ onNavigate }) {
               </div>
             )}
 
-            {/* Direct view of the active slice - strictly 100% width, 6-8 bars */}
+            {/* Direct view of the active slice - strictly 100% width, 4-8 bars */}
             <div
               key={currentPage}
+              className="chart-bars-row"
               style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'flex-end',
-                gap: currentSlice.length > 7 ? '12px' : '18px',
-                height: '220px',
-                padding: '16px 8px 0',
-                boxSizing: 'border-box',
+                gap: isMobileScreen ? '8px' : (currentSlice.length > 7 ? '12px' : '18px'),
               }}
             >
               {currentSlice.map((day, itemIdx) => {
@@ -706,7 +676,7 @@ export function DashboardScreen({ onNavigate }) {
                   >
                     {/* Tooltip on Hover or Top Label */}
                     <span style={{
-                      fontSize: '0.72rem',
+                      fontSize: isMobileScreen ? '0.64rem' : '0.72rem',
                       fontFamily: 'var(--font-mono)',
                       fontWeight: 700,
                       color: isTodayOrLatest ? 'var(--brand-red)' : 'var(--text-muted)',
@@ -725,7 +695,7 @@ export function DashboardScreen({ onNavigate }) {
                     <div
                       style={{
                         width: '100%',
-                        maxWidth: '44px',
+                        maxWidth: isMobileScreen ? '36px' : '44px',
                         height: `${heightPct}%`,
                         backgroundColor: isTodayOrLatest ? 'var(--brand-red)' : isHovered ? '#ef4444' : '#fca5a5',
                         borderRadius: '6px 6px 0 0',
@@ -747,7 +717,7 @@ export function DashboardScreen({ onNavigate }) {
                       {/* Order Count Label inside bar if tall enough */}
                       {heightPct > 20 && (
                         <span style={{
-                          fontSize: '0.68rem',
+                          fontSize: isMobileScreen ? '0.62rem' : '0.68rem',
                           color: isTodayOrLatest || isHovered ? '#ffffff' : '#7f1d1d',
                           fontWeight: 700,
                           lineHeight: 1,
@@ -759,7 +729,7 @@ export function DashboardScreen({ onNavigate }) {
 
                     {/* X-Axis Date/Period label */}
                     <span style={{
-                      fontSize: '0.75rem',
+                      fontSize: isMobileScreen ? '0.66rem' : '0.75rem',
                       color: isTodayOrLatest ? 'var(--brand-red)' : isHovered ? 'var(--text-main)' : 'var(--text-muted)',
                       fontWeight: isTodayOrLatest ? 800 : isHovered ? 700 : 500,
                       marginTop: '10px',
@@ -773,6 +743,7 @@ export function DashboardScreen({ onNavigate }) {
               })}
             </div>
           </div>
+
 
           {/* Chart Footer with Legend & Chunk Pagination */}
           <div style={{
@@ -925,50 +896,102 @@ export function DashboardScreen({ onNavigate }) {
             padding: '24px',
             boxShadow: 'var(--shadow-sm)',
             flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
           }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <AlertTriangle size={18} color="var(--brand-red)" />
-              Stock Threshold Alerts
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '1.02rem', fontWeight: 700, color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertTriangle size={17} style={{ color: lowStockAlerts.length > 0 ? '#b45309' : 'var(--text-muted)' }} />
+                Stock Threshold Alerts
+              </h2>
+              {lowStockAlerts.length > 0 && (
+                <span style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--bg-app)',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border-subtle)',
+                }}>
+                  {lowStockAlerts.length} {lowStockAlerts.length === 1 ? 'item' : 'items'}
+                </span>
+              )}
+            </div>
 
             {lowStockAlerts.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {lowStockAlerts.map(item => (
-                  <div key={item.itemId} style={{
-                    padding: '10px 12px',
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: item.severity === 'critical' ? 'var(--brand-red-light)' : 'var(--brand-gold-light)',
-                    border: `1px solid ${item.severity === 'critical' ? 'rgba(224, 26, 34, 0.2)' : 'rgba(217, 119, 6, 0.2)'}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.85rem', color: item.severity === 'critical' ? 'var(--brand-red)' : 'var(--brand-gold)' }}>
-                        {item.name}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        Current: <strong>{item.currentStock} {item.unit}</strong> (Min: {item.minStock} {item.unit})
-                      </div>
-                    </div>
-                    <span style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 800,
-                      padding: '3px 8px',
-                      borderRadius: 'var(--radius-full)',
-                      backgroundColor: item.severity === 'critical' ? 'var(--brand-red)' : 'var(--brand-gold)',
-                      color: '#ffffff',
-                      textTransform: 'uppercase',
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '280px', overflowY: 'auto' }}>
+                {lowStockAlerts.map(item => {
+                  const isCritical = item.severity === 'critical';
+                  return (
+                    <div key={item.itemId} style={{
+                      padding: '11px 14px',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'var(--bg-surface-elevated)',
+                      border: '1px solid var(--border-subtle)',
+                      borderLeft: `3px solid ${isCritical ? '#dc2626' : '#f59e0b'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
                     }}>
-                      {item.severity}
-                    </span>
-                  </div>
-                ))}
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.86rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            backgroundColor: isCritical ? '#dc2626' : '#f59e0b',
+                            flexShrink: 0,
+                          }} />
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {item.name}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '3px', paddingLeft: '12px' }}>
+                          Current: <strong style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{item.currentStock} {item.unit}</strong>
+                          <span style={{ margin: '0 5px', color: 'var(--border-strong)' }}>·</span>
+                          Threshold: {item.minStock} {item.unit}
+                        </div>
+                      </div>
+
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        fontSize: '0.68rem',
+                        fontWeight: 600,
+                        padding: '3px 8px',
+                        borderRadius: 'var(--radius-sm)',
+                        backgroundColor: isCritical ? '#fef2f2' : '#fffbeb',
+                        color: isCritical ? '#991b1b' : '#92400e',
+                        border: `1px solid ${isCritical ? '#fee2e2' : '#fef3c7'}`,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        flexShrink: 0,
+                      }}>
+                        {item.severity}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--text-muted)' }}>
-                <CheckCircle2 size={32} color="var(--brand-green)" style={{ margin: '0 auto 8px' }} />
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>Stock Levels Healthy</div>
+              <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)' }}>
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #dcfce7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 10px',
+                }}>
+                  <CheckCircle2 size={18} color="var(--brand-green)" />
+                </div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>Stock Levels Healthy</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>All ingredients meet minimum thresholds</div>
               </div>
             )}
           </div>
@@ -988,7 +1011,7 @@ export function DashboardScreen({ onNavigate }) {
         </h2>
 
         {topProducts.length > 0 ? (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="responsive-table-wrapper">
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border-subtle)', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
@@ -1028,7 +1051,7 @@ export function DashboardScreen({ onNavigate }) {
       {/* Executive Printable Sales Performance Report Modal (Print to PDF / Excel) */}
       {showPrintModal && (
         <div
-          className="no-print-overlay"
+          className="no-print-overlay modal-responsive-overlay"
           style={{
             position: 'fixed',
             inset: 0,
@@ -1045,6 +1068,7 @@ export function DashboardScreen({ onNavigate }) {
           }}
         >
           <div
+            className="modal-responsive-card"
             style={{
               backgroundColor: '#ffffff',
               borderRadius: 'var(--radius-lg)',
@@ -1173,18 +1197,18 @@ export function DashboardScreen({ onNavigate }) {
               </div>
 
               {/* Printable Bar Chart Graphic */}
-              <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '18px 20px', marginBottom: '24px', backgroundColor: '#ffffff' }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '14px', display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '18px 20px', marginBottom: '24px', backgroundColor: '#ffffff', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                   <span>REVENUE TREND OVERVIEW</span>
                   <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Values scaled to peak: ₱{maxTrendRevenue.toLocaleString()}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: salesTrend.length > 20 ? '4px' : '8px', height: '140px', padding: '8px 0 0', borderBottom: '1px solid #cbd5e1' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: salesTrend.length > 20 ? '4px' : '8px', height: '140px', minWidth: salesTrend.length > 10 ? '480px' : '100%', padding: '8px 0 0', borderBottom: '1px solid #cbd5e1' }}>
                   {salesTrend.map((day, idx) => {
                     const rev = Number(day.revenue) || 0;
                     const heightPct = Math.max(10, Math.round((rev / maxTrendRevenue) * 100));
                     const isLatest = idx === salesTrend.length - 1;
                     return (
-                      <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+                      <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', minWidth: 0 }}>
                         <div style={{
                           width: '100%',
                           maxWidth: '36px',
@@ -1206,53 +1230,55 @@ export function DashboardScreen({ onNavigate }) {
                 <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a', marginBottom: '10px' }}>
                   ITEMIZED PERIOD SALES BREAKDOWN
                 </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #cbd5e1', textAlign: 'left', color: '#334155' }}>
-                      <th style={{ padding: '8px 12px' }}>Period / Date</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'center' }}>Completed Orders</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>Net Sales (PHP)</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>Avg Ticket</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>Sales Share</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {salesTrend.map((day, idx) => {
-                      const rev = Number(day.revenue) || 0;
-                      const orderCnt = day.orderCount ?? day.orders ?? 0;
-                      const sharePct = totalTrendRevenue > 0 ? ((rev / totalTrendRevenue) * 100).toFixed(1) : '0.0';
-                      const avgTicket = orderCnt > 0 ? (rev / orderCnt).toFixed(2) : '0.00';
-                      return (
-                        <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 1 ? '#f8fafc' : '#ffffff' }}>
-                          <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0f172a' }}>{day.label || day.date}</td>
-                          <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: 'monospace' }}>{orderCnt}</td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#16a34a' }}>
-                            ₱{rev.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace' }}>₱{avgTicket}</td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#64748b' }}>{sharePct}%</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                  <tfoot>
-                    <tr style={{ backgroundColor: '#f1f5f9', borderTop: '2px solid #0f172a', fontWeight: 800 }}>
-                      <td style={{ padding: '10px 12px' }}>TOTAL</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontFamily: 'monospace' }}>{totalTrendOrders}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'monospace', color: '#16a34a', fontSize: '0.9rem' }}>
-                        ₱{totalTrendRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'monospace' }}>
-                        ₱{totalTrendOrders > 0 ? (totalTrendRevenue / totalTrendOrders).toFixed(2) : '0.00'}
-                      </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>100.0%</td>
-                    </tr>
-                  </tfoot>
-                </table>
+                <div className="responsive-table-wrapper">
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #cbd5e1', textAlign: 'left', color: '#334155' }}>
+                        <th style={{ padding: '8px 12px' }}>Period / Date</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center' }}>Completed Orders</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right' }}>Net Sales (PHP)</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right' }}>Avg Ticket</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right' }}>Sales Share</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {salesTrend.map((day, idx) => {
+                        const rev = Number(day.revenue) || 0;
+                        const orderCnt = day.orderCount ?? day.orders ?? 0;
+                        const sharePct = totalTrendRevenue > 0 ? ((rev / totalTrendRevenue) * 100).toFixed(1) : '0.0';
+                        const avgTicket = orderCnt > 0 ? (rev / orderCnt).toFixed(2) : '0.00';
+                        return (
+                          <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 1 ? '#f8fafc' : '#ffffff' }}>
+                            <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0f172a' }}>{day.label || day.date}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: 'monospace' }}>{orderCnt}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#16a34a' }}>
+                              ₱{rev.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace' }}>₱{avgTicket}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#64748b' }}>{sharePct}%</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr style={{ backgroundColor: '#f1f5f9', borderTop: '2px solid #0f172a', fontWeight: 800 }}>
+                        <td style={{ padding: '10px 12px' }}>TOTAL</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center', fontFamily: 'monospace' }}>{totalTrendOrders}</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'monospace', color: '#16a34a', fontSize: '0.9rem' }}>
+                          ₱{totalTrendRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'monospace' }}>
+                          ₱{totalTrendOrders > 0 ? (totalTrendRevenue / totalTrendOrders).toFixed(2) : '0.00'}
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right' }}>100.0%</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               </div>
 
               {/* Signatures & Certification Block */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '36px', paddingTop: '20px', borderTop: '1px solid #e2e8f0', fontSize: '0.8rem', color: '#475569' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', paddingTop: '20px', borderTop: '1px solid #e2e8f0', fontSize: '0.8rem', color: '#475569' }}>
                 <div>
                   <div style={{ marginBottom: '32px' }}>Prepared By:</div>
                   <div style={{ borderTop: '1px solid #94a3b8', paddingTop: '6px', fontWeight: 700 }}>
@@ -1266,6 +1292,7 @@ export function DashboardScreen({ onNavigate }) {
                   </div>
                 </div>
               </div>
+
 
               <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8' }}>
                 Tako Time! POS System • Generated autonomously via Local Store Database & Cloud Sync Bridge

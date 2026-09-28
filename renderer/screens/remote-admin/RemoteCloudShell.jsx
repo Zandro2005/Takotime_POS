@@ -36,7 +36,8 @@ import {
   FileSpreadsheet,
   Download,
   Calendar,
-  X
+  X,
+  Menu
 } from 'lucide-react';
 
 const TIMEFRAME_OPTIONS = [
@@ -50,6 +51,7 @@ const TIMEFRAME_OPTIONS = [
 export function RemoteCloudShell() {
   const { user, sessionId, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('telemetry'); // 'telemetry' | 'orders' | 'actions' | 'inventory' | 'logs'
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState(null);
   const [syncLogs, setSyncLogs] = useState([]);
   const [overview, setOverview] = useState(null);
@@ -69,6 +71,13 @@ export function RemoteCloudShell() {
   const [touchStartX, setTouchStartX] = useState(null);
   const [touchEndX, setTouchEndX] = useState(null);
   const [mouseDownX, setMouseDownX] = useState(null);
+  const [isMobileScreen, setIsMobileScreen] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 640 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileScreen(window.innerWidth < 640);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Action Queue Form States
   const [actionType, setActionType] = useState('change_price');
@@ -304,6 +313,13 @@ export function RemoteCloudShell() {
   const maxTrendRevenue = Math.max(...salesTrend.map(d => Number(d.revenue) || 0), 1000);
 
   const getPageSize = (tf) => {
+    if (isMobileScreen) {
+      if (tf === 'annual') return 4;
+      if (tf === 'semi_annual') return 3;
+      if (tf === '30d') return 5;
+      if (tf === '15d') return 5;
+      return 4;
+    }
     if (tf === 'annual') return 6;
     if (tf === 'semi_annual') return 6;
     if (tf === '30d') return 8;
@@ -313,23 +329,22 @@ export function RemoteCloudShell() {
 
   const getChunkLabel = (tf, page, total, slice) => {
     const isLatest = page === total - 1;
-    if (tf === '30d') {
-      const start = page * 8 + 1;
-      const end = start + (slice?.length || 8) - 1;
-      return `Days ${start}–${end}${isLatest ? ' (Latest)' : ''}`;
-    }
-    if (tf === '15d') {
-      const start = page * 8 + 1;
-      const end = start + (slice?.length || 8) - 1;
+    const ps = getPageSize(tf);
+    if (tf === '30d' || tf === '15d') {
+      const start = page * ps + 1;
+      const end = start + (slice?.length || ps) - 1;
       return `Days ${start}–${end}${isLatest ? ' (Latest)' : ''}`;
     }
     if (tf === 'annual') {
       return page === 0 ? 'Months 1–6 (H1)' : 'Months 7–12 (Latest)';
     }
-    return `Page ${page + 1} of ${total}`;
+    if (tf === 'semi_annual') {
+      return `Slice ${page + 1} of ${total}${isLatest ? ' (Latest)' : ''}`;
+    }
+    return `Page ${page + 1} of ${total}${isLatest ? ' (Latest)' : ''}`;
   };
 
-  // Strictly retain 6-8 bars per view matching the original 7-day scale without expanding the card
+  // Strictly retain optimal bars per view matching the screen scale without expanding the card
   const pageSize = getPageSize(timeframe);
   const totalPages = Math.max(1, Math.ceil(salesTrend.length / pageSize));
 
@@ -342,12 +357,12 @@ export function RemoteCloudShell() {
   }
   const currentSlice = trendPages[currentPage] || trendPages[0] || [];
 
-  // Auto-jump to the latest page (last slide) when timeframe or trend data changes
+  // Auto-jump to the latest page (last slide) when timeframe, trend data, or screen size changes
   useEffect(() => {
     const ps = getPageSize(timeframe);
     const pages = Math.max(1, Math.ceil(salesTrend.length / ps));
     setCurrentPage(pages - 1);
-  }, [timeframe, salesTrend.length]);
+  }, [timeframe, salesTrend.length, isMobileScreen]);
 
   const handleTouchStart = (e) => {
     if (e.targetTouches && e.targetTouches[0]) {
@@ -445,7 +460,7 @@ export function RemoteCloudShell() {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: 'var(--bg-app)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: 'var(--bg-app)' }}>
       {/* Toast Notification */}
       {toast && (
         <div style={{
@@ -470,144 +485,191 @@ export function RemoteCloudShell() {
         </div>
       )}
 
-      {/* Standalone Cloud Sidebar */}
-      <aside style={{
-        width: '260px',
-        backgroundColor: '#ffffff',
-        borderRight: '1px solid var(--border-subtle)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        padding: '20px 16px',
-        boxShadow: 'var(--shadow-sm)',
-        zIndex: 10,
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Brand & Cloud Status */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 8px' }}>
-            <img src={logoImg} alt="TAKOTIME" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
-            <div>
-              <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--text-main)', lineHeight: 1.1 }}>TAKOTIME</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                <Cloud size={13} color="var(--brand-crimson)" />
-                <span style={{ fontSize: '0.75rem', color: 'var(--brand-crimson)', fontWeight: 800, letterSpacing: '0.04em' }}>
-                  REMOTE CLOUD
+      {/* Mobile Topbar (< 900px) */}
+      <div className="mobile-topbar">
+        <button
+          type="button"
+          className="mobile-topbar-btn"
+          onClick={() => setMobileMenuOpen(true)}
+          aria-label="Open Navigation Menu"
+        >
+          <Menu size={20} />
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <img src={logoImg} alt="TAKOTIME" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+          <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-main)' }}>TAKOTIME Cloud</span>
+        </div>
+
+        <button
+          type="button"
+          className="mobile-topbar-btn"
+          onClick={handleTriggerSync}
+          disabled={syncing}
+          title="Trigger Immediate Sync"
+        >
+          <RefreshCw size={17} className={syncing ? 'animate-spin' : ''} />
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+        {/* Mobile Backdrop */}
+        {mobileMenuOpen && (
+          <div
+            className="mobile-sidebar-backdrop"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Standalone Cloud Sidebar */}
+        <aside className={`desktop-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{
+          width: '260px',
+          backgroundColor: '#ffffff',
+          borderRight: '1px solid var(--border-subtle)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: '20px 16px',
+          boxShadow: 'var(--shadow-sm)',
+          zIndex: 10,
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Brand & Cloud Status */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <img src={logoImg} alt="TAKOTIME" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--text-main)', lineHeight: 1.1 }}>TAKOTIME</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                    <Cloud size={13} color="var(--brand-crimson)" />
+                    <span style={{ fontSize: '0.75rem', color: 'var(--brand-crimson)', fontWeight: 800, letterSpacing: '0.04em' }}>
+                      REMOTE CLOUD
+                    </span>
+                  </div>
+                </div>
+              </div>
+              {mobileMenuOpen && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '6px' }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+
+            {/* Store Location Badge (Montalban Branch Only) */}
+            <div style={{
+              backgroundColor: 'var(--bg-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 14px',
+              border: '1px solid var(--border-subtle)',
+            }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>
+                Store Location
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Store size={16} color="var(--brand-crimson)" />
+                <span style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-main)' }}>
+                  Montalban Branch
                 </span>
               </div>
             </div>
+
+            {/* Separate Navigation Pages */}
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <button
+                type="button"
+                className={`btn ${activeTab === 'telemetry' ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
+                onClick={() => { setActiveTab('telemetry'); setMobileMenuOpen(false); }}
+              >
+                <Activity size={18} />
+                Live Store Telemetry
+              </button>
+
+              <button
+                type="button"
+                className={`btn ${activeTab === 'orders' ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
+                onClick={() => { setActiveTab('orders'); setMobileMenuOpen(false); }}
+              >
+                <Receipt size={18} />
+                Synchronized Orders
+              </button>
+
+              <button
+                type="button"
+                className={`btn ${activeTab === 'actions' ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
+                onClick={() => { setActiveTab('actions'); setMobileMenuOpen(false); }}
+              >
+                <Send size={18} />
+                Remote Action Queue ({queuedActions.filter(a => a.status === 'pending').length})
+              </button>
+
+              <button
+                type="button"
+                className={`btn ${activeTab === 'inventory' ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
+                onClick={() => { setActiveTab('inventory'); setMobileMenuOpen(false); }}
+              >
+                <Package size={18} />
+                Inventory & Alerts
+              </button>
+
+              <button
+                type="button"
+                className={`btn ${activeTab === 'logs' ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
+                onClick={() => { setActiveTab('logs'); setMobileMenuOpen(false); }}
+              >
+                <Clock size={18} />
+                Cloud Sync Audit Logs
+              </button>
+            </nav>
           </div>
 
-          {/* Store Location Badge (Montalban Branch Only) */}
+          {/* User Card & Logout */}
           <div style={{
-            backgroundColor: 'var(--bg-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 14px',
-            border: '1px solid var(--border-subtle)',
+            borderTop: '1px solid var(--border-subtle)',
+            paddingTop: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
           }}>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>
-              Store Location
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
+              <div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>{user?.name || 'Franchise Owner'}</div>
+                <span className="badge" style={{ marginTop: '4px', backgroundColor: '#eff6ff', color: '#2563eb' }}>
+                  Remote Cloud Admin
+                </span>
+              </div>
+              <Shield size={20} color="#2563eb" />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Store size={16} color="var(--brand-crimson)" />
-              <span style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-main)' }}>
-                Montalban Branch
-              </span>
-            </div>
+
+            <button
+              type="button"
+              className="btn btn-danger"
+              style={{ width: '100%', padding: '10px' }}
+              onClick={logout}
+            >
+              <LogOut size={16} />
+              Sign Out
+            </button>
           </div>
+        </aside>
 
-          {/* Separate Navigation Pages */}
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <button
-              type="button"
-              className={`btn ${activeTab === 'telemetry' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
-              onClick={() => setActiveTab('telemetry')}
-            >
-              <Activity size={18} />
-              Live Store Telemetry
-            </button>
-
-            <button
-              type="button"
-              className={`btn ${activeTab === 'orders' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
-              onClick={() => setActiveTab('orders')}
-            >
-              <Receipt size={18} />
-              Synchronized Orders
-            </button>
-
-            <button
-              type="button"
-              className={`btn ${activeTab === 'actions' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
-              onClick={() => setActiveTab('actions')}
-            >
-              <Send size={18} />
-              Remote Action Queue ({queuedActions.filter(a => a.status === 'pending').length})
-            </button>
-
-            <button
-              type="button"
-              className={`btn ${activeTab === 'inventory' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
-              onClick={() => setActiveTab('inventory')}
-            >
-              <Package size={18} />
-              Inventory & Alerts
-            </button>
-
-            <button
-              type="button"
-              className={`btn ${activeTab === 'logs' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ justifyContent: 'flex-start', padding: '12px 14px', width: '100%' }}
-              onClick={() => setActiveTab('logs')}
-            >
-              <Clock size={18} />
-              Cloud Sync Audit Logs
-            </button>
-          </nav>
-        </div>
-
-        {/* User Card & Logout */}
-        <div style={{
-          borderTop: '1px solid var(--border-subtle)',
-          paddingTop: '16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
+        {/* Main Content Area */}
+        <main className="responsive-page-container" style={{
+          flex: 1,
+          overflowY: 'auto',
+          maxWidth: '1300px',
+          margin: '0 auto',
+          width: '100%',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
-            <div>
-              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>{user?.name || 'Franchise Owner'}</div>
-              <span className="badge" style={{ marginTop: '4px', backgroundColor: '#eff6ff', color: '#2563eb' }}>
-                Remote Cloud Admin
-              </span>
-            </div>
-            <Shield size={20} color="#2563eb" />
-          </div>
-
-          <button
-            type="button"
-            className="btn btn-danger"
-            style={{ width: '100%', padding: '10px' }}
-            onClick={logout}
-          >
-            <LogOut size={16} />
-            Sign Out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: '32px',
-        maxWidth: '1300px',
-        margin: '0 auto',
-        width: '100%',
-      }}>
         {/* Top Cloud Bar */}
         <div style={{
           display: 'flex',
@@ -801,21 +863,9 @@ export function RemoteCloudShell() {
             </div>
 
             {/* Main 2-Column Section: 7-Day Revenue Trend Chart + Top Products */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '24px', marginBottom: '28px' }}>
+            <div className="grid-dashboard-main" style={{ marginBottom: '28px' }}>
               {/* Sales Trend Chart Card with Multi-Timeframe and Export/Print */}
-              <div style={{
-                background: '#ffffff',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '24px 28px',
-                boxShadow: 'var(--shadow-sm)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                minWidth: 0,
-                width: '100%',
-                overflow: 'hidden',
-              }}>
+              <div className="chart-card-responsive">
                 {/* Card Header with Timeframe Pills and Actions */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
@@ -830,14 +880,7 @@ export function RemoteCloudShell() {
 
                   <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                     {/* Timeframe Selector Pill Group */}
-                    <div style={{
-                      display: 'inline-flex',
-                      backgroundColor: 'var(--bg-app)',
-                      borderRadius: 'var(--radius-md)',
-                      padding: '3px',
-                      border: '1px solid var(--border-subtle)',
-                      gap: '2px',
-                    }}>
+                    <div className="chart-timeframe-pills">
                       {TIMEFRAME_OPTIONS.map((opt) => {
                         const isActive = timeframe === opt.id;
                         return (
@@ -856,6 +899,7 @@ export function RemoteCloudShell() {
                               borderRadius: 'var(--radius-sm)',
                               cursor: trendLoading ? 'wait' : 'pointer',
                               transition: 'all 0.15s ease',
+                              whiteSpace: 'nowrap',
                             }}
                           >
                             {opt.label}
@@ -906,21 +950,12 @@ export function RemoteCloudShell() {
                 </div>
 
                 {/* Period Summary Metric Banner */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-                  gap: '12px',
-                  marginBottom: '18px',
-                  padding: '12px 16px',
-                  backgroundColor: 'var(--bg-app)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-subtle)',
-                }}>
+                <div className="chart-summary-banner">
                   <div>
                     <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                       Period Net Revenue
                     </span>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--brand-green)', marginTop: '2px' }}>
+                    <div style={{ fontSize: isMobileScreen ? '1.0rem' : '1.15rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--brand-green)', marginTop: '2px' }}>
                       ₱{totalTrendRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                   </div>
@@ -928,7 +963,7 @@ export function RemoteCloudShell() {
                     <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                       Total Orders
                     </span>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--text-main)', marginTop: '2px' }}>
+                    <div style={{ fontSize: isMobileScreen ? '1.0rem' : '1.15rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--text-main)', marginTop: '2px' }}>
                       {totalTrendOrders}
                     </div>
                   </div>
@@ -936,7 +971,7 @@ export function RemoteCloudShell() {
                     <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                       Avg {['semi_annual', 'annual'].includes(timeframe) ? 'Monthly' : 'Daily'} Sales
                     </span>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--text-main)', marginTop: '2px' }}>
+                    <div style={{ fontSize: isMobileScreen ? '1.0rem' : '1.15rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--text-main)', marginTop: '2px' }}>
                       ₱{avgTrendRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                   </div>
@@ -944,7 +979,7 @@ export function RemoteCloudShell() {
                     <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                       Avg Ticket Value
                     </span>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--text-main)', marginTop: '2px' }}>
+                    <div style={{ fontSize: isMobileScreen ? '1.0rem' : '1.15rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--text-main)', marginTop: '2px' }}>
                       ₱{totalTrendOrders > 0 ? (totalTrendRevenue / totalTrendOrders).toFixed(2) : '0.00'}
                     </div>
                   </div>
@@ -952,14 +987,8 @@ export function RemoteCloudShell() {
 
                 {/* Bar Chart Visualization - Fixed Height, Exactly Matching 7-Day Scale */}
                 <div
+                  className="chart-viewport"
                   style={{
-                    position: 'relative',
-                    overflow: 'hidden',
-                    width: '100%',
-                    minWidth: 0,
-                    height: '230px',
-                    borderBottom: '1px solid var(--border-subtle)',
-                    userSelect: 'none',
                     cursor: totalPages > 1 ? 'grab' : 'default',
                   }}
                   onTouchStart={handleTouchStart}
@@ -986,17 +1015,12 @@ export function RemoteCloudShell() {
                     </div>
                   )}
 
-                  {/* Direct view of the active slice - strictly 100% width, 6-8 bars */}
+                  {/* Direct view of the active slice - strictly 100% width, 4-8 bars */}
                   <div
                     key={currentPage}
+                    className="chart-bars-row"
                     style={{
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'flex-end',
-                      gap: currentSlice.length > 7 ? '12px' : '18px',
-                      height: '220px',
-                      padding: '16px 8px 0',
-                      boxSizing: 'border-box',
+                      gap: isMobileScreen ? '8px' : (currentSlice.length > 7 ? '12px' : '18px'),
                     }}
                   >
                     {currentSlice.map((day, itemIdx) => {
@@ -1026,7 +1050,7 @@ export function RemoteCloudShell() {
                         >
                           {/* Tooltip on Hover or Top Label */}
                           <span style={{
-                            fontSize: '0.72rem',
+                            fontSize: isMobileScreen ? '0.64rem' : '0.72rem',
                             fontFamily: 'monospace',
                             fontWeight: 700,
                             color: isTodayOrLatest ? 'var(--brand-crimson)' : 'var(--text-muted)',
@@ -1045,7 +1069,7 @@ export function RemoteCloudShell() {
                           <div
                             style={{
                               width: '100%',
-                              maxWidth: '44px',
+                              maxWidth: isMobileScreen ? '36px' : '44px',
                               height: `${heightPct}%`,
                               backgroundColor: isTodayOrLatest ? 'var(--brand-crimson)' : isHovered ? '#ef4444' : '#fca5a5',
                               borderRadius: '6px 6px 0 0',
@@ -1067,7 +1091,7 @@ export function RemoteCloudShell() {
                             {/* Order Count Label inside bar if tall enough */}
                             {heightPct > 20 && (
                               <span style={{
-                                fontSize: '0.68rem',
+                                fontSize: isMobileScreen ? '0.62rem' : '0.68rem',
                                 color: isTodayOrLatest || isHovered ? '#ffffff' : '#7f1d1d',
                                 fontWeight: 700,
                                 lineHeight: 1,
@@ -1079,7 +1103,7 @@ export function RemoteCloudShell() {
 
                           {/* X-Axis Date/Period label */}
                           <span style={{
-                            fontSize: '0.75rem',
+                            fontSize: isMobileScreen ? '0.66rem' : '0.75rem',
                             color: isTodayOrLatest ? 'var(--brand-crimson)' : isHovered ? 'var(--text-main)' : 'var(--text-muted)',
                             fontWeight: isTodayOrLatest ? 800 : isHovered ? 700 : 500,
                             marginTop: '10px',
@@ -1274,44 +1298,47 @@ export function RemoteCloudShell() {
               </button>
             </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-              <thead>
-                <tr style={{ backgroundColor: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
-                  <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)' }}>ORDER #</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>QUEUE</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>CASHIER</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>METHOD</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>ITEMS</th>
-                  <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'right' }}>AMOUNT</th>
-                </tr>
-              </thead>
-              <tbody>
-                {remoteOrders.map((ord) => (
-                  <tr key={ord.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '12px 20px', fontFamily: 'monospace', fontWeight: 700 }}>
-                      #{String(ord.id).padStart(4, '0')}
-                    </td>
-                    <td style={{ padding: '12px 16px', fontWeight: 800, color: 'var(--brand-crimson)' }}>
-                      Q#{ord.queue_no}
-                    </td>
-                    <td style={{ padding: '12px 16px' }}>{ord.staff_name}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span className="badge" style={{
-                        backgroundColor: ord.payment_method === 'gcash' ? '#eff6ff' : '#ecfdf5',
-                        color: ord.payment_method === 'gcash' ? '#2563eb' : 'var(--brand-green)',
-                      }}>
-                        {ord.payment_method.toUpperCase()}
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px 16px', color: 'var(--text-main)' }}>{ord.items}</td>
-                    <td style={{ padding: '12px 20px', textAlign: 'right', fontWeight: 700, color: 'var(--brand-green)' }}>
-                      ₱{ord.total.toFixed(2)}
-                    </td>
+            <div className="responsive-table-wrapper">
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ backgroundColor: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
+                    <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)' }}>ORDER #</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>QUEUE</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>CASHIER</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>METHOD</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>ITEMS</th>
+                    <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'right' }}>AMOUNT</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {remoteOrders.map((ord) => (
+                    <tr key={ord.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '12px 20px', fontFamily: 'monospace', fontWeight: 700 }}>
+                        #{String(ord.id).padStart(4, '0')}
+                      </td>
+                      <td style={{ padding: '12px 16px', fontWeight: 800, color: 'var(--brand-crimson)' }}>
+                        Q#{ord.queue_no}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>{ord.staff_name}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span className="badge" style={{
+                          backgroundColor: ord.payment_method === 'gcash' ? '#eff6ff' : '#ecfdf5',
+                          color: ord.payment_method === 'gcash' ? '#2563eb' : 'var(--brand-green)',
+                        }}>
+                          {ord.payment_method.toUpperCase()}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 16px', color: 'var(--text-main)' }}>{ord.items}</td>
+                      <td style={{ padding: '12px 20px', textAlign: 'right', fontWeight: 700, color: 'var(--brand-green)' }}>
+                        ₱{ord.total.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
+
         )}
 
         {/* PAGE 3: ACTION QUEUE DISPATCHER */}
@@ -1465,34 +1492,37 @@ export function RemoteCloudShell() {
                 Queued Remote Actions (Montalban Branch)
               </div>
 
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-                <thead>
-                  <tr style={{ backgroundColor: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
-                    <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)' }}>ACTION DETAILS</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>QUEUED AT</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>SUBMITTED BY</th>
-                    <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'right' }}>STATUS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {queuedActions.map((act) => (
-                    <tr key={act.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '12px 20px', fontWeight: 600 }}>{act.summary}</td>
-                      <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>{act.queued_at}</td>
-                      <td style={{ padding: '12px 16px', color: 'var(--text-main)' }}>@{act.creator}</td>
-                      <td style={{ padding: '12px 20px', textAlign: 'right' }}>
-                        <span className="badge" style={{
-                          backgroundColor: act.status === 'pending' ? '#fef3c7' : '#ecfdf5',
-                          color: act.status === 'pending' ? '#b45309' : 'var(--brand-green)',
-                        }}>
-                          {act.status.toUpperCase()}
-                        </span>
-                      </td>
+              <div className="responsive-table-wrapper">
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
+                      <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)' }}>ACTION DETAILS</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>QUEUED AT</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>SUBMITTED BY</th>
+                      <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'right' }}>STATUS</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {queuedActions.map((act) => (
+                      <tr key={act.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '12px 20px', fontWeight: 600 }}>{act.summary}</td>
+                        <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>{act.queued_at}</td>
+                        <td style={{ padding: '12px 16px', color: 'var(--text-main)' }}>@{act.creator}</td>
+                        <td style={{ padding: '12px 20px', textAlign: 'right' }}>
+                          <span className="badge" style={{
+                            backgroundColor: act.status === 'pending' ? '#fef3c7' : '#ecfdf5',
+                            color: act.status === 'pending' ? '#b45309' : 'var(--brand-green)',
+                          }}>
+                            {act.status.toUpperCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
+
           </div>
         )}
 
@@ -1563,43 +1593,46 @@ export function RemoteCloudShell() {
               Cloud Synchronization Audit Log (Montalban Branch)
             </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-              <thead>
-                <tr style={{ backgroundColor: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
-                  <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)' }}>ID</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>DIRECTION</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>RECORDS</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>TIMESTAMP</th>
-                  <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'right' }}>STATUS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {syncLogs.map((log) => (
-                  <tr key={log.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '12px 20px', fontFamily: 'monospace' }}>#{log.id}</td>
-                    <td style={{ padding: '12px 16px', fontWeight: 600 }}>{log.direction.toUpperCase()}</td>
-                    <td style={{ padding: '12px 16px' }}>{log.records_synced} synced</td>
-                    <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>{log.completed_at || log.started_at}</td>
-                    <td style={{ padding: '12px 20px', textAlign: 'right' }}>
-                      <span className="badge" style={{
-                        backgroundColor: log.status === 'success' ? '#ecfdf5' : '#fef2f2',
-                        color: log.status === 'success' ? 'var(--brand-green)' : '#dc2626',
-                      }}>
-                        {log.status.toUpperCase()}
-                      </span>
-                    </td>
+            <div className="responsive-table-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ backgroundColor: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
+                    <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)' }}>ID</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>DIRECTION</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>RECORDS</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>TIMESTAMP</th>
+                    <th style={{ padding: '12px 20px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'right' }}>STATUS</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {syncLogs.map((log) => (
+                    <tr key={log.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '12px 20px', fontFamily: 'monospace' }}>#{log.id}</td>
+                      <td style={{ padding: '12px 16px', fontWeight: 600 }}>{log.direction.toUpperCase()}</td>
+                      <td style={{ padding: '12px 16px' }}>{log.records_synced} synced</td>
+                      <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>{log.completed_at || log.started_at}</td>
+                      <td style={{ padding: '12px 20px', textAlign: 'right' }}>
+                        <span className="badge" style={{
+                          backgroundColor: log.status === 'success' ? '#ecfdf5' : '#fef2f2',
+                          color: log.status === 'success' ? 'var(--brand-green)' : '#dc2626',
+                        }}>
+                          {log.status.toUpperCase()}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </main>
+    </div>
 
       {/* Executive Printable Sales Performance Report Modal (Print to PDF / Excel) */}
       {showPrintModal && (
         <div
-          className="no-print-overlay"
+          className="no-print-overlay modal-responsive-overlay"
           style={{
             position: 'fixed',
             inset: 0,
@@ -1616,6 +1649,7 @@ export function RemoteCloudShell() {
           }}
         >
           <div
+            className="modal-responsive-card"
             style={{
               backgroundColor: '#ffffff',
               borderRadius: 'var(--radius-lg)',
@@ -1744,18 +1778,18 @@ export function RemoteCloudShell() {
               </div>
 
               {/* Printable Bar Chart Graphic */}
-              <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '18px 20px', marginBottom: '24px', backgroundColor: '#ffffff' }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '14px', display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '18px 20px', marginBottom: '24px', backgroundColor: '#ffffff', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                   <span>REVENUE TREND OVERVIEW</span>
                   <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Values scaled to peak: ₱{maxTrendRevenue.toLocaleString()}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: salesTrend.length > 20 ? '4px' : '8px', height: '140px', padding: '8px 0 0', borderBottom: '1px solid #cbd5e1' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: salesTrend.length > 20 ? '4px' : '8px', height: '140px', minWidth: salesTrend.length > 10 ? '480px' : '100%', padding: '8px 0 0', borderBottom: '1px solid #cbd5e1' }}>
                   {salesTrend.map((day, idx) => {
                     const rev = Number(day.revenue) || 0;
                     const heightPct = Math.max(10, Math.round((rev / maxTrendRevenue) * 100));
                     const isLatest = idx === salesTrend.length - 1;
                     return (
-                      <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+                      <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', minWidth: 0 }}>
                         <div style={{
                           width: '100%',
                           maxWidth: '36px',
@@ -1777,53 +1811,56 @@ export function RemoteCloudShell() {
                 <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a', marginBottom: '10px' }}>
                   ITEMIZED PERIOD SALES BREAKDOWN
                 </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #cbd5e1', textAlign: 'left', color: '#334155' }}>
-                      <th style={{ padding: '8px 12px' }}>Period / Date</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'center' }}>Completed Orders</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>Net Sales (PHP)</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>Avg Ticket</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>Sales Share</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {salesTrend.map((day, idx) => {
-                      const rev = Number(day.revenue) || 0;
-                      const orderCnt = day.orderCount ?? day.orders ?? 0;
-                      const sharePct = totalTrendRevenue > 0 ? ((rev / totalTrendRevenue) * 100).toFixed(1) : '0.0';
-                      const avgTicket = orderCnt > 0 ? (rev / orderCnt).toFixed(2) : '0.00';
-                      return (
-                        <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 1 ? '#f8fafc' : '#ffffff' }}>
-                          <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0f172a' }}>{day.label || day.date}</td>
-                          <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: 'monospace' }}>{orderCnt}</td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#16a34a' }}>
-                            ₱{rev.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace' }}>₱{avgTicket}</td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#64748b' }}>{sharePct}%</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                  <tfoot>
-                    <tr style={{ backgroundColor: '#f1f5f9', borderTop: '2px solid #0f172a', fontWeight: 800 }}>
-                      <td style={{ padding: '10px 12px' }}>TOTAL</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontFamily: 'monospace' }}>{totalTrendOrders}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'monospace', color: '#16a34a', fontSize: '0.9rem' }}>
-                        ₱{totalTrendRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'monospace' }}>
-                        ₱{totalTrendOrders > 0 ? (totalTrendRevenue / totalTrendOrders).toFixed(2) : '0.00'}
-                      </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>100.0%</td>
-                    </tr>
-                  </tfoot>
-                </table>
+                <div className="responsive-table-wrapper">
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #cbd5e1', textAlign: 'left', color: '#334155' }}>
+                        <th style={{ padding: '8px 12px' }}>Period / Date</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center' }}>Completed Orders</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right' }}>Net Sales (PHP)</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right' }}>Avg Ticket</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right' }}>Sales Share</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {salesTrend.map((day, idx) => {
+                        const rev = Number(day.revenue) || 0;
+                        const orderCnt = day.orderCount ?? day.orders ?? 0;
+                        const sharePct = totalTrendRevenue > 0 ? ((rev / totalTrendRevenue) * 100).toFixed(1) : '0.0';
+                        const avgTicket = orderCnt > 0 ? (rev / orderCnt).toFixed(2) : '0.00';
+                        return (
+                          <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 1 ? '#f8fafc' : '#ffffff' }}>
+                            <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0f172a' }}>{day.label || day.date}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: 'monospace' }}>{orderCnt}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#16a34a' }}>
+                              ₱{rev.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace' }}>₱{avgTicket}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#64748b' }}>{sharePct}%</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr style={{ backgroundColor: '#f1f5f9', borderTop: '2px solid #0f172a', fontWeight: 800 }}>
+                        <td style={{ padding: '10px 12px' }}>TOTAL</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center', fontFamily: 'monospace' }}>{totalTrendOrders}</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'monospace', color: '#16a34a', fontSize: '0.9rem' }}>
+                          ₱{totalTrendRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'monospace' }}>
+                          ₱{totalTrendOrders > 0 ? (totalTrendRevenue / totalTrendOrders).toFixed(2) : '0.00'}
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right' }}>100.0%</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               </div>
 
               {/* Signatures & Certification Block */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '36px', paddingTop: '20px', borderTop: '1px solid #e2e8f0', fontSize: '0.8rem', color: '#475569' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', paddingTop: '20px', borderTop: '1px solid #e2e8f0', fontSize: '0.8rem', color: '#475569' }}>
+
                 <div>
                   <div style={{ marginBottom: '32px' }}>Prepared By:</div>
                   <div style={{ borderTop: '1px solid #94a3b8', paddingTop: '6px', fontWeight: 700 }}>

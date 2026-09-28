@@ -22,6 +22,8 @@ import {
   LogOut,
   ChevronRight,
   ChevronLeft,
+  Menu,
+  X,
 } from 'lucide-react';
 
 const OVERVIEW_ITEMS = [
@@ -40,9 +42,13 @@ const ACCOUNT_ITEMS = [
 export function AdminShell() {
   const { user, logout, lockScreen } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem('takotime_admin_sidebar_collapsed') === 'true';
   });
+
+  const allNavItems = [...OVERVIEW_ITEMS, ...ACCOUNT_ITEMS];
+  const currentTabLabel = allNavItems.find(i => i.id === activeTab)?.label || 'Dashboard';
 
   useEffect(() => {
     localStorage.setItem('takotime_admin_sidebar_collapsed', isCollapsed);
@@ -54,62 +60,128 @@ export function AdminShell() {
     localStorage.removeItem('takotime_theme');
   }, []);
 
+  const handleSelectTab = (tabId) => {
+    setActiveTab(tabId);
+    setMobileMenuOpen(false);
+  };
+
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-      {/* Modern Collapsible Sidebar */}
-      <aside
-        className={`modern-sidebar ${isCollapsed ? 'sidebar-collapsed' : ''}`}
-        style={{
-          width: isCollapsed ? '76px' : '260px',
-          padding: isCollapsed ? '12px 6px' : '16px 14px',
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100vh',
-          boxSizing: 'border-box',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Header - Fixed */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: isCollapsed ? 'center' : 'space-between',
-          padding: isCollapsed ? '0 0 8px 0' : '0 6px 14px 6px',
-          borderBottom: isCollapsed ? 'none' : '1px solid var(--border-subtle)',
-          marginBottom: isCollapsed ? '4px' : '6px',
-          flexShrink: 0,
-        }}>
-          {/* Logo Badge */}
-          <div
-            className="sidebar-logo-badge"
-            style={{ cursor: isCollapsed ? 'pointer' : 'default' }}
-            onClick={() => { if (isCollapsed) setIsCollapsed(false); }}
-            data-tooltip={isCollapsed ? 'Expand sidebar' : undefined}
-            title={isCollapsed ? 'Click to expand sidebar' : 'TAKOTIME'}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', overflow: 'hidden' }}>
+      {/* Mobile Top Navigation Bar (< 900px) */}
+      <div className="mobile-topbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            type="button"
+            className="sidebar-toggle-btn"
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="Open Navigation Menu"
+            style={{ width: '36px', height: '36px' }}
           >
-            <img src={logoImg} alt="TAKOTIME" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
-          </div>
-
-          {/* Brand Title & Collapse Button */}
-          {!isCollapsed && (
-            <>
-              <div className="sidebar-header-text" style={{ flex: 1, minWidth: 0, paddingLeft: '12px' }}>
-                <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)', lineHeight: 1.15 }}>TAKOTIME</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>Admin Portal</div>
-              </div>
-
-              <button
-                type="button"
-                className="sidebar-toggle-btn sidebar-header-collapse-btn"
-                onClick={() => setIsCollapsed(true)}
-                title="Collapse sidebar"
-                aria-label="Collapse sidebar"
-              >
-                <ChevronLeft size={16} />
-              </button>
-            </>
-          )}
+            <Menu size={20} />
+          </button>
+          <img src={logoImg} alt="TAKOTIME" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+          <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+            {currentTabLabel}
+          </span>
         </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ padding: '6px 10px', fontSize: '0.78rem' }}
+            onClick={lockScreen}
+            title="Lock Terminal"
+          >
+            <Lock size={14} />
+          </button>
+          <button
+            type="button"
+            className="btn btn-danger"
+            style={{ padding: '6px 10px', fontSize: '0.78rem' }}
+            onClick={logout}
+            title="Log Out"
+          >
+            <LogOut size={14} />
+          </button>
+        </div>
+      </div>
+
+      {/* Backdrop for Mobile Drawer */}
+      <div
+        className={`mobile-sidebar-backdrop ${mobileMenuOpen ? 'active' : ''}`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      <div style={{ display: 'flex', flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' }}>
+        {/* Modern Collapsible Sidebar */}
+        <aside
+          className={`modern-sidebar desktop-sidebar ${isCollapsed ? 'sidebar-collapsed' : ''} ${mobileMenuOpen ? 'mobile-open' : ''}`}
+          style={{
+            width: isCollapsed ? '76px' : '260px',
+            padding: isCollapsed ? '12px 6px' : '16px 14px',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            boxSizing: 'border-box',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Header - Fixed */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: isCollapsed ? 'center' : 'space-between',
+            padding: isCollapsed ? '0 0 8px 0' : '0 6px 14px 6px',
+            borderBottom: isCollapsed ? 'none' : '1px solid var(--border-subtle)',
+            marginBottom: isCollapsed ? '4px' : '6px',
+            flexShrink: 0,
+          }}>
+            {/* Logo Badge */}
+            <div
+              className="sidebar-logo-badge"
+              style={{ cursor: isCollapsed ? 'pointer' : 'default' }}
+              onClick={() => { if (isCollapsed) setIsCollapsed(false); }}
+              data-tooltip={isCollapsed ? 'Expand sidebar' : undefined}
+              title={isCollapsed ? 'Click to expand sidebar' : 'TAKOTIME'}
+            >
+              <img src={logoImg} alt="TAKOTIME" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+            </div>
+
+            {/* Brand Title & Collapse Button */}
+            {!isCollapsed && (
+              <>
+                <div className="sidebar-header-text" style={{ flex: 1, minWidth: 0, paddingLeft: '12px' }}>
+                  <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)', lineHeight: 1.15 }}>TAKOTIME</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>Admin Portal</div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {mobileMenuOpen && (
+                    <button
+                      type="button"
+                      className="sidebar-toggle-btn"
+                      onClick={() => setMobileMenuOpen(false)}
+                      title="Close menu"
+                      aria-label="Close menu"
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="sidebar-toggle-btn sidebar-header-collapse-btn"
+                    onClick={() => setIsCollapsed(true)}
+                    title="Collapse sidebar"
+                    aria-label="Collapse sidebar"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
 
         {/* Scrollable Navigation Area */}
         <div
@@ -135,7 +207,7 @@ export function AdminShell() {
                   key={item.id}
                   type="button"
                   className={`modern-nav-item ${isActive ? 'active' : ''}`}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => handleSelectTab(item.id)}
                   data-tooltip={item.label}
                   title={isCollapsed ? item.label : undefined}
                 >
@@ -164,7 +236,7 @@ export function AdminShell() {
                   key={item.id}
                   type="button"
                   className={`modern-nav-item ${isActive ? 'active' : ''}`}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => handleSelectTab(item.id)}
                   data-tooltip={item.label}
                   title={isCollapsed ? item.label : undefined}
                 >
@@ -328,6 +400,7 @@ export function AdminShell() {
         )}
       </main>
     </div>
+  </div>
   );
 }
 

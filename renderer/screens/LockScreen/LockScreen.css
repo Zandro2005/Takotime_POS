@@ -14,6 +14,8 @@
 .lockscreen-card {
   width: 100%;
   max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
   background-color: #ffffff;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -23,6 +25,7 @@
   flex-direction: column;
   align-items: center;
   gap: 18px;
+  margin: auto;
 }
 
 .lock-user-avatar {
@@ -51,4 +54,25 @@
   letter-spacing: 0.05em;
   margin-top: 2px;
   font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .lockscreen-overlay {
+    padding: 12px;
+  }
+  .lockscreen-card {
+    padding: 20px 16px;
+    gap: 14px;
+  }
+  .lock-user-avatar {
+    width: 48px;
+    height: 48px;
+  }
+  .lock-user-name {
+    font-size: 1.1rem;
+  }
+  .numpad-btn {
+    height: 48px;
+    font-size: 1.2rem;
+  }
 }

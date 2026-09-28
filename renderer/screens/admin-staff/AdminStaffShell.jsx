@@ -17,27 +17,29 @@ export function AdminStaffShell() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', backgroundColor: 'var(--bg-app)' }}>
       {/* Top Header */}
       <header style={{
-        height: '62px',
+        minHeight: '62px',
         backgroundColor: '#ffffff',
         borderBottom: '1px solid var(--border-subtle)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 20px',
+        padding: '8px 16px',
         boxShadow: 'var(--shadow-sm)',
         zIndex: 10,
+        flexWrap: 'wrap',
+        gap: '8px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src={logoImg} alt="TAKOTIME" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
+            <img src={logoImg} alt="TAKOTIME" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
             <div>
-              <span style={{ fontWeight: 800, letterSpacing: '-0.02em', fontSize: '1.1rem', color: 'var(--text-main)' }}>TAKOTIME</span>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, marginLeft: '8px' }}>Store Hub</span>
+              <span style={{ fontWeight: 800, letterSpacing: '-0.02em', fontSize: '1.05rem', color: 'var(--text-main)' }}>TAKOTIME</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, marginLeft: '6px' }}>Store Hub</span>
             </div>
           </div>
 
           {/* Navigation Tabs - Single Unified Container */}
-          <nav className="admin-nav-group-horizontal" style={{ marginLeft: '20px' }}>
+          <nav className="admin-nav-group-horizontal" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', maxWidth: '100%', flexWrap: 'wrap' }}>
             <button
               type="button"
               className={`admin-nav-item-horizontal ${activeTab === 'pos' ? 'active' : ''}`}
@@ -65,7 +67,7 @@ export function AdminStaffShell() {
           </nav>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="badge badge-admin-staff">Lead Staff</span>
             <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main)' }}>{user?.name}</span>

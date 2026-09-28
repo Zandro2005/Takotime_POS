@@ -261,6 +261,8 @@ export function MenuManagement() {
         justifyContent: 'space-between',
         boxShadow: 'var(--shadow-sm)',
         zIndex: 2,
+        flexWrap: 'wrap',
+        gap: '12px',
       }}>
         <div>
           <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
@@ -269,7 +271,7 @@ export function MenuManagement() {
           </h1>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {toastMessage && (
             <span style={{
               backgroundColor: 'var(--brand-green-light)',
@@ -318,6 +320,8 @@ export function MenuManagement() {
         alignItems: 'center',
         gap: '12px',
         overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        whiteSpace: 'nowrap',
       }}>
         {catalog.map(cat => {
           const isActive = cat.id === selectedCategoryId;
@@ -410,10 +414,12 @@ export function MenuManagement() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '10px',
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <Package size={20} color="var(--brand-red)" />
-                    <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
                       {product.name}
                     </h2>
                     <span className="badge" style={{ backgroundColor: '#ffffff', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}>
@@ -421,7 +427,7 @@ export function MenuManagement() {
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       className="btn btn-secondary"
@@ -445,7 +451,7 @@ export function MenuManagement() {
                 </div>
 
                 {/* Variants Table */}
-                <div style={{ padding: '0 20px 16px 20px' }}>
+                <div className="responsive-table-wrapper" style={{ padding: '0 20px 16px 20px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: '0.78rem', textTransform: 'uppercase' }}>
@@ -701,15 +707,17 @@ export function MenuManagement() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 9999,
-          padding: '24px',
+          padding: '16px',
         }}>
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border-subtle)',
-            padding: '28px',
+            padding: '24px',
             maxWidth: '400px',
             width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             boxShadow: 'var(--shadow-lg)',
             display: 'flex',
             flexDirection: 'column',
@@ -775,15 +783,17 @@ export function MenuManagement() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 9999,
-          padding: '24px',
+          padding: '16px',
         }}>
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border-subtle)',
-            padding: '28px',
+            padding: '24px',
             maxWidth: '440px',
             width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             boxShadow: 'var(--shadow-lg)',
             display: 'flex',
             flexDirection: 'column',
@@ -849,15 +859,17 @@ export function MenuManagement() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 9999,
-          padding: '24px',
+          padding: '16px',
         }}>
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border-subtle)',
-            padding: '28px',
+            padding: '24px',
             maxWidth: '440px',
             width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             boxShadow: 'var(--shadow-lg)',
             display: 'flex',
             flexDirection: 'column',

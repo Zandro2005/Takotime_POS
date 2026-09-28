@@ -167,11 +167,11 @@ export function RemoteAdminPortal() {
   };
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+    <div className="responsive-page-container" style={{ maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
       {/* Header bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -196,7 +196,7 @@ export function RemoteAdminPortal() {
           </h1>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           {toastMessage && (
             <span style={{
               backgroundColor: 'var(--brand-green-light)',
@@ -238,6 +238,8 @@ export function RemoteAdminPortal() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '16px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{
@@ -249,6 +251,7 @@ export function RemoteAdminPortal() {
             alignItems: 'center',
             justifyContent: 'center',
             color: 'var(--brand-green)',
+            flexShrink: 0,
           }}>
             <Cloud size={24} />
           </div>
@@ -262,7 +265,7 @@ export function RemoteAdminPortal() {
           </div>
         </div>
 
-        <div style={{ textAlign: 'right', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+        <div style={{ textAlign: 'left', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
           <div>Last Successful Sync:</div>
           <strong style={{ color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
             {syncStatus?.lastSuccessfulSyncAt || 'Just now'}
@@ -271,7 +274,7 @@ export function RemoteAdminPortal() {
       </div>
 
       {/* Sub-tabs Navigation */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px', flexWrap: 'wrap' }}>
         <button
           type="button"
           className={`btn ${activeSubTab === 'telemetry' ? 'btn-primary' : 'btn-secondary'}`}
@@ -363,7 +366,7 @@ export function RemoteAdminPortal() {
             <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '16px' }}>
               Latest Synchronized Orders Stream
             </h2>
-            <div style={{ overflowX: 'auto' }}>
+            <div className="responsive-table-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                 <thead>
                   <tr style={{ backgroundColor: 'var(--bg-app)', borderBottom: '1px solid var(--border-subtle)', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
@@ -412,7 +415,7 @@ export function RemoteAdminPortal() {
 
       {/* View 2: Remote Action Queue with Conflict Prevention */}
       {activeSubTab === 'actions' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '28px' }}>
+        <div className="grid-dashboard-main">
           {/* Action Builder Form */}
           <div style={{
             background: '#ffffff',
@@ -686,7 +689,7 @@ export function RemoteAdminPortal() {
           <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '16px' }}>
             Store-Cloud Sync History & Diagnostics
           </h2>
-          <div style={{ overflowX: 'auto' }}>
+          <div className="responsive-table-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ backgroundColor: 'var(--bg-app)', borderBottom: '1px solid var(--border-subtle)', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.78rem' }}>

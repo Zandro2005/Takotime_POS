@@ -145,8 +145,10 @@ export function ReportsScreen() {
         justifyContent: 'space-between',
         boxShadow: 'var(--shadow-sm)',
         zIndex: 2,
+        flexWrap: 'wrap',
+        gap: '12px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
           <div>
             <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
               <BarChart3 size={22} color="var(--brand-green)" />
@@ -155,7 +157,7 @@ export function ReportsScreen() {
           </div>
 
           {/* Date Range Selectors */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '4px', flexWrap: 'wrap' }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -164,6 +166,7 @@ export function ReportsScreen() {
               border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-md)',
               padding: '6px 12px',
+              flexWrap: 'wrap',
             }}>
               <Calendar size={15} color="var(--text-muted)" />
               <input
@@ -181,7 +184,7 @@ export function ReportsScreen() {
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '4px' }}>
+            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
               <button type="button" className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '0.78rem' }} onClick={() => setPreset('today')}>
                 Today
               </button>
@@ -196,7 +199,7 @@ export function ReportsScreen() {
         </div>
 
         {/* Export Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {downloadSuccess && (
             <span style={{
               backgroundColor: 'var(--brand-green-light)',
@@ -233,6 +236,9 @@ export function ReportsScreen() {
         padding: '0 24px',
         display: 'flex',
         gap: '24px',
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        whiteSpace: 'nowrap',
       }}>
         {[
           { id: 'daily_sales', label: 'Daily Sales Summary' },
@@ -276,7 +282,7 @@ export function ReportsScreen() {
             {reportType === 'daily_sales' && reportData._reportType === 'daily_sales' && (
               <>
                 {/* Metric Cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                <div className="grid-kpi-responsive">
                   <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '20px', boxShadow: 'var(--shadow-sm)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                       <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Net Revenue</span>
@@ -323,30 +329,32 @@ export function ReportsScreen() {
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
                     Top Selling Menu Items
                   </h3>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
-                        <th style={{ padding: '10px 14px' }}>Product</th>
-                        <th style={{ padding: '10px 14px' }}>Variant</th>
-                        <th style={{ padding: '10px 14px' }}>Category</th>
-                        <th style={{ padding: '10px 14px', textAlign: 'right' }}>Units Sold</th>
-                        <th style={{ padding: '10px 14px', textAlign: 'right' }}>Revenue</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(reportData.topItems || []).map((item, idx) => (
-                        <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                          <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-main)' }}>{item.product_name || '—'}</td>
-                          <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>{item.variant_label || '—'}</td>
-                          <td style={{ padding: '12px 14px', color: 'var(--text-muted)' }}>{item.category_name || '—'}</td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{safeNumber(item.units_sold)}</td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--brand-red)' }}>
-                            ₱{safeNumber(item.total_revenue).toFixed(2)}
-                          </td>
+                  <div className="responsive-table-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                          <th style={{ padding: '10px 14px' }}>Product</th>
+                          <th style={{ padding: '10px 14px' }}>Variant</th>
+                          <th style={{ padding: '10px 14px' }}>Category</th>
+                          <th style={{ padding: '10px 14px', textAlign: 'right' }}>Units Sold</th>
+                          <th style={{ padding: '10px 14px', textAlign: 'right' }}>Revenue</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {(reportData.topItems || []).map((item, idx) => (
+                          <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                            <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-main)' }}>{item.product_name || '—'}</td>
+                            <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>{item.variant_label || '—'}</td>
+                            <td style={{ padding: '12px 14px', color: 'var(--text-muted)' }}>{item.category_name || '—'}</td>
+                            <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{safeNumber(item.units_sold)}</td>
+                            <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--brand-red)' }}>
+                              ₱{safeNumber(item.total_revenue).toFixed(2)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </>
             )}
@@ -358,7 +366,7 @@ export function ReportsScreen() {
                   Shift Cash Accountability (#1)
                 </h3>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+                <div className="grid-trend-stats" style={{ marginBottom: '24px' }}>
                   <div style={{ padding: '16px', backgroundColor: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)' }}>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Starting Drawer Cash</div>
                     <div style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
@@ -381,52 +389,54 @@ export function ReportsScreen() {
                   </div>
                 </div>
 
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-                  <tbody>
-                    <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Shift Cashier</td>
-                      <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-main)' }}>{reportData.shift?.staffName || 'Staff'}</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Status</td>
-                      <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--brand-green)', textTransform: 'uppercase' }}>{reportData.shift?.status || 'Active'}</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Petty Cash In / Drops</td>
-                      <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)' }}>₱{safeNumber(reportData.cashAccounting?.cashIn).toFixed(2)}</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Petty Cash Out / Expenses</td>
-                      <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', color: 'var(--brand-danger)' }}>-₱{safeNumber(reportData.cashAccounting?.cashOut).toFixed(2)}</td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Ending Counted Cash</td>
-                      <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontWeight: 800 }}>
-                        {typeof reportData.cashAccounting?.countedDrawerCash === 'number'
-                          ? `₱${safeNumber(reportData.cashAccounting.countedDrawerCash).toFixed(2)}`
-                          : 'Shift in progress (not closed)'}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Discrepancy (Overage / Shortage)</td>
-                      <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontWeight: 800 }}>
-                        {typeof reportData.cashAccounting?.discrepancy === 'number' ? (
-                          <span style={{ color: reportData.cashAccounting.discrepancy === 0 ? 'var(--brand-green)' : 'var(--brand-danger)' }}>
-                            ₱{safeNumber(reportData.cashAccounting.discrepancy).toFixed(2)}
-                          </span>
-                        ) : '—'}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div className="responsive-table-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                    <tbody>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Shift Cashier</td>
+                        <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-main)' }}>{reportData.shift?.staffName || 'Staff'}</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Status</td>
+                        <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--brand-green)', textTransform: 'uppercase' }}>{reportData.shift?.status || 'Active'}</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Petty Cash In / Drops</td>
+                        <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)' }}>₱{safeNumber(reportData.cashAccounting?.cashIn).toFixed(2)}</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Petty Cash Out / Expenses</td>
+                        <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', color: 'var(--brand-danger)' }}>-₱{safeNumber(reportData.cashAccounting?.cashOut).toFixed(2)}</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Ending Counted Cash</td>
+                        <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontWeight: 800 }}>
+                          {typeof reportData.cashAccounting?.countedDrawerCash === 'number'
+                            ? `₱${safeNumber(reportData.cashAccounting.countedDrawerCash).toFixed(2)}`
+                            : 'Shift in progress (not closed)'}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Discrepancy (Overage / Shortage)</td>
+                        <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontWeight: 800 }}>
+                          {typeof reportData.cashAccounting?.discrepancy === 'number' ? (
+                            <span style={{ color: reportData.cashAccounting.discrepancy === 0 ? 'var(--brand-green)' : 'var(--brand-danger)' }}>
+                              ₱{safeNumber(reportData.cashAccounting.discrepancy).toFixed(2)}
+                            </span>
+                          ) : '—'}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
             {/* 3. Product Mix Tab */}
             {reportType === 'product_mix' && reportData._reportType === 'product_mix' && (
               <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '24px', boxShadow: 'var(--shadow-sm)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
                     Product Revenue & Volume Share
                   </h3>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
@@ -434,36 +444,38 @@ export function ReportsScreen() {
                   </span>
                 </div>
 
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
-                      <th style={{ padding: '12px 14px' }}>Category</th>
-                      <th style={{ padding: '12px 14px' }}>Product</th>
-                      <th style={{ padding: '12px 14px' }}>Variant</th>
-                      <th style={{ padding: '12px 14px', textAlign: 'right' }}>Price</th>
-                      <th style={{ padding: '12px 14px', textAlign: 'right' }}>Units Sold</th>
-                      <th style={{ padding: '12px 14px', textAlign: 'right' }}>Revenue</th>
-                      <th style={{ padding: '12px 14px', textAlign: 'right' }}>% Revenue</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(reportData.items || []).map((item, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                        <td style={{ padding: '12px 14px', color: 'var(--text-muted)' }}>{item.category_name || '—'}</td>
-                        <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-main)' }}>{item.product_name || '—'}</td>
-                        <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>{item.variant_label || '—'}</td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>₱{safeNumber(item.unit_price).toFixed(2)}</td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{safeNumber(item.units_sold)}</td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--brand-red)' }}>
-                          ₱{safeNumber(item.total_revenue).toFixed(2)}
-                        </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                          {safeNumber(item.percentOfRevenue).toFixed(1)}%
-                        </td>
+                <div className="responsive-table-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                  <table className="table-wide" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                        <th style={{ padding: '12px 14px' }}>Category</th>
+                        <th style={{ padding: '12px 14px' }}>Product</th>
+                        <th style={{ padding: '12px 14px' }}>Variant</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'right' }}>Price</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'right' }}>Units Sold</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'right' }}>Revenue</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'right' }}>% Revenue</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {(reportData.items || []).map((item, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                          <td style={{ padding: '12px 14px', color: 'var(--text-muted)' }}>{item.category_name || '—'}</td>
+                          <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-main)' }}>{item.product_name || '—'}</td>
+                          <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>{item.variant_label || '—'}</td>
+                          <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>₱{safeNumber(item.unit_price).toFixed(2)}</td>
+                          <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{safeNumber(item.units_sold)}</td>
+                          <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--brand-red)' }}>
+                            ₱{safeNumber(item.total_revenue).toFixed(2)}
+                          </td>
+                          <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                            {safeNumber(item.percentOfRevenue).toFixed(1)}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
@@ -474,51 +486,53 @@ export function ReportsScreen() {
                   Ingredient Consumption & Waste Signal
                 </h3>
 
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
-                      <th style={{ padding: '12px 14px' }}>Item</th>
-                      <th style={{ padding: '12px 14px' }}>Unit</th>
-                      <th style={{ padding: '12px 14px', textAlign: 'right' }}>Total Stock In</th>
-                      <th style={{ padding: '12px 14px', textAlign: 'right' }}>Recipe Usage</th>
-                      <th style={{ padding: '12px 14px', textAlign: 'right' }}>Confirmed Usage</th>
-                      <th style={{ padding: '12px 14px', textAlign: 'right' }}>Net Shrinkage / Waste</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(reportData.items || []).map((item, idx) => {
-                      const stockIn = safeNumber(item.total_stock_in);
-                      const suggested = safeNumber(item.total_suggested_out);
-                      const confirmed = safeNumber(item.total_confirmed_out);
-                      const waste = item.total_waste_qty !== null && item.total_waste_qty !== undefined ? safeNumber(item.total_waste_qty) : 0;
+                <div className="responsive-table-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                  <table className="table-wide" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                        <th style={{ padding: '12px 14px' }}>Item</th>
+                        <th style={{ padding: '12px 14px' }}>Unit</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'right' }}>Total Stock In</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'right' }}>Recipe Usage</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'right' }}>Confirmed Usage</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'right' }}>Net Shrinkage / Waste</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(reportData.items || []).map((item, idx) => {
+                        const stockIn = safeNumber(item.total_stock_in);
+                        const suggested = safeNumber(item.total_suggested_out);
+                        const confirmed = safeNumber(item.total_confirmed_out);
+                        const waste = item.total_waste_qty !== null && item.total_waste_qty !== undefined ? safeNumber(item.total_waste_qty) : 0;
 
-                      return (
-                        <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                          <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-main)' }}>{item.item_name || 'Item'}</td>
-                          <td style={{ padding: '12px 14px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{item.unit || 'units'}</td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--brand-green)' }}>
-                            +{stockIn.toFixed(2)}
-                          </td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                            {suggested.toFixed(2)}
-                          </td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                            {confirmed.toFixed(2)}
-                          </td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 800 }}>
-                            {waste > 0.0001 ? (
-                              <span style={{ color: 'var(--brand-gold)' }}>+{waste.toFixed(2)} (Waste)</span>
-                            ) : waste < -0.0001 ? (
-                              <span style={{ color: '#2563eb' }}>{waste.toFixed(2)} (Surplus)</span>
-                            ) : (
-                              <span style={{ color: 'var(--brand-green)' }}>0.00</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                        return (
+                          <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                            <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-main)' }}>{item.item_name || 'Item'}</td>
+                            <td style={{ padding: '12px 14px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{item.unit || 'units'}</td>
+                            <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--brand-green)' }}>
+                              +{stockIn.toFixed(2)}
+                            </td>
+                            <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
+                              {suggested.toFixed(2)}
+                            </td>
+                            <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                              {confirmed.toFixed(2)}
+                            </td>
+                            <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 800 }}>
+                              {waste > 0.0001 ? (
+                                <span style={{ color: 'var(--brand-gold)' }}>+{waste.toFixed(2)} (Waste)</span>
+                              ) : waste < -0.0001 ? (
+                                <span style={{ color: '#2563eb' }}>{waste.toFixed(2)} (Surplus)</span>
+                              ) : (
+                                <span style={{ color: 'var(--brand-green)' }}>0.00</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>

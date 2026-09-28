@@ -183,8 +183,10 @@ export function InventoryLedger() {
         justifyContent: 'space-between',
         boxShadow: 'var(--shadow-sm)',
         zIndex: 2,
+        flexWrap: 'wrap',
+        gap: '12px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
           <div>
             <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
               <ClipboardList size={22} color="var(--brand-red)" />
@@ -193,7 +195,7 @@ export function InventoryLedger() {
           </div>
 
           {/* Date Picker */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '4px', flexWrap: 'wrap' }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -243,7 +245,7 @@ export function InventoryLedger() {
         </div>
 
         {/* Action Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {saveSuccessMsg && (
             <span style={{
               backgroundColor: 'var(--brand-green-light)',
@@ -316,7 +318,7 @@ export function InventoryLedger() {
       )}
 
       {/* Summary KPI Badges */}
-      <div style={{ padding: '16px 24px 0 24px', display: 'flex', gap: '12px' }}>
+      <div style={{ padding: '16px 24px 0 24px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         <div style={{
           backgroundColor: '#ffffff',
           border: '1px solid var(--border-subtle)',
@@ -380,7 +382,8 @@ export function InventoryLedger() {
           boxShadow: 'var(--shadow-sm)',
           overflow: 'hidden',
         }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+          <div className="responsive-table-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table className="table-wide" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
             <thead>
               <tr style={{ backgroundColor: 'var(--bg-surface-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
                 <th style={{ padding: '14px 18px', fontWeight: 800, color: 'var(--text-main)', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -587,6 +590,7 @@ export function InventoryLedger() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 
@@ -601,15 +605,17 @@ export function InventoryLedger() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 9999,
-          padding: '24px',
+          padding: '16px',
         }}>
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border-subtle)',
-            padding: '28px',
+            padding: '24px',
             maxWidth: '440px',
             width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             boxShadow: 'var(--shadow-lg)',
             display: 'flex',
             flexDirection: 'column',
