@@ -285,9 +285,6 @@ export function ReportsScreen() {
                     <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-mono)', color: 'var(--brand-green)' }}>
                       ₱{safeNumber(reportData.summary?.netSales).toFixed(2)}
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      Gross: ₱{safeNumber(reportData.summary?.grossSales).toFixed(2)}
-                    </div>
                   </div>
 
                   <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '20px', boxShadow: 'var(--shadow-sm)' }}>
@@ -297,9 +294,6 @@ export function ReportsScreen() {
                     </div>
                     <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
                       ₱{safeNumber(reportData.summary?.cashSales).toFixed(2)}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      Collected in register drawer
                     </div>
                   </div>
 
@@ -311,9 +305,6 @@ export function ReportsScreen() {
                     <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-mono)', color: '#2563eb' }}>
                       ₱{safeNumber(reportData.summary?.gcashSales).toFixed(2)}
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      Confirmed with GCash Ref #
-                    </div>
                   </div>
 
                   <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '20px', boxShadow: 'var(--shadow-sm)' }}>
@@ -323,9 +314,6 @@ export function ReportsScreen() {
                     </div>
                     <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
                       {safeNumber(reportData.summary?.completedOrders)}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: safeNumber(reportData.summary?.voidedOrders) > 0 ? 'var(--brand-danger)' : 'var(--text-muted)', marginTop: '4px' }}>
-                      {safeNumber(reportData.summary?.voidedOrders)} voided orders
                     </div>
                   </div>
                 </div>

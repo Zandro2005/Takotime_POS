@@ -167,7 +167,7 @@ export function RemoteAdminPortal() {
   };
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: '1400px', margin: '0 auto', width: '100%', overflowY: 'auto' }}>
+    <div style={{ padding: '32px 40px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
       {/* Header bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
         <div>
@@ -323,7 +323,6 @@ export function RemoteAdminPortal() {
               <div style={{ fontSize: '2.1rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--brand-green)', marginTop: '8px' }}>
                 ₱4,780.00
               </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>Cash: ₱3,580.00 • GCash: ₱1,200.00</div>
             </div>
 
             <div style={{
@@ -337,7 +336,6 @@ export function RemoteAdminPortal() {
               <div style={{ fontSize: '2.1rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)', marginTop: '8px' }}>
                 32
               </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>100% of store transactions received</div>
             </div>
 
             <div style={{
@@ -351,7 +349,6 @@ export function RemoteAdminPortal() {
               <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--brand-gold)', marginTop: '8px' }}>
                 3 Items Low
               </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>Batter Premix, Calamansi, Bonito Flakes</div>
             </div>
           </div>
 

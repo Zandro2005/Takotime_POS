@@ -36,31 +36,31 @@ export function AdminStaffShell() {
             </div>
           </div>
 
-          {/* Navigation Tabs */}
-          <nav style={{ display: 'flex', gap: '8px', marginLeft: '20px' }}>
+          {/* Navigation Tabs - Single Unified Container */}
+          <nav className="admin-nav-group-horizontal" style={{ marginLeft: '20px' }}>
             <button
-              className={`btn ${activeTab === 'pos' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+              type="button"
+              className={`admin-nav-item-horizontal ${activeTab === 'pos' ? 'active' : ''}`}
               onClick={() => setActiveTab('pos')}
             >
               <ShoppingCart size={16} />
-              POS Terminal
+              <span>POS Terminal</span>
             </button>
             <button
-              className={`btn ${activeTab === 'inventory' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+              type="button"
+              className={`admin-nav-item-horizontal ${activeTab === 'inventory' ? 'active' : ''}`}
               onClick={() => setActiveTab('inventory')}
             >
               <ClipboardList size={16} />
-              Daily Inventory
+              <span>Daily Inventory</span>
             </button>
             <button
-              className={`btn ${activeTab === 'reports' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+              type="button"
+              className={`admin-nav-item-horizontal ${activeTab === 'reports' ? 'active' : ''}`}
               onClick={() => setActiveTab('reports')}
             >
               <BarChart3 size={16} />
-              Shift & Sales Reports
+              <span>Shift & Sales Reports</span>
             </button>
           </nav>
         </div>

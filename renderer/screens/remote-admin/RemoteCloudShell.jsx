@@ -259,6 +259,8 @@ export function RemoteCloudShell() {
     { itemId: 9, name: 'Bonito Flakes', currentStock: 1.5, minStock: 2.0, unit: 'packs' },
   ];
 
+  const topProducts = overview?.topProducts || [];
+
   const handleTimeframeChange = async (newTf) => {
     if (newTf === timeframe) return;
     setTimeframe(newTf);
@@ -301,9 +303,34 @@ export function RemoteCloudShell() {
   const peakTrendItem = salesTrend.reduce((prev, cur) => ((Number(cur.revenue) > (Number(prev?.revenue) || 0)) ? cur : prev), null);
   const maxTrendRevenue = Math.max(...salesTrend.map(d => Number(d.revenue) || 0), 1000);
 
-  // Swipable chunks: for 30d show 10 bars per slide (3 slides), for 15d show 8 bars per slide (2 slides)
-  // Keeps bars at their original comfortable width and maintains the exact original chart size!
-  const pageSize = timeframe === '30d' ? 10 : (timeframe === '15d' ? 8 : (salesTrend.length || 1));
+  const getPageSize = (tf) => {
+    if (tf === 'annual') return 6;
+    if (tf === 'semi_annual') return 6;
+    if (tf === '30d') return 8;
+    if (tf === '15d') return 8;
+    return 7;
+  };
+
+  const getChunkLabel = (tf, page, total, slice) => {
+    const isLatest = page === total - 1;
+    if (tf === '30d') {
+      const start = page * 8 + 1;
+      const end = start + (slice?.length || 8) - 1;
+      return `Days ${start}–${end}${isLatest ? ' (Latest)' : ''}`;
+    }
+    if (tf === '15d') {
+      const start = page * 8 + 1;
+      const end = start + (slice?.length || 8) - 1;
+      return `Days ${start}–${end}${isLatest ? ' (Latest)' : ''}`;
+    }
+    if (tf === 'annual') {
+      return page === 0 ? 'Months 1–6 (H1)' : 'Months 7–12 (Latest)';
+    }
+    return `Page ${page + 1} of ${total}`;
+  };
+
+  // Strictly retain 6-8 bars per view matching the original 7-day scale without expanding the card
+  const pageSize = getPageSize(timeframe);
   const totalPages = Math.max(1, Math.ceil(salesTrend.length / pageSize));
 
   const trendPages = [];
@@ -313,10 +340,11 @@ export function RemoteCloudShell() {
   if (trendPages.length === 0) {
     trendPages.push([]);
   }
+  const currentSlice = trendPages[currentPage] || trendPages[0] || [];
 
   // Auto-jump to the latest page (last slide) when timeframe or trend data changes
   useEffect(() => {
-    const ps = timeframe === '30d' ? 10 : (timeframe === '15d' ? 8 : (salesTrend.length || 1));
+    const ps = getPageSize(timeframe);
     const pages = Math.max(1, Math.ceil(salesTrend.length / ps));
     setCurrentPage(pages - 1);
   }, [timeframe, salesTrend.length]);
@@ -657,11 +685,6 @@ export function RemoteCloudShell() {
                   <div style={{ fontSize: '2.1rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--brand-green)', lineHeight: 1 }}>
                     ₱{today.netSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px', display: 'flex', gap: '12px' }}>
-                    <span>Cash: <strong>₱{today.cashSales.toFixed(2)}</strong></span>
-                    <span>•</span>
-                    <span>GCash: <strong>₱{today.gcashSales.toFixed(2)}</strong></span>
-                  </div>
                 </div>
               </div>
 
@@ -696,18 +719,6 @@ export function RemoteCloudShell() {
                 <div style={{ marginTop: '14px' }}>
                   <div style={{ fontSize: '2.1rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--text-main)', lineHeight: 1 }}>
                     {today.completedOrders}
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                    {today.voidedOrders > 0 ? (
-                      <span style={{ color: 'var(--brand-crimson)', fontWeight: 600 }}>{today.voidedOrders} voided order(s)</span>
-                    ) : (
-                      <span>0 voided orders</span>
-                    )}
-                    {today.completedOrders > 0 && (
-                      <span style={{ marginLeft: '8px' }}>
-                        • Avg ticket: <strong>₱{(today.netSales / today.completedOrders).toFixed(2)}</strong>
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>
@@ -744,9 +755,6 @@ export function RemoteCloudShell() {
                   <div style={{ fontSize: '1.75rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--text-main)', lineHeight: 1 }}>
                     ₱{activeShift.expectedDrawerCash.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                    Expected in drawer • Cashier: <strong>{activeShift.staffName}</strong>
-                  </div>
                 </div>
               </div>
 
@@ -780,59 +788,47 @@ export function RemoteCloudShell() {
                 </div>
                 <div style={{ marginTop: '14px' }}>
                   {lowStockAlerts.length > 0 ? (
-                    <>
-                      <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--brand-crimson)', lineHeight: 1 }}>
-                        {lowStockAlerts.length} Item{lowStockAlerts.length > 1 ? 's' : ''} Low
-                      </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--brand-crimson)', marginTop: '8px', fontWeight: 600 }}>
-                        Immediate stock replenishment needed
-                      </div>
-                    </>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--brand-crimson)', lineHeight: 1 }}>
+                      {lowStockAlerts.length} Item{lowStockAlerts.length > 1 ? 's' : ''} Low
+                    </div>
                   ) : (
-                    <>
-                      <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--brand-green)', lineHeight: 1 }}>
-                        All Stock Safe
-                      </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                        No items below reorder thresholds
-                      </div>
-                    </>
+                    <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--brand-green)', lineHeight: 1 }}>
+                      All Stock Safe
+                    </div>
                   )}
                 </div>
               </div>
             </div>
 
             {/* Main 2-Column Section: 7-Day Revenue Trend Chart + Top Products */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '28px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '24px', marginBottom: '28px' }}>
               {/* Sales Trend Chart Card with Multi-Timeframe and Export/Print */}
               <div style={{
                 background: '#ffffff',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: 'var(--radius-lg)',
-                padding: '28px',
+                padding: '24px 28px',
                 boxShadow: 'var(--shadow-sm)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
+                minWidth: 0,
+                width: '100%',
+                overflow: 'hidden',
               }}>
                 {/* Card Header with Timeframe Pills and Actions */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '18px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <TrendingUp size={20} color="var(--brand-crimson)" />
-                        Sales Performance Analytics
-                      </h2>
-                      <span className="badge badge-secondary" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
-                        {getTimeframeLabel(timeframe)}
-                      </span>
-                    </div>
-                    <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      {TIMEFRAME_OPTIONS.find(t => t.id === timeframe)?.description || 'Historical Trend'} • Peak: <strong style={{ color: 'var(--brand-crimson)' }}>₱{Math.round(peakTrendItem?.revenue || 0).toLocaleString()}</strong> {peakTrendItem?.label ? `(${peakTrendItem.label})` : ''}
-                    </p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
+                    <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <TrendingUp size={20} color="var(--brand-crimson)" />
+                      Sales Performance Analytics
+                    </h2>
+                    <span className="badge badge-secondary" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
+                      {getTimeframeLabel(timeframe)}
+                    </span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                     {/* Timeframe Selector Pill Group */}
                     <div style={{
                       display: 'inline-flex',
@@ -851,8 +847,8 @@ export function RemoteCloudShell() {
                             onClick={() => handleTimeframeChange(opt.id)}
                             disabled={trendLoading}
                             style={{
-                              padding: '5px 11px',
-                              fontSize: '0.75rem',
+                              padding: '4px 9px',
+                              fontSize: '0.74rem',
                               fontWeight: isActive ? 700 : 500,
                               backgroundColor: isActive ? 'var(--brand-crimson)' : 'transparent',
                               color: isActive ? '#ffffff' : 'var(--text-muted)',
@@ -878,13 +874,13 @@ export function RemoteCloudShell() {
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '6px',
-                          padding: '6px 12px',
-                          fontSize: '0.78rem',
+                          gap: '5px',
+                          padding: '5px 10px',
+                          fontSize: '0.75rem',
                           fontWeight: 600,
                         }}
                       >
-                        <FileSpreadsheet size={15} color="#16a34a" />
+                        <FileSpreadsheet size={14} color="#16a34a" />
                         {exportSuccess ? 'Exported!' : 'Excel'}
                       </button>
 
@@ -896,13 +892,13 @@ export function RemoteCloudShell() {
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '6px',
-                          padding: '6px 12px',
-                          fontSize: '0.78rem',
+                          gap: '5px',
+                          padding: '5px 10px',
+                          fontSize: '0.75rem',
                           fontWeight: 600,
                         }}
                       >
-                        <Printer size={15} color="#2563eb" />
+                        <Printer size={14} color="#2563eb" />
                         Print / PDF
                       </button>
                     </div>
@@ -914,7 +910,7 @@ export function RemoteCloudShell() {
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
                   gap: '12px',
-                  marginBottom: '20px',
+                  marginBottom: '18px',
                   padding: '12px 16px',
                   backgroundColor: 'var(--bg-app)',
                   borderRadius: 'var(--radius-md)',
@@ -954,102 +950,14 @@ export function RemoteCloudShell() {
                   </div>
                 </div>
 
-                {/* Swipable Chunk Navigation Bar (Shown when timeframe has multiple chunks like 15d or 30d) */}
-                {totalPages > 1 && (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '14px',
-                    padding: '8px 12px',
-                    backgroundColor: 'var(--bg-app)',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-subtle)',
-                    fontSize: '0.8rem',
-                  }}>
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                      disabled={currentPage === 0}
-                      className="btn btn-secondary"
-                      style={{
-                        padding: '4px 10px',
-                        fontSize: '0.75rem',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        cursor: currentPage === 0 ? 'not-allowed' : 'pointer',
-                        opacity: currentPage === 0 ? 0.35 : 1,
-                        fontWeight: 600,
-                      }}
-                    >
-                      <ChevronLeft size={15} />
-                      <span>Earlier</span>
-                    </button>
-
-                    {/* Chunk Selector Pills */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                      {trendPages.map((pageSlice, pIdx) => {
-                        const isCurrent = currentPage === pIdx;
-                        const isLatest = pIdx === totalPages - 1;
-                        const tabTitle = timeframe === '30d'
-                          ? `Days ${pIdx * 10 + 1}–${pIdx * 10 + pageSlice.length}${isLatest ? ' (Latest)' : ''}`
-                          : `Days ${pIdx * 8 + 1}–${pIdx * 8 + pageSlice.length}${isLatest ? ' (Latest)' : ''}`;
-
-                        return (
-                          <button
-                            key={pIdx}
-                            type="button"
-                            onClick={() => setCurrentPage(pIdx)}
-                            style={{
-                              padding: '4px 12px',
-                              borderRadius: 'var(--radius-full)',
-                              border: isCurrent ? '1px solid var(--brand-crimson)' : '1px solid var(--border-subtle)',
-                              backgroundColor: isCurrent ? 'var(--brand-crimson)' : '#ffffff',
-                              color: isCurrent ? '#ffffff' : 'var(--text-main)',
-                              fontWeight: isCurrent ? 700 : 500,
-                              fontSize: '0.73rem',
-                              cursor: 'pointer',
-                              transition: 'all 0.15s ease',
-                              boxShadow: isCurrent ? '0 2px 6px rgba(224, 26, 34, 0.25)' : 'none',
-                            }}
-                          >
-                            {tabTitle}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-                      disabled={currentPage === totalPages - 1}
-                      className="btn btn-secondary"
-                      style={{
-                        padding: '4px 10px',
-                        fontSize: '0.75rem',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        cursor: currentPage === totalPages - 1 ? 'not-allowed' : 'pointer',
-                        opacity: currentPage === totalPages - 1 ? 0.35 : 1,
-                        fontWeight: 600,
-                      }}
-                    >
-                      <span>Recent</span>
-                      <ChevronRight size={15} />
-                    </button>
-                  </div>
-                )}
-
-                {/* Bar Chart Visualization - Strictly Original Size, Swipable Carousel Track */}
+                {/* Bar Chart Visualization - Fixed Height, Exactly Matching 7-Day Scale */}
                 <div
                   style={{
                     position: 'relative',
-                    overflow: 'hidden', // Strictly bounds to original chart width! No long stretching!
+                    overflow: 'hidden',
                     width: '100%',
-                    paddingBottom: '8px',
-                    minHeight: '240px',
+                    minWidth: 0,
+                    height: '230px',
                     borderBottom: '1px solid var(--border-subtle)',
                     userSelect: 'none',
                     cursor: totalPages > 1 ? 'grab' : 'default',
@@ -1078,127 +986,126 @@ export function RemoteCloudShell() {
                     </div>
                   )}
 
-                  {/* Carousel track sliding smoothly between chunks */}
-                  <div style={{
-                    display: 'flex',
-                    width: '100%',
-                    transform: `translateX(-${currentPage * 100}%)`,
-                    transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-                  }}>
-                    {trendPages.map((pageSlice, pageIdx) => (
-                      <div
-                        key={pageIdx}
-                        style={{
-                          minWidth: '100%',
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'flex-end',
-                          gap: pageSlice.length > 8 ? '12px' : '18px',
-                          height: '220px',
-                          padding: '16px 8px 0',
-                          boxSizing: 'border-box',
-                        }}
-                      >
-                        {pageSlice.map((day, itemIdx) => {
-                          const globalIdx = pageIdx * pageSize + itemIdx;
-                          const rev = Number(day.revenue) || 0;
-                          const heightPct = Math.max(12, Math.round((rev / maxTrendRevenue) * 100));
-                          const isTodayOrLatest = globalIdx === salesTrend.length - 1;
-                          const isHovered = hoveredBarIndex === globalIdx;
-                          const orderCnt = day.orderCount ?? day.orders ?? 0;
+                  {/* Direct view of the active slice - strictly 100% width, 6-8 bars */}
+                  <div
+                    key={currentPage}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                      gap: currentSlice.length > 7 ? '12px' : '18px',
+                      height: '220px',
+                      padding: '16px 8px 0',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    {currentSlice.map((day, itemIdx) => {
+                      const globalIdx = currentPage * pageSize + itemIdx;
+                      const rev = Number(day.revenue) || 0;
+                      const heightPct = Math.max(12, Math.round((rev / maxTrendRevenue) * 100));
+                      const isTodayOrLatest = globalIdx === salesTrend.length - 1;
+                      const isHovered = hoveredBarIndex === globalIdx;
+                      const orderCnt = day.orderCount ?? day.orders ?? 0;
 
-                          return (
-                            <div
-                              key={day.date || globalIdx}
-                              onMouseEnter={() => setHoveredBarIndex(globalIdx)}
-                              onMouseLeave={() => setHoveredBarIndex(null)}
-                              style={{
-                                flex: 1,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                height: '100%',
-                                justifyContent: 'flex-end',
-                                position: 'relative',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              {/* Tooltip on Hover or Top Label */}
-                              {(pageSlice.length <= 10 || isHovered) && (
-                                <span style={{
-                                  fontSize: '0.72rem',
-                                  fontFamily: 'monospace',
-                                  fontWeight: 700,
-                                  color: isTodayOrLatest ? 'var(--brand-crimson)' : 'var(--text-muted)',
-                                  marginBottom: '6px',
-                                  whiteSpace: 'nowrap',
-                                  backgroundColor: isHovered ? '#ffffff' : 'transparent',
-                                  padding: isHovered ? '2px 6px' : '0',
-                                  borderRadius: '4px',
-                                  boxShadow: isHovered ? '0 2px 8px rgba(0,0,0,0.12)' : 'none',
-                                  zIndex: 3,
-                                }}>
-                                  ₱{Math.round(rev).toLocaleString()}
-                                </span>
-                              )}
+                      return (
+                        <div
+                          key={day.date || globalIdx}
+                          onMouseEnter={() => setHoveredBarIndex(globalIdx)}
+                          onMouseLeave={() => setHoveredBarIndex(null)}
+                          style={{
+                            flex: 1,
+                            minWidth: 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            height: '100%',
+                            justifyContent: 'flex-end',
+                            position: 'relative',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {/* Tooltip on Hover or Top Label */}
+                          <span style={{
+                            fontSize: '0.72rem',
+                            fontFamily: 'monospace',
+                            fontWeight: 700,
+                            color: isTodayOrLatest ? 'var(--brand-crimson)' : 'var(--text-muted)',
+                            marginBottom: '6px',
+                            whiteSpace: 'nowrap',
+                            backgroundColor: isHovered ? '#ffffff' : 'transparent',
+                            padding: isHovered ? '2px 6px' : '0',
+                            borderRadius: '4px',
+                            boxShadow: isHovered ? '0 2px 8px rgba(0,0,0,0.12)' : 'none',
+                            zIndex: 3,
+                          }}>
+                            ₱{Math.round(rev).toLocaleString()}
+                          </span>
 
-                              {/* Bar graphic with original comfortable width */}
-                              <div
-                                style={{
-                                  width: '100%',
-                                  maxWidth: '44px',
-                                  height: `${heightPct}%`,
-                                  backgroundColor: isTodayOrLatest ? 'var(--brand-crimson)' : isHovered ? '#ef4444' : '#fca5a5',
-                                  borderRadius: '6px 6px 0 0',
-                                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                  boxShadow: isTodayOrLatest
-                                    ? '0 4px 14px rgba(224, 26, 34, 0.3)'
-                                    : isHovered
-                                    ? '0 4px 10px rgba(0, 0, 0, 0.15)'
-                                    : 'none',
-                                  transform: isHovered ? 'scaleY(1.03)' : 'scaleY(1)',
-                                  transformOrigin: 'bottom',
-                                  display: 'flex',
-                                  alignItems: 'flex-start',
-                                  justifyContent: 'center',
-                                  paddingTop: '6px',
-                                }}
-                                title={`${day.label || day.date}: ₱${rev.toFixed(2)} (${orderCnt} orders)`}
-                              >
-                                {/* Order Count Label inside bar if tall enough */}
-                                {heightPct > 20 && (
-                                  <span style={{
-                                    fontSize: '0.68rem',
-                                    color: isTodayOrLatest || isHovered ? '#ffffff' : '#7f1d1d',
-                                    fontWeight: 700,
-                                    lineHeight: 1,
-                                  }}>
-                                    {orderCnt}
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* X-Axis Date/Period label */}
+                          {/* Bar graphic */}
+                          <div
+                            style={{
+                              width: '100%',
+                              maxWidth: '44px',
+                              height: `${heightPct}%`,
+                              backgroundColor: isTodayOrLatest ? 'var(--brand-crimson)' : isHovered ? '#ef4444' : '#fca5a5',
+                              borderRadius: '6px 6px 0 0',
+                              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                              boxShadow: isTodayOrLatest
+                                ? '0 4px 14px rgba(224, 26, 34, 0.3)'
+                                : isHovered
+                                ? '0 4px 10px rgba(0, 0, 0, 0.15)'
+                                : 'none',
+                              transform: isHovered ? 'scaleY(1.03)' : 'scaleY(1)',
+                              transformOrigin: 'bottom',
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              justifyContent: 'center',
+                              paddingTop: '6px',
+                            }}
+                            title={`${day.label || day.date}: ₱${rev.toFixed(2)} (${orderCnt} orders)`}
+                          >
+                            {/* Order Count Label inside bar if tall enough */}
+                            {heightPct > 20 && (
                               <span style={{
-                                fontSize: '0.75rem',
-                                color: isTodayOrLatest ? 'var(--brand-crimson)' : isHovered ? 'var(--text-main)' : 'var(--text-muted)',
-                                fontWeight: isTodayOrLatest ? 800 : isHovered ? 700 : 500,
-                                marginTop: '10px',
-                                textAlign: 'center',
-                                whiteSpace: 'nowrap',
+                                fontSize: '0.68rem',
+                                color: isTodayOrLatest || isHovered ? '#ffffff' : '#7f1d1d',
+                                fontWeight: 700,
+                                lineHeight: 1,
                               }}>
-                                {day.label}
+                                {orderCnt}
                               </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ))}
+                            )}
+                          </div>
+
+                          {/* X-Axis Date/Period label */}
+                          <span style={{
+                            fontSize: '0.75rem',
+                            color: isTodayOrLatest ? 'var(--brand-crimson)' : isHovered ? 'var(--text-main)' : 'var(--text-muted)',
+                            fontWeight: isTodayOrLatest ? 800 : isHovered ? 700 : 500,
+                            marginTop: '10px',
+                            textAlign: 'center',
+                            whiteSpace: 'nowrap',
+                          }}>
+                            {day.label}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Chart Footer with Legend & Hint */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '16px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                {/* Chart Footer with Legend & Chunk Pagination */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                  marginTop: '16px',
+                  fontSize: '0.78rem',
+                  color: 'var(--text-muted)',
+                  minHeight: '28px',
+                }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ width: '10px', height: '10px', backgroundColor: 'var(--brand-crimson)', borderRadius: '2px' }} />
@@ -1209,11 +1116,71 @@ export function RemoteCloudShell() {
                       Past Periods
                     </span>
                   </div>
-                  <span>
-                    {totalPages > 1
-                      ? `Showing Chunk ${currentPage + 1} of ${totalPages} • Swipe or use arrows to view earlier days`
-                      : 'Numbers inside bars show order counts • Export Excel or Print for PDF report'}
-                  </span>
+
+                  {totalPages > 1 ? (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                        disabled={currentPage === 0}
+                        className="btn btn-secondary"
+                        style={{
+                          padding: '3px 9px',
+                          fontSize: '0.74rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          cursor: currentPage === 0 ? 'not-allowed' : 'pointer',
+                          opacity: currentPage === 0 ? 0.35 : 1,
+                          fontWeight: 600,
+                          borderRadius: 'var(--radius-sm)',
+                        }}
+                        title="View earlier period"
+                      >
+                        <ChevronLeft size={14} />
+                        <span>Earlier</span>
+                      </button>
+
+                      <span style={{
+                        fontSize: '0.74rem',
+                        fontWeight: 700,
+                        color: 'var(--text-main)',
+                        backgroundColor: 'var(--bg-app)',
+                        padding: '3px 10px',
+                        borderRadius: 'var(--radius-full)',
+                        border: '1px solid var(--border-subtle)',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {getChunkLabel(timeframe, currentPage, totalPages, currentSlice)}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                        disabled={currentPage === totalPages - 1}
+                        className="btn btn-secondary"
+                        style={{
+                          padding: '3px 9px',
+                          fontSize: '0.74rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          cursor: currentPage === totalPages - 1 ? 'not-allowed' : 'pointer',
+                          opacity: currentPage === totalPages - 1 ? 0.35 : 1,
+                          fontWeight: 600,
+                          borderRadius: 'var(--radius-sm)',
+                        }}
+                        title="View more recent period"
+                      >
+                        <span>Recent</span>
+                        <ChevronRight size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                      Numbers inside bars show order counts • Export Excel or Print for PDF report
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -1557,9 +1524,6 @@ export function RemoteCloudShell() {
                   <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#c2410c' }}>
                     {item.currentStock ?? item.endingQty ?? 0} {item.unit} Remaining
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: '#9a3412', marginTop: '4px' }}>
-                    Threshold: {item.minStock} {item.unit} • Status: <strong>URGENT REORDER</strong>
-                  </div>
                 </div>
               ))}
 
@@ -1575,9 +1539,6 @@ export function RemoteCloudShell() {
                 </div>
                 <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)' }}>
                   6.4 kg Remaining
-                </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  Threshold: 3.0 kg • Status: <strong>HEALTHY</strong>
                 </div>
               </div>
             </div>
@@ -1779,7 +1740,6 @@ export function RemoteCloudShell() {
                   <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#b91c1c', marginTop: '4px' }}>
                     ₱{Math.round(peakTrendItem?.revenue || 0).toLocaleString()}
                   </div>
-                  <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{peakTrendItem?.label || '—'}</div>
                 </div>
               </div>
 

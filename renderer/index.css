@@ -215,3 +215,359 @@ html, body {
   font-size: 0.85rem;
   font-weight: 600;
 }
+
+/* Unified Admin Navigation Group (Single unified container instead of separate boxes) */
+.admin-nav-group {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 4px;
+  gap: 2px;
+}
+
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  width: 100%;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  outline: none;
+  font-family: var(--font-sans);
+}
+
+.admin-nav-item:hover {
+  background-color: #ffffff;
+  color: var(--text-main);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.admin-nav-item.active {
+  background-color: var(--brand-red);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(224, 26, 34, 0.25);
+}
+
+.admin-nav-item.active svg {
+  color: #ffffff !important;
+}
+
+.admin-nav-group-horizontal {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 3px;
+}
+
+.admin-nav-item-horizontal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+  font-family: var(--font-sans);
+}
+
+.admin-nav-item-horizontal:hover {
+  background-color: #ffffff;
+  color: var(--text-main);
+}
+
+.admin-nav-item-horizontal.active {
+  background-color: var(--brand-red);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(224, 26, 34, 0.2);
+}
+
+.admin-nav-item-horizontal.active svg {
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   Modern Collapsible Sidebar Navigation (TAKOTIME Theme)
+   ========================================================================== */
+
+.modern-sidebar {
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100vh;
+  box-shadow: 1px 0 6px rgba(0, 0, 0, 0.03);
+  z-index: 20;
+  user-select: none;
+  overflow: visible;
+  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), padding 0.22s ease;
+}
+
+.sidebar-logo-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.sidebar-logo-badge:hover {
+  border-color: var(--border-strong);
+}
+
+.sidebar-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.sidebar-toggle-btn:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-main);
+}
+
+.modern-nav-section-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 16px 12px 8px 12px;
+  transition: opacity 0.15s ease;
+}
+
+.modern-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.08s ease;
+  text-align: left;
+  outline: none;
+  position: relative;
+  white-space: nowrap;
+}
+
+.modern-nav-item:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-main);
+}
+
+.modern-nav-item .nav-chevron {
+  color: var(--border-light);
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.modern-nav-item:hover .nav-chevron {
+  color: var(--text-muted);
+}
+
+.modern-nav-item .nav-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.modern-nav-item:hover .nav-icon {
+  color: var(--text-main);
+}
+
+.modern-nav-item .nav-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Active State (TAKOTIME Red Brand Theme) */
+.modern-nav-item.active {
+  background-color: var(--brand-red-light);
+  color: var(--brand-red);
+  font-weight: 600;
+}
+
+.modern-nav-item.active .nav-chevron {
+  color: var(--brand-red) !important;
+}
+
+.modern-nav-item.active .nav-icon {
+  color: var(--brand-red) !important;
+}
+
+.modern-nav-item.active .nav-label {
+  color: var(--brand-red);
+}
+
+/* Collapsed State */
+.sidebar-collapsed {
+  padding: 12px 6px !important;
+}
+
+.sidebar-collapsed .sidebar-logo-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+
+.sidebar-collapsed .sidebar-logo-badge img {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.sidebar-collapsed .modern-nav-item {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  margin: 0 auto !important;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.sidebar-collapsed .modern-nav-item .nav-chevron,
+.sidebar-collapsed .modern-nav-item .nav-label {
+  display: none !important;
+}
+
+.sidebar-collapsed .modern-nav-item .nav-icon {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.sidebar-collapsed .modern-nav-item.active {
+  background-color: var(--brand-red-light);
+}
+
+.sidebar-collapsed nav {
+  gap: 4px !important;
+}
+
+.sidebar-collapsed .modern-nav-section-title {
+  display: none !important;
+}
+
+.sidebar-collapsed .sidebar-header-text,
+.sidebar-collapsed .sidebar-header-collapse-btn {
+  display: none !important;
+}
+
+.sidebar-collapsed .sidebar-divider {
+  margin: 8px 6px !important;
+}
+
+.sidebar-footer-expand-btn {
+  display: flex !important;
+  color: var(--text-muted);
+}
+
+.sidebar-footer-expand-btn:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-main);
+}
+
+.sidebar-divider {
+  height: 1px;
+  background-color: var(--border-subtle);
+  margin: 12px 6px;
+  flex-shrink: 0;
+}
+
+/* Completely remove scrollbars when sidebar is collapsed */
+.sidebar-collapsed,
+.sidebar-collapsed * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.sidebar-collapsed::-webkit-scrollbar,
+.sidebar-collapsed *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.sidebar-collapsed .sidebar-nav-container {
+  overflow-y: hidden !important;
+  overflow-x: hidden !important;
+}
+
+
+/* Sleek Tooltip in Collapsed Mode */
+.sidebar-collapsed [data-tooltip] {
+  position: relative;
+}
+
+.sidebar-collapsed [data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) scale(0.92);
+  background-color: #0f172a;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  z-index: 100;
+}
+
+.sidebar-collapsed [data-tooltip]:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) scale(1);
+}
+
+

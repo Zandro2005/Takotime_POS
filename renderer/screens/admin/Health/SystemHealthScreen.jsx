@@ -308,9 +308,6 @@ export function SystemHealthScreen() {
             <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'monospace' }}>
               {status?.database?.sizeFormatted || '256.0 KB'}
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              WAL buffer: <strong>{status?.database?.walSizeFormatted || '64.0 KB'}</strong> • Foreign keys: <strong>ON</strong>
-            </div>
           </div>
           <button
             type="button"
@@ -345,9 +342,6 @@ export function SystemHealthScreen() {
             <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)' }}>
               {backups.length} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 500 }}>Snapshots</span>
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Retention: <strong>30 Days</strong> • Safe VACUUM INTO
-            </div>
           </div>
           <button
             type="button"
@@ -381,9 +375,6 @@ export function SystemHealthScreen() {
           <div>
             <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
               58mm / 32-Column
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Cash Drawer Pulse: <strong>ESC p 0 25 250</strong>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '6px' }}>
@@ -428,9 +419,6 @@ export function SystemHealthScreen() {
           <div>
             <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)' }}>
               {status?.system?.memory?.rssFormatted || '64.2 MB'}
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Uptime: <strong>{Math.floor((status?.system?.uptimeSeconds || 3600) / 60)} mins</strong> • Node: <strong>{status?.system?.nodeVersion || 'v22'}</strong>
             </div>
           </div>
         </div>
