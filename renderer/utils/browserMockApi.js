@@ -124,16 +124,27 @@ const mockUsers = [
 ];
 
 const defaultInventory = [
-  { itemId: 1, name: 'Takoyaki Batter Premix', unit: 'kg', minStock: 5.0, beginningQty: 10.0, stockIn: 5.0, suggestedOut: 1.20, confirmedOut: null, endingQty: 13.80, wasteQty: null },
-  { itemId: 2, name: 'Diced Octopus', unit: 'kg', minStock: 2.0, beginningQty: 5.0, stockIn: 2.0, suggestedOut: 0.60, confirmedOut: null, endingQty: 6.40, wasteQty: null },
-  { itemId: 3, name: 'Crab Stick', unit: 'kg', minStock: 2.0, beginningQty: 4.0, stockIn: 0, suggestedOut: 0.30, confirmedOut: null, endingQty: 3.70, wasteQty: null },
-  { itemId: 4, name: 'Cheese Cubes', unit: 'kg', minStock: 1.5, beginningQty: 3.0, stockIn: 0, suggestedOut: 0.20, confirmedOut: null, endingQty: 2.80, wasteQty: null },
-  { itemId: 5, name: 'Pork Siomai (raw)', unit: 'pcs', minStock: 100.0, beginningQty: 200.0, stockIn: 100.0, suggestedOut: 32.0, confirmedOut: null, endingQty: 268.0, wasteQty: null },
-  { itemId: 6, name: 'Beef Siomai (raw)', unit: 'pcs', minStock: 100.0, beginningQty: 150.0, stockIn: 0, suggestedOut: 24.0, confirmedOut: null, endingQty: 126.0, wasteQty: null },
-  { itemId: 7, name: 'Takoyaki Sauce', unit: 'liters', minStock: 3.0, beginningQty: 8.0, stockIn: 0, suggestedOut: 0.80, confirmedOut: null, endingQty: 7.20, wasteQty: null },
+  // Section 1: Fillings & Batter (matches Excel rows 7-13)
+  { itemId: 1, name: 'Takoyaki Flour', unit: 'kg', minStock: 5.0, beginningQty: 10.0, stockIn: 5.0, suggestedOut: 1.20, confirmedOut: null, endingQty: 13.80, wasteQty: null },
+  { itemId: 2, name: 'Cheese', unit: 'kg', minStock: 1.5, beginningQty: 3.0, stockIn: 0, suggestedOut: 0.20, confirmedOut: null, endingQty: 2.80, wasteQty: null },
+  { itemId: 3, name: 'Crab', unit: 'kg', minStock: 2.0, beginningQty: 4.0, stockIn: 0, suggestedOut: 0.30, confirmedOut: null, endingQty: 3.70, wasteQty: null },
+  { itemId: 4, name: 'Shrimp', unit: 'kg', minStock: 2.0, beginningQty: 5.0, stockIn: 2.0, suggestedOut: 0.60, confirmedOut: null, endingQty: 6.40, wasteQty: null },
+  { itemId: 5, name: 'Squid', unit: 'kg', minStock: 2.0, beginningQty: 3.0, stockIn: 1.0, suggestedOut: 0.40, confirmedOut: null, endingQty: 3.60, wasteQty: null },
+  { itemId: 6, name: 'Corn', unit: 'kg', minStock: 2.0, beginningQty: 4.0, stockIn: 0, suggestedOut: 0.50, confirmedOut: null, endingQty: 3.50, wasteQty: null },
+  { itemId: 7, name: 'Ham', unit: 'packs', minStock: 5.0, beginningQty: 8.0, stockIn: 0, suggestedOut: 1.0, confirmedOut: null, endingQty: 7.0, wasteQty: null },
+  // Section 2: Sauces & Toppings (matches Excel rows 15-18)
   { itemId: 8, name: 'Japanese Mayo', unit: 'liters', minStock: 3.0, beginningQty: 8.0, stockIn: 0, suggestedOut: 0.80, confirmedOut: null, endingQty: 7.20, wasteQty: null },
-  { itemId: 9, name: 'Bonito Flakes', unit: 'packs', minStock: 2.0, beginningQty: 10.0, stockIn: 0, suggestedOut: 1.50, confirmedOut: null, endingQty: 8.50, wasteQty: null },
-  { itemId: 10, name: 'Cups 16oz', unit: 'pcs', minStock: 50.0, beginningQty: 150.0, stockIn: 0, suggestedOut: 18.0, confirmedOut: null, endingQty: 132.0, wasteQty: null },
+  { itemId: 9, name: 'Takoyaki Sauce', unit: 'liters', minStock: 3.0, beginningQty: 8.0, stockIn: 0, suggestedOut: 0.80, confirmedOut: null, endingQty: 7.20, wasteQty: null },
+  { itemId: 10, name: 'Katsuobushi Flakes', unit: 'packs', minStock: 2.0, beginningQty: 10.0, stockIn: 0, suggestedOut: 1.50, confirmedOut: null, endingQty: 8.50, wasteQty: null },
+  { itemId: 11, name: 'Green Seaweeds', unit: 'packs', minStock: 2.0, beginningQty: 6.0, stockIn: 0, suggestedOut: 0.50, confirmedOut: null, endingQty: 5.50, wasteQty: null },
+  // Section 3: Dimsum & Dumplings (matches Excel rows 20-23)
+  { itemId: 12, name: 'Siomai', unit: 'pcs', minStock: 100.0, beginningQty: 200.0, stockIn: 100.0, suggestedOut: 32.0, confirmedOut: null, endingQty: 268.0, wasteQty: null },
+  { itemId: 13, name: 'Japanese Siomai', unit: 'pcs', minStock: 100.0, beginningQty: 120.0, stockIn: 0, suggestedOut: 16.0, confirmedOut: null, endingQty: 104.0, wasteQty: null },
+  { itemId: 14, name: 'Big Siomai', unit: 'pcs', minStock: 100.0, beginningQty: 150.0, stockIn: 0, suggestedOut: 24.0, confirmedOut: null, endingQty: 126.0, wasteQty: null },
+  { itemId: 15, name: 'Dumplings', unit: 'pcs', minStock: 100.0, beginningQty: 180.0, stockIn: 50.0, suggestedOut: 20.0, confirmedOut: null, endingQty: 210.0, wasteQty: null },
+  // Non-food items
+  { itemId: 16, name: 'Cups 16oz', unit: 'pcs', minStock: 50.0, beginningQty: 150.0, stockIn: 0, suggestedOut: 18.0, confirmedOut: null, endingQty: 132.0, wasteQty: null },
+  { itemId: 17, name: 'Water Bottle 500ml', unit: 'pcs', minStock: 24.0, beginningQty: 48.0, stockIn: 0, suggestedOut: 6.0, confirmedOut: null, endingQty: 42.0, wasteQty: null },
 ];
 
 export function setupBrowserMockApi() {

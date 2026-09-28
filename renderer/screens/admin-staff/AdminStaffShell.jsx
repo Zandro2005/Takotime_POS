@@ -16,30 +16,18 @@ export function AdminStaffShell() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', backgroundColor: 'var(--bg-app)' }}>
       {/* Top Header */}
-      <header style={{
-        minHeight: '62px',
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid var(--border-subtle)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '8px 16px',
-        boxShadow: 'var(--shadow-sm)',
-        zIndex: 10,
-        flexWrap: 'wrap',
-        gap: '8px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src={logoImg} alt="TAKOTIME" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
+      <header className="admin-staff-navbar">
+        <div className="admin-staff-topbar">
+          <div className="admin-staff-brand">
+            <img src={logoImg} alt="TAKOTIME" className="admin-staff-logo" />
             <div>
-              <span style={{ fontWeight: 800, letterSpacing: '-0.02em', fontSize: '1.05rem', color: 'var(--text-main)' }}>TAKOTIME</span>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, marginLeft: '6px' }}>Store Hub</span>
+              <span className="admin-staff-title">TAKOTIME</span>
+              <span className="admin-hub-subtitle">Store Hub</span>
             </div>
           </div>
 
-          {/* Navigation Tabs - Single Unified Container */}
-          <nav className="admin-nav-group-horizontal" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', maxWidth: '100%', flexWrap: 'wrap' }}>
+          {/* Desktop Navigation Tabs (inline with brand) */}
+          <nav className="admin-nav-group-horizontal desktop-only-nav">
             <button
               type="button"
               className={`admin-nav-item-horizontal ${activeTab === 'pos' ? 'active' : ''}`}
@@ -65,33 +53,64 @@ export function AdminStaffShell() {
               <span>Shift & Sales Reports</span>
             </button>
           </nav>
+
+          {/* User Controls */}
+          <div className="admin-staff-user-actions">
+            <div className="admin-staff-profile">
+              <span className="badge badge-admin-staff">Lead Staff</span>
+              <span className="admin-staff-name">{user?.name}</span>
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-secondary pos-icon-btn"
+              onClick={lockScreen}
+              title="Lock Terminal"
+            >
+              <Lock size={15} />
+              <span className="btn-label-text">Lock</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-danger pos-icon-btn"
+              onClick={logout}
+              title="Log Out"
+            >
+              <LogOut size={15} />
+              <span className="btn-label-text">Logout</span>
+            </button>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="badge badge-admin-staff">Lead Staff</span>
-            <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main)' }}>{user?.name}</span>
-          </div>
-
-          <button
-            type="button"
-            className="btn btn-secondary"
-            style={{ padding: '8px 12px' }}
-            onClick={lockScreen}
-          >
-            <Lock size={16} />
-            Lock
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-danger"
-            style={{ padding: '8px 12px' }}
-            onClick={logout}
-          >
-            <LogOut size={16} />
-            Logout
-          </button>
+        {/* Mobile Navigation Tabs (visible on <= 768px so nothing is cut off) */}
+        <div className="admin-staff-mobile-nav">
+          <nav className="admin-nav-group-horizontal admin-nav-mobile-tabs">
+            <button
+              type="button"
+              className={`admin-nav-item-horizontal ${activeTab === 'pos' ? 'active' : ''}`}
+              onClick={() => setActiveTab('pos')}
+            >
+              <ShoppingCart size={15} />
+              <span>POS</span>
+            </button>
+            <button
+              type="button"
+              className={`admin-nav-item-horizontal ${activeTab === 'inventory' ? 'active' : ''}`}
+              onClick={() => setActiveTab('inventory')}
+            >
+              <ClipboardList size={15} />
+              <span>Inventory</span>
+            </button>
+            <button
+              type="button"
+              className={`admin-nav-item-horizontal ${activeTab === 'reports' ? 'active' : ''}`}
+              onClick={() => setActiveTab('reports')}
+            >
+              <BarChart3 size={15} />
+              <span>Reports</span>
+            </button>
+          </nav>
         </div>
       </header>
 

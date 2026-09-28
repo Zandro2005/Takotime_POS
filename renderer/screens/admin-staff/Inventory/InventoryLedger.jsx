@@ -9,8 +9,12 @@ import {
   CheckCircle2,
   PackagePlus,
   Save,
-  Info
+  Info,
+  Printer,
+  FileSpreadsheet
 } from 'lucide-react';
+import { DailyInventoryPrintModal } from './DailyInventoryPrintModal';
+import { exportDailyInventoryXlsx } from '../../../utils/dailyInventoryExcel';
 
 function getLocalDateString(d = new Date()) {
   const date = typeof d === 'string' ? new Date(d) : d;
@@ -27,13 +31,14 @@ const formatQty = (val, decimals = 2) => {
 };
 
 export function InventoryLedger() {
-  const { sessionId } = useAuth();
+  const { sessionId, user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(() => getLocalDateString());
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingCounts, setEditingCounts] = useState({});
   const [showStockInModal, setShowStockInModal] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
   const [selectedStockItem, setSelectedStockItem] = useState(null);
   const [stockInQty, setStockInQty] = useState('');
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
@@ -173,8 +178,10 @@ export function InventoryLedger() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', backgroundColor: 'var(--bg-app)' }}>
-      {/* Top Header Bar */}
-      <div style={{
+      {/* Main Ledger UI (hidden during print so only the food inventory sheet prints) */}
+      <div className="no-print" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+        {/* Top Header Bar */}
+        <div style={{
         backgroundColor: '#ffffff',
         borderBottom: '1px solid var(--border-subtle)',
         padding: '16px 24px',
@@ -262,6 +269,26 @@ export function InventoryLedger() {
               {saveSuccessMsg}
             </span>
           )}
+
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{
+              padding: '8px 14px',
+              backgroundColor: '#ffffff',
+              borderColor: '#107c41',
+              color: '#107c41',
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+            onClick={() => setShowPrintModal(true)}
+            title="Print or Export Daily Food Inventory Excel Sheet"
+          >
+            <Printer size={16} color="#107c41" />
+            <span>Print Excel Sheet</span>
+          </button>
 
           <button
             type="button"
@@ -704,6 +731,18 @@ export function InventoryLedger() {
             </form>
           </div>
         </div>
+      )}
+      </div>
+
+      {/* Daily Food Inventory Excel Print & Export Modal */}
+      {showPrintModal && (
+        <DailyInventoryPrintModal
+          isOpen={showPrintModal}
+          onClose={() => setShowPrintModal(false)}
+          systemItems={safeItems}
+          selectedDate={selectedDate}
+          currentUser={user}
+        />
       )}
     </div>
   );

@@ -32,7 +32,8 @@
   --border-subtle: #e2e8f0;
   --border-light: #cbd5e1;
   --border-strong: #94a3b8;
-  --border-focus: #e01a22;
+  --border-focus: #2563eb;
+  --focus-ring: rgba(37, 99, 235, 0.15);
 
   /* Typography (High contrast for bright store counters) */
   --text-main: #0f172a;
@@ -202,8 +203,13 @@ html, body {
 }
 
 .input-field:focus {
-  border-color: var(--brand-red);
-  box-shadow: 0 0 0 3px rgba(224, 26, 34, 0.1);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.input-field.input-error {
+  border-color: var(--brand-danger);
+  box-shadow: 0 0 0 3px var(--brand-danger-light);
 }
 
 .error-banner {
@@ -271,6 +277,9 @@ html, body {
   border-radius: var(--radius-md);
   padding: 3px;
   gap: 3px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .admin-nav-item-horizontal {
@@ -906,5 +915,467 @@ html, body {
   }
 }
 
+/* ==========================================================================
+   Responsive Top Navigation Bar Rules - POS Terminal & Lead Staff Shell
+   ========================================================================== */
 
+/* Base Styles: POS Terminal Header */
+.pos-top-navbar {
+  min-width: 0;
+  width: 100%;
+  flex-shrink: 0;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.pos-top-navbar * {
+  flex-shrink: 0;
+}
+
+.pos-nav-btn,
+.pos-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pos-category-tabs {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+.pos-category-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Base Styles: Lead Staff Top Navigation Bar (.admin-staff-navbar) */
+.admin-staff-navbar {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+  width: 100%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.admin-staff-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  padding: 0 18px;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-staff-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.admin-staff-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.admin-staff-title {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-size: 1.1rem;
+  color: var(--text-main);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.admin-hub-subtitle {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+/* User Controls */
+.admin-staff-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.admin-staff-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.admin-staff-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+/* Desktop Navigation (Inline in topbar on > 768px screens) */
+.desktop-only-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+/* Mobile Sub-Navigation Bar (Hidden on desktop > 768px, visible on <= 768px) */
+.admin-staff-mobile-nav {
+  display: none;
+  width: 100%;
+  padding: 4px 10px 8px 10px;
+  background-color: #ffffff;
+  border-top: 1px solid var(--border-subtle);
+  box-sizing: border-box;
+}
+
+.admin-nav-mobile-tabs {
+  display: flex !important;
+  width: 100% !important;
+  gap: 4px !important;
+  box-sizing: border-box;
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 3px;
+}
+
+.admin-nav-mobile-tabs .admin-nav-item-horizontal {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  flex-shrink: 1 !important;
+  justify-content: center !important;
+  padding: 7px 4px !important;
+  font-size: 0.8rem !important;
+  gap: 5px !important;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Breakpoints & Responsive Behaviors
+   ========================================================================== */
+
+/* Large Tablets / Small Laptops (<= 1024px) */
+@media (max-width: 1024px) {
+  .pos-branch-subtitle,
+  .admin-hub-subtitle {
+    display: none !important;
+  }
+}
+
+/* Medium Tablets (<= 860px) */
+@media (max-width: 860px) {
+  .pos-nav-btn .pos-nav-btn-text,
+  .admin-staff-navbar .btn-label-text {
+    display: none !important;
+  }
+  .pos-shift-pill {
+    padding: 5px 10px !important;
+  }
+}
+
+/* Tablet & Mobile Switch (<= 768px) - 2-tier nav for Lead Staff */
+@media (max-width: 768px) {
+  .desktop-only-nav {
+    display: none !important;
+  }
+
+  .admin-staff-mobile-nav {
+    display: flex !important;
+  }
+
+  .admin-staff-navbar {
+    height: auto !important;
+  }
+
+  .admin-staff-topbar {
+    height: 48px !important;
+    padding: 0 10px !important;
+    gap: 8px !important;
+  }
+
+  .admin-staff-logo {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .admin-staff-title {
+    font-size: 0.95rem !important;
+  }
+
+  .admin-staff-user-actions {
+    gap: 6px !important;
+  }
+
+  .admin-staff-user-actions .pos-icon-btn {
+    padding: 6px 8px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+  }
+
+  /* Lead Staff badge is always visible and clear */
+  .badge-admin-staff {
+    display: inline-flex !important;
+    padding: 3px 8px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+  }
+
+  .admin-staff-name {
+    font-size: 0.8rem !important;
+    max-width: 75px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* Cellphone Screens (<= 640px) */
+@media (max-width: 640px) {
+  .pos-top-navbar {
+    height: 52px !important;
+    padding: 0 10px !important;
+    gap: 6px !important;
+  }
+
+  .pos-embedded-status-text {
+    display: none !important;
+  }
+
+  .pos-brand-logo {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .pos-brand-title {
+    font-size: 0.95rem !important;
+  }
+
+  .pos-brand-container {
+    gap: 6px !important;
+  }
+
+  .pos-shift-pill {
+    padding: 4px 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .shift-prefix-group,
+  .queue-prefix {
+    display: none !important;
+  }
+
+  .pos-cashier-badge {
+    display: none !important;
+  }
+
+  .pos-top-actions {
+    gap: 4px !important;
+  }
+
+  .pos-nav-btn,
+  .pos-icon-btn {
+    padding: 6px 8px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .pos-catalog-section {
+    padding: 10px 10px !important;
+    gap: 10px !important;
+  }
+}
+
+/* Ultra-Compact Cellphones (<= 480px) */
+@media (max-width: 480px) {
+  .admin-staff-topbar {
+    height: 44px !important;
+    padding: 0 8px !important;
+    gap: 6px !important;
+  }
+
+  .admin-staff-logo {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .admin-staff-title {
+    font-size: 0.88rem !important;
+  }
+
+  .admin-staff-name {
+    display: none !important; /* Lead Staff badge stays 100% visible */
+  }
+
+  .badge-admin-staff {
+    padding: 2px 6px !important;
+    font-size: 0.68rem !important;
+  }
+
+  .admin-staff-mobile-nav {
+    padding: 3px 6px 6px 6px !important;
+  }
+
+  .admin-nav-mobile-tabs .admin-nav-item-horizontal {
+    padding: 6px 2px !important;
+    font-size: 0.75rem !important;
+    gap: 4px !important;
+  }
+}
+
+/* Very compact cellphones (<= 380px) */
+@media (max-width: 380px) {
+  .pos-top-navbar {
+    padding: 0 6px !important;
+    gap: 4px !important;
+  }
+
+  .pos-top-actions {
+    gap: 3px !important;
+  }
+
+  .pos-nav-btn,
+  .pos-icon-btn {
+    padding: 5px 6px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+  }
+
+  .pos-shift-pill {
+    padding: 3px 6px !important;
+  }
+
+  .admin-nav-mobile-tabs .admin-nav-item-horizontal {
+    font-size: 0.7rem !important;
+    padding: 5px 2px !important;
+  }
+}
+
+/* ==========================================================================
+   Print Stylesheet for Daily Food Inventory Sheet
+   ========================================================================== */
+@media print {
+  @page {
+    size: portrait;
+    margin: 8mm 10mm;
+  }
+
+  /* Reset body and html layout */
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  /* Hide app shell, navbar, headers, buttons, background modals */
+  .no-print,
+  .admin-staff-navbar,
+  .pos-top-navbar,
+  .modern-sidebar,
+  header,
+  nav,
+  button,
+  .btn,
+  .print-modal-header,
+  .print-modal-actions {
+    display: none !important;
+  }
+
+  /* Make modal container unconstrained and transparent */
+  .print-modal-overlay {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    backdrop-filter: none !important;
+    z-index: 1 !important;
+  }
+
+  .print-modal-content {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Print Sheet exact styling */
+  #daily-inventory-print-sheet {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #daily-inventory-print-sheet table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  #daily-inventory-print-sheet thead tr,
+  #daily-inventory-print-sheet th {
+    background-color: #1B2A4A !important;
+    color: #ffffff !important;
+    border: 1px solid #1B2A4A !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #daily-inventory-print-sheet td {
+    border: 1px solid #94a3b8 !important;
+    color: #000000 !important;
+  }
+}
 

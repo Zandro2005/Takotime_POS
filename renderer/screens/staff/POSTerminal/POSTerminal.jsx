@@ -542,74 +542,83 @@ export function POSTerminal({ embedded = false }) {
       {showCloseModal && <ShiftCloseModal onClose={() => setShowCloseModal(false)} />}
 
       {/* Top Application Header */}
-      <header style={{
+      <header className="pos-top-navbar" style={{
         height: embedded ? '44px' : '62px',
         backgroundColor: '#ffffff',
         borderBottom: '1px solid var(--border-subtle)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: embedded ? '0 16px' : '0 20px',
+        padding: embedded ? '0 14px' : '0 18px',
         boxShadow: embedded ? 'none' : 'var(--shadow-sm)',
         zIndex: 5,
         flexShrink: 0,
+        gap: '12px',
       }}>
         {embedded ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
             {currentShift ? (
-              <div style={{
+              <div className="pos-shift-pill" style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
+                gap: '6px',
                 backgroundColor: 'var(--bg-surface-elevated)',
-                padding: '4px 12px',
+                padding: '4px 10px',
                 borderRadius: 'var(--radius-full)',
                 border: '1px solid var(--border-subtle)',
                 fontSize: '0.8rem',
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
               }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--brand-green)' }} />
-                <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Shift #{currentShift.id}</span>
-                <span style={{ color: 'var(--text-faint)' }}>•</span>
-                <span style={{ color: 'var(--brand-red)', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
-                  Queue #{String(currentShift.last_queue_no).padStart(3, '0')}
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: 'var(--brand-green)', flexShrink: 0 }} />
+                <span className="shift-prefix-group" style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+                  <span className="shift-prefix">Shift </span>#{currentShift.id}
+                  <span style={{ color: 'var(--text-faint)', margin: '0 4px' }}>•</span>
+                </span>
+                <span className="pos-queue-text" style={{ color: 'var(--brand-red)', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
+                  <span className="queue-prefix">Queue </span>#{String(currentShift.last_queue_no).padStart(3, '0')}
                 </span>
               </div>
             ) : null}
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>
+            <span className="pos-embedded-status-text" style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap' }}>
               Store POS Terminal Active
             </span>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img src={logoImg} alt="TAKOTIME" style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
-            <div>
-              <div style={{ fontWeight: 800, letterSpacing: '-0.02em', fontSize: '1.15rem', color: 'var(--text-main)', lineHeight: 1.1 }}>
+          <div className="pos-brand-container" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+            <img src={logoImg} alt="TAKOTIME" className="pos-brand-logo" style={{ width: '40px', height: '40px', objectFit: 'contain', flexShrink: 0 }} />
+            <div style={{ flexShrink: 0 }}>
+              <div className="pos-brand-title" style={{ fontWeight: 800, letterSpacing: '-0.02em', fontSize: '1.15rem', color: 'var(--text-main)', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
                 TAKOTIME
               </div>
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>
+              <div className="pos-branch-subtitle" style={{ color: 'var(--text-muted)', fontSize: '0.74rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
                 Montalban Branch • Store Terminal
               </div>
             </div>
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="pos-top-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, whiteSpace: 'nowrap' }}>
           {!embedded && currentShift && (
-            <div style={{
+            <div className="pos-shift-pill" style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px',
               backgroundColor: 'var(--bg-surface-elevated)',
-              padding: '6px 14px',
+              padding: '6px 12px',
               borderRadius: 'var(--radius-full)',
               border: '1px solid var(--border-subtle)',
               fontSize: '0.8rem',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
             }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--brand-green)' }} />
-              <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Shift #{currentShift.id}</span>
-              <span style={{ color: 'var(--text-faint)' }}>•</span>
-              <span style={{ color: 'var(--brand-red)', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
-                Queue #{String(currentShift.last_queue_no).padStart(3, '0')}
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: 'var(--brand-green)', flexShrink: 0 }} />
+              <span className="shift-prefix-group" style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+                <span className="shift-prefix">Shift </span>#{currentShift.id}
+                <span style={{ color: 'var(--text-faint)', margin: '0 4px' }}>•</span>
+              </span>
+              <span className="pos-queue-text" style={{ color: 'var(--brand-red)', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
+                <span className="queue-prefix">Queue </span>#{String(currentShift.last_queue_no).padStart(3, '0')}
               </span>
             </div>
           )}
@@ -617,53 +626,57 @@ export function POSTerminal({ embedded = false }) {
           {/* Recent Orders button */}
           <button
             type="button"
-            className="btn btn-secondary"
-            style={{ padding: embedded ? '6px 12px' : '8px 12px', fontSize: '0.82rem' }}
+            className="btn btn-secondary pos-nav-btn"
+            style={{ padding: embedded ? '6px 10px' : '7px 12px', fontSize: '0.82rem', flexShrink: 0, whiteSpace: 'nowrap' }}
             onClick={() => setShowRecentOrders(true)}
+            title="Recent Orders"
           >
             <Receipt size={15} />
-            Recent Orders
+            <span className="pos-nav-btn-text">Recent Orders</span>
           </button>
 
           {/* Close Shift button */}
           <button
             type="button"
-            className="btn btn-secondary"
-            style={{ padding: embedded ? '6px 12px' : '8px 12px', fontSize: '0.82rem' }}
+            className="btn btn-secondary pos-nav-btn"
+            style={{ padding: embedded ? '6px 10px' : '7px 12px', fontSize: '0.82rem', flexShrink: 0, whiteSpace: 'nowrap' }}
             onClick={() => setShowCloseModal(true)}
+            title="Close Shift"
           >
             <DollarSign size={15} />
-            Close Shift
+            <span className="pos-nav-btn-text">Close Shift</span>
           </button>
 
           {!embedded && (
             <>
               {/* Cashier Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
+              <div className="pos-cashier-badge" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '4px', flexShrink: 0, whiteSpace: 'nowrap' }}>
                 <span className="badge badge-staff">Staff</span>
-                <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main)' }}>{user?.name}</span>
+                <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main)', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user?.name}
+                </span>
               </div>
 
               {/* Lock */}
               <button
                 type="button"
-                className="btn btn-secondary"
-                style={{ padding: '8px 10px' }}
+                className="btn btn-secondary pos-nav-btn pos-icon-btn"
+                style={{ padding: '8px 10px', flexShrink: 0 }}
                 onClick={lockScreen}
                 title="Lock Terminal"
               >
-                <Lock size={16} />
+                <Lock size={15} />
               </button>
 
               {/* Logout */}
               <button
                 type="button"
-                className="btn btn-danger"
-                style={{ padding: '8px 10px' }}
+                className="btn btn-danger pos-nav-btn pos-icon-btn"
+                style={{ padding: '8px 10px', flexShrink: 0 }}
                 onClick={logout}
                 title="Log Out"
               >
-                <LogOut size={16} />
+                <LogOut size={15} />
               </button>
             </>
           )}
@@ -679,7 +692,7 @@ export function POSTerminal({ embedded = false }) {
         overflow: 'hidden',
       }}>
         {/* Left: Category Tabs & Product Grid */}
-        <section style={{
+        <section className="pos-catalog-section" style={{
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
@@ -688,7 +701,7 @@ export function POSTerminal({ embedded = false }) {
           gap: '14px',
         }}>
           {/* Category Tabs */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div className="pos-category-tabs" style={{ display: 'flex', gap: '8px', overflowX: 'auto', flexWrap: 'nowrap', flexShrink: 0, paddingBottom: '2px' }}>
             {catalog.map(cat => {
               const isSelected = cat.id === selectedCategoryId;
               return (
@@ -711,6 +724,8 @@ export function POSTerminal({ embedded = false }) {
                     gap: '8px',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
                   }}
                   onClick={() => setSelectedCategoryId(cat.id)}
                 >
@@ -728,7 +743,7 @@ export function POSTerminal({ embedded = false }) {
             flex: 1,
             overflowY: 'auto',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
             gap: '14px',
             alignContent: 'start',
             paddingRight: '6px',
@@ -748,14 +763,14 @@ export function POSTerminal({ embedded = false }) {
                     backgroundColor: '#ffffff',
                     border: '1px solid var(--border-subtle)',
                     borderRadius: 'var(--radius-lg)',
-                    padding: '20px',
+                    padding: '20px 18px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
                     cursor: 'pointer',
                     transition: 'border-color 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease',
                     boxShadow: 'var(--shadow-sm)',
-                    minHeight: '140px',
+                    minHeight: '155px',
                   }}
                   onClick={() => setActivePickerProduct(product)}
                   onMouseEnter={(e) => {
@@ -770,10 +785,10 @@ export function POSTerminal({ embedded = false }) {
                   }}
                 >
                   <div>
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px', lineHeight: 1.3 }}>
                       {product.name}
                     </h3>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {product.variants.map(v => v.label).join(' • ')}
                     </p>
                   </div>
@@ -782,9 +797,9 @@ export function POSTerminal({ embedded = false }) {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    marginTop: '14px',
+                    marginTop: '16px',
                     borderTop: '1px solid var(--border-subtle)',
-                    paddingTop: '10px',
+                    paddingTop: '12px',
                   }}>
                     <span style={{ fontSize: '1.25rem', fontWeight: 900, fontFamily: 'var(--font-mono)', color: 'var(--brand-red)' }}>
                       {priceDisplay}
@@ -792,9 +807,9 @@ export function POSTerminal({ embedded = false }) {
                     <span style={{
                       backgroundColor: 'var(--brand-red-light)',
                       color: 'var(--brand-red)',
-                      padding: '4px 12px',
+                      padding: '5px 14px',
                       borderRadius: 'var(--radius-full)',
-                      fontSize: '0.75rem',
+                      fontSize: '0.78rem',
                       fontWeight: 700,
                     }}>
                       Select

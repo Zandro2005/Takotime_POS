@@ -196,6 +196,11 @@
   padding-right: 44px;
 }
 
+.login-form .input-field:focus {
+  border-color: var(--border-focus, #2563eb);
+  box-shadow: 0 0 0 3px var(--focus-ring, rgba(37, 99, 235, 0.15));
+}
+
 .password-toggle-btn {
   position: absolute;
   right: 8px;

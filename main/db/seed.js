@@ -109,61 +109,67 @@ export function seedInitialData(db) {
   linkModifier.run(6, 5);
   linkModifier.run(6, 6);
 
-  // 7. Seed Inventory Items
+  // 7. Seed Inventory Items (matches official TAKOTIME Daily Food Inventory template)
   const insertInventoryItem = db.prepare(`
     INSERT OR IGNORE INTO inventory_items (id, name, unit, min_stock) VALUES (?, ?, ?, ?)
   `);
-  insertInventoryItem.run(1, 'Takoyaki Batter Premix', 'kg', 5.0);
-  insertInventoryItem.run(2, 'Diced Octopus', 'kg', 2.0);
-  insertInventoryItem.run(3, 'Crab Stick', 'kg', 2.0);
-  insertInventoryItem.run(4, 'Cheese Cubes', 'kg', 1.5);
-  insertInventoryItem.run(5, 'Pork Siomai (raw)', 'pcs', 100.0);
-  insertInventoryItem.run(6, 'Beef Siomai (raw)', 'pcs', 100.0);
-  insertInventoryItem.run(7, 'Takoyaki Sauce', 'liters', 3.0);
+  insertInventoryItem.run(1, 'Takoyaki Flour', 'kg', 5.0);
+  insertInventoryItem.run(2, 'Cheese', 'kg', 1.5);
+  insertInventoryItem.run(3, 'Crab', 'kg', 2.0);
+  insertInventoryItem.run(4, 'Shrimp', 'kg', 2.0);
+  insertInventoryItem.run(5, 'Squid', 'kg', 2.0);
+  insertInventoryItem.run(6, 'Corn', 'kg', 2.0);
+  insertInventoryItem.run(7, 'Ham', 'packs', 5.0);
   insertInventoryItem.run(8, 'Japanese Mayo', 'liters', 3.0);
-  insertInventoryItem.run(9, 'Bonito Flakes', 'packs', 2.0);
-  insertInventoryItem.run(10, 'Cups 16oz', 'pcs', 50.0);
-  insertInventoryItem.run(11, 'Water Bottle 500ml', 'pcs', 24.0);
+  insertInventoryItem.run(9, 'Takoyaki Sauce', 'liters', 3.0);
+  insertInventoryItem.run(10, 'Katsuobushi Flakes', 'packs', 2.0);
+  insertInventoryItem.run(11, 'Green Seaweeds', 'packs', 2.0);
+  insertInventoryItem.run(12, 'Siomai', 'pcs', 100.0);
+  insertInventoryItem.run(13, 'Japanese Siomai', 'pcs', 100.0);
+  insertInventoryItem.run(14, 'Big Siomai', 'pcs', 100.0);
+  insertInventoryItem.run(15, 'Dumplings', 'pcs', 100.0);
+  insertInventoryItem.run(16, 'Cups 16oz', 'pcs', 50.0);
+  insertInventoryItem.run(17, 'Water Bottle 500ml', 'pcs', 24.0);
 
   // 8. Seed Recipes (BOM)
   const insertRecipe = db.prepare(`
     INSERT OR IGNORE INTO recipes (product_variant_id, inventory_item_id, qty_per_unit)
     VALUES (?, ?, ?)
   `);
-  // 4 pcs octopus (variant 1): 0.08 kg batter, 0.04 kg octopus
+  // 4 pcs takoyaki (variant 1): flour + shrimp
   insertRecipe.run(1, 1, 0.08);
-  insertRecipe.run(1, 2, 0.04);
-  // 8 pcs octopus (variant 2): 0.16 kg batter, 0.08 kg octopus
+  insertRecipe.run(1, 4, 0.04);
+  // 8 pcs takoyaki (variant 2): flour + shrimp
   insertRecipe.run(2, 1, 0.16);
-  insertRecipe.run(2, 2, 0.08);
-  // 12 pcs octopus (variant 3): 0.24 kg batter, 0.12 kg octopus
+  insertRecipe.run(2, 4, 0.08);
+  // 12 pcs takoyaki (variant 3): flour + shrimp
   insertRecipe.run(3, 1, 0.24);
-  insertRecipe.run(3, 2, 0.12);
+  insertRecipe.run(3, 4, 0.12);
 
-  // 4 pcs crab & cheese (variant 4): 0.08 kg batter, 0.03 kg crab, 0.02 kg cheese
+  // 4 pcs crab & cheese (variant 4): flour + crab + cheese
   insertRecipe.run(4, 1, 0.08);
   insertRecipe.run(4, 3, 0.03);
-  insertRecipe.run(4, 4, 0.02);
-  // 8 pcs crab & cheese (variant 5): 0.16 kg batter, 0.06 kg crab, 0.04 kg cheese
+  insertRecipe.run(4, 2, 0.02);
+  // 8 pcs crab & cheese (variant 5): flour + crab + cheese
   insertRecipe.run(5, 1, 0.16);
   insertRecipe.run(5, 3, 0.06);
-  insertRecipe.run(5, 4, 0.04);
-  // 12 pcs crab & cheese (variant 6): 0.24 kg batter, 0.09 kg crab, 0.06 kg cheese
+  insertRecipe.run(5, 2, 0.04);
+  // 12 pcs crab & cheese (variant 6): flour + crab + cheese
   insertRecipe.run(6, 1, 0.24);
   insertRecipe.run(6, 3, 0.09);
-  insertRecipe.run(6, 4, 0.06);
+  insertRecipe.run(6, 2, 0.06);
 
   // Siomai: 4pcs = 4 raw pcs, 8pcs = 8 raw pcs
-  insertRecipe.run(7, 5, 4.0);
-  insertRecipe.run(8, 5, 8.0);
-  insertRecipe.run(9, 6, 4.0);
-  insertRecipe.run(10, 6, 8.0);
+  insertRecipe.run(7, 12, 4.0);
+  insertRecipe.run(8, 12, 8.0);
+  insertRecipe.run(9, 14, 4.0);
+  insertRecipe.run(10, 14, 8.0);
 
   // Drinks: 1 cup per drink
-  insertRecipe.run(11, 10, 1.0);
-  insertRecipe.run(12, 10, 1.0);
+  insertRecipe.run(11, 16, 1.0);
+  insertRecipe.run(12, 16, 1.0);
   // Water bottle: 1 bottle
-  insertRecipe.run(13, 11, 1.0);
+  insertRecipe.run(13, 17, 1.0);
 
   logger.info('Database seeded successfully with initial users, catalog, and recipes.');
 }
