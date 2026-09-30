@@ -78,6 +78,14 @@ The system enforces strict role-based access control (RBAC). When any user logs 
 | **Manage Database Backups** | ❌ No | ❌ No | ✅ Yes | ❌ View Status |
 | **Live Remote Cloud Telemetry** | ❌ No | ❌ No | ❌ Store Local | ✅ Yes |
 
+### Default Accounts & Quick PIN Reference
+| Role | Display Name | Username | **4-Digit Quick PIN** | Default Password |
+| :--- | :--- | :--- | :---: | :--- |
+| **Staff** (Cashier / Crew) | Cashier 1 | `cashier` | **`1111`** | `cashier123` |
+| **Admin Staff** (Lead Staff / Supervisor) | Lead Staff | `supervisor` | **`2222`** | `staff123` |
+| **Admin** (Store Owner / General Admin) | Store Admin | `admin` | **`3333`** | `admin123` |
+| **Cloud Admin** (Franchise Owner / Remote) | Remote Franchise Executive | `cloudadmin` | **`4444`** | `cloudpass123` |
+
 ---
 
 ## 3. Role 1: Staff (Cashier & Crew Guide)
@@ -87,7 +95,7 @@ The system enforces strict role-based access control (RBAC). When any user logs 
 
 ```
 +-----------------------------------------------------------------------------------+
-| TAKOTIME! POS - CASHIER TERMINAL                                  [Lock] [Logout] |
+| TAKOTIME! POS     [Recent Orders] [Cash Out] [Close Shift]        [Lock] [Logout] |
 | Current Shift: #1 (Staff: Maria) • Starting Float: ₱1,000.00                       |
 +-----------------------------------+-----------------------------------------------+
 | CATEGORIES:                       | CURRENT ORDER: (Queue #01)                    |
@@ -150,11 +158,11 @@ Philippine statutory discounts are built directly into the cart:
   - Tap **Print Receipt** (or enable auto-print) to trigger the counter thermal printer.
 
 ### 3.7 Petty Cash Out Movements
-If money is taken from the cash drawer during operating hours (e.g., buying tube ice, mineral water, emergency market ingredients):
-1. Click **Drawer Cash Movement** (or **Cash Out**) button on the top right.
-2. Enter the **Amount Paid Out** (e.g., `₱150.00`).
-3. Enter the mandatory **Reason / Description** (e.g., `Purchased 3 bags tube ice`).
-4. Tap **Confirm Cash Out**. This ensures your cash drawer will balance perfectly at end of day.
+If cash is taken from the drawer during operating hours (e.g., buying tube ice, mineral water, or emergency commissary/store supplies):
+1. Tap the **Cash Out** button in the top navbar (located between **Recent Orders** and **Close Shift**).
+2. Enter the **Amount Paid Out** in pesos (or click a quick amount shortcut: `₱50`, `₱100`, `₱150`, `₱200`, `₱500`).
+3. Enter the **Reason / Description** (or click one of the quick preset tags: `Tube Ice`, `Drinking Water`, `Emergency Market Ingredients`, `Cleaning Supplies`, `Paper Cups & Bags`, or `Commissary Cash Payment`).
+4. Click **Confirm Cash Out**. The amount is instantly logged to the shift audit trail and automatically deducted from the expected drawer balance at shift close.
 
 ### 3.8 Closing Shift & Cash Drawer Reconciliation
 At the end of your shift:

@@ -256,7 +256,7 @@ export function PaymentModal({ totalDue, onComplete, onClose }) {
           <button
             type="submit"
             className="btn btn-primary"
-            style={{ width: '100%', padding: '17px', fontSize: '1.08rem', fontWeight: 700 }}
+            style={{ width: '100%', padding: '17px', fontSize: '1.08rem', fontWeight: 700, color: '#ffffff' }}
             disabled={loading || isUnderpaid}
           >
             {loading ? 'Processing Sale...' : (changeDue > 0 ? `Complete Sale (Give ₱${changeDue.toFixed(2)} Change)` : `Complete ${isCashless ? 'Cashless' : 'Cash'} Sale`)}

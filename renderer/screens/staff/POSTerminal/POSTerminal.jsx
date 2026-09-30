@@ -9,6 +9,7 @@ import { DiscountModal } from './DiscountModal';
 import { PaymentModal } from './PaymentModal';
 import { OrderConfirmationModal } from './OrderConfirmationModal';
 import { RecentOrdersModal } from './RecentOrdersModal';
+import { CashOutModal } from './CashOutModal';
 import logoImg from '../../../assets/logo.png';
 import {
   Lock,
@@ -22,6 +23,8 @@ import {
   Tag,
   PauseCircle,
   DollarSign,
+  HandCoins,
+  Coins,
   Flame,
   Utensils,
   CupSoda,
@@ -40,7 +43,7 @@ function getCategoryIcon(name = '') {
 
 export function POSTerminal({ embedded = false }) {
   const { user, sessionId, logout, lockScreen } = useAuth();
-  const { currentShift, showOpenModal, showCloseModal, setShowCloseModal } = useShift();
+  const { currentShift, showOpenModal, setShowOpenModal, showCloseModal, setShowCloseModal } = useShift();
 
   // Catalog State
   const [catalog, setCatalog] = useState([]);
@@ -59,6 +62,7 @@ export function POSTerminal({ embedded = false }) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [completedOrder, setCompletedOrder] = useState(null);
   const [showRecentOrders, setShowRecentOrders] = useState(false);
+  const [showCashOutModal, setShowCashOutModal] = useState(false);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
 
   // 1. Fetch full catalog on mount
@@ -510,14 +514,36 @@ export function POSTerminal({ embedded = false }) {
           <button
             type="button"
             className="btn btn-primary"
-            style={{ padding: embedded ? '10px' : '12px', flex: 2, fontSize: embedded ? '0.96rem' : '1.05rem', fontWeight: 800 }}
+            style={{
+              padding: embedded ? '10px' : '12px',
+              flex: 2,
+              fontSize: embedded ? '0.96rem' : '1.05rem',
+              fontWeight: 800,
+              backgroundColor: !currentShift ? 'var(--brand-green)' : 'var(--brand-red)',
+              borderColor: !currentShift ? 'var(--brand-green)' : 'var(--brand-red)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+            }}
             onClick={() => {
+              if (!currentShift) {
+                setShowOpenModal(true);
+                return;
+              }
               setShowPaymentModal(true);
               if (isDrawer) setMobileCartOpen(false);
             }}
-            disabled={cartItems.length === 0}
+            disabled={currentShift ? cartItems.length === 0 : false}
           >
-            Pay ₱{totalDue.toFixed(2)}
+            {!currentShift ? (
+              <>
+                <Coins size={17} />
+                Open Shift to Sell
+              </>
+            ) : (
+              `Pay ₱${totalDue.toFixed(2)}`
+            )}
           </button>
         </div>
       </div>
@@ -536,7 +562,7 @@ export function POSTerminal({ embedded = false }) {
       flex: 1,
     }}>
       {/* If no shift is open, show Open Shift Modal */}
-      {showOpenModal && <ShiftOpenModal />}
+      {showOpenModal && <ShiftOpenModal onClose={() => setShowOpenModal(false)} />}
 
       {/* Close Shift Modal */}
       {showCloseModal && <ShiftCloseModal onClose={() => setShowCloseModal(false)} />}
@@ -623,29 +649,89 @@ export function POSTerminal({ embedded = false }) {
             </div>
           )}
 
-          {/* Recent Orders button */}
-          <button
-            type="button"
-            className="btn btn-secondary pos-nav-btn"
-            style={{ padding: embedded ? '6px 10px' : '7px 12px', fontSize: '0.82rem', flexShrink: 0, whiteSpace: 'nowrap' }}
-            onClick={() => setShowRecentOrders(true)}
-            title="Recent Orders"
-          >
-            <Receipt size={15} />
-            <span className="pos-nav-btn-text">Recent Orders</span>
-          </button>
+          {!embedded && !currentShift && (
+            <div className="pos-shift-pill" style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: 'rgba(239, 68, 68, 0.08)',
+              padding: '6px 12px',
+              borderRadius: 'var(--radius-full)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              fontSize: '0.8rem',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+            }}>
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#dc2626', flexShrink: 0 }} />
+              <span style={{ color: '#dc2626', fontWeight: 700 }}>No Active Shift</span>
+            </div>
+          )}
 
-          {/* Close Shift button */}
-          <button
-            type="button"
-            className="btn btn-secondary pos-nav-btn"
-            style={{ padding: embedded ? '6px 10px' : '7px 12px', fontSize: '0.82rem', flexShrink: 0, whiteSpace: 'nowrap' }}
-            onClick={() => setShowCloseModal(true)}
-            title="Close Shift"
-          >
-            <DollarSign size={15} />
-            <span className="pos-nav-btn-text">Close Shift</span>
-          </button>
+          {currentShift ? (
+            <>
+              {/* Recent Orders button */}
+              <button
+                type="button"
+                className="btn btn-secondary pos-nav-btn"
+                style={{ padding: embedded ? '6px 10px' : '7px 12px', fontSize: '0.82rem', flexShrink: 0, whiteSpace: 'nowrap' }}
+                onClick={() => setShowRecentOrders(true)}
+                title="Recent Orders"
+              >
+                <Receipt size={15} />
+                <span className="pos-nav-btn-text">Recent Orders</span>
+              </button>
+
+              {/* Cash Out / Petty Cash button */}
+              <button
+                type="button"
+                className="btn btn-secondary pos-nav-btn"
+                style={{ padding: embedded ? '6px 10px' : '7px 12px', fontSize: '0.82rem', flexShrink: 0, whiteSpace: 'nowrap' }}
+                onClick={() => setShowCashOutModal(true)}
+                title="Record Petty Cash Out"
+              >
+                <HandCoins size={15} />
+                <span className="pos-nav-btn-text">Cash Out</span>
+              </button>
+
+              {/* Close Shift button */}
+              <button
+                type="button"
+                className="btn btn-secondary pos-nav-btn"
+                style={{ padding: embedded ? '6px 10px' : '7px 12px', fontSize: '0.82rem', flexShrink: 0, whiteSpace: 'nowrap' }}
+                onClick={() => setShowCloseModal(true)}
+                title="Close Shift"
+              >
+                <DollarSign size={15} />
+                <span className="pos-nav-btn-text">Close Shift</span>
+              </button>
+            </>
+          ) : (
+            /* Open Shift button */
+            <button
+              type="button"
+              className="btn pos-nav-btn"
+              style={{
+                padding: embedded ? '6px 12px' : '7px 14px',
+                fontSize: '0.82rem',
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
+                backgroundColor: 'var(--brand-green)',
+                borderColor: 'var(--brand-green)',
+                color: '#ffffff',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 4px rgba(5, 150, 105, 0.2)',
+                cursor: 'pointer',
+              }}
+              onClick={() => setShowOpenModal(true)}
+              title="Open Work Shift"
+            >
+              <Coins size={15} />
+              <span className="pos-nav-btn-text">Open Shift</span>
+            </button>
+          )}
 
           {!embedded && (
             <>
@@ -700,6 +786,45 @@ export function POSTerminal({ embedded = false }) {
           padding: embedded ? '14px 18px' : '18px 22px',
           gap: '14px',
         }}>
+          {!currentShift && (
+            <div style={{
+              backgroundColor: '#ffffff',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '12px 18px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              boxShadow: 'var(--shadow-sm)',
+              flexShrink: 0,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                <Coins size={18} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                <span>No active cashier shift. Open a shift to record starting drawer cash and start selling.</span>
+              </div>
+              <button
+                type="button"
+                className="btn"
+                style={{
+                  backgroundColor: 'var(--brand-green)',
+                  color: '#ffffff',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  padding: '7px 16px',
+                  borderRadius: 'var(--radius-sm)',
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
+                  border: 'none',
+                  boxShadow: '0 1px 3px rgba(5, 150, 105, 0.25)',
+                }}
+                onClick={() => setShowOpenModal(true)}
+              >
+                Open Shift Now
+              </button>
+            </div>
+          )}
+
           {/* Category Tabs */}
           <div className="pos-category-tabs" style={{ display: 'flex', gap: '8px', overflowX: 'auto', flexWrap: 'nowrap', flexShrink: 0, paddingBottom: '2px' }}>
             {catalog.map(cat => {
@@ -922,6 +1047,12 @@ export function POSTerminal({ embedded = false }) {
         <RecentOrdersModal
           shiftId={currentShift?.id}
           onClose={() => setShowRecentOrders(false)}
+        />
+      )}
+
+      {showCashOutModal && (
+        <CashOutModal
+          onClose={() => setShowCashOutModal(false)}
         />
       )}
     </div>

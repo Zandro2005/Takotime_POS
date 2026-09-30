@@ -73,8 +73,8 @@ export function LoginScreen() {
       loginWithPin('1111').catch(e => setLocalError(e.message));
     } else if (demoType === 'supervisor') {
       setMode('pin');
-      setPin('5678');
-      loginWithPin('5678').catch(e => setLocalError(e.message));
+      setPin('2222');
+      loginWithPin('2222').catch(e => setLocalError(e.message));
     } else if (demoType === 'admin') {
       setMode('password');
       setUsername('admin');
@@ -233,23 +233,23 @@ export function LoginScreen() {
             <button
               type="button"
               className="demo-pill"
-              title="Staff PIN: 1111"
+              title="Staff"
               onClick={() => fillDemo('staff')}
             >
-              Staff (1111)
+              Staff
             </button>
             <button
               type="button"
               className="demo-pill"
-              title="Lead Staff PIN: 5678"
+              title="Lead Staff"
               onClick={() => fillDemo('supervisor')}
             >
-              Lead (5678)
+              Lead
             </button>
             <button
               type="button"
               className="demo-pill"
-              title="Store Admin (admin / admin123)"
+              title="Store Admin"
               onClick={() => fillDemo('admin')}
             >
               Admin
@@ -257,7 +257,7 @@ export function LoginScreen() {
             <button
               type="button"
               className="demo-pill demo-pill-cloud"
-              title="Remote Cloud Admin (cloudadmin / cloudpass123)"
+              title="Remote Cloud Admin"
               onClick={() => fillDemo('cloud')}
             >
               <Cloud size={13} style={{ display: 'inline', verticalAlign: 'middle' }} />

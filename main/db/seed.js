@@ -17,11 +17,11 @@ export function seedInitialData(db) {
   
   // 1. Seed Users
   const adminPass = bcrypt.hashSync('admin123', saltRounds);
-  const adminPin = bcrypt.hashSync('1234', saltRounds);
+  const adminPin = bcrypt.hashSync('3333', saltRounds);
   insertUser.run('Store Admin', 'admin', adminPin, adminPass, ROLES.ADMIN);
 
   const supervisorPass = bcrypt.hashSync('staff123', saltRounds);
-  const supervisorPin = bcrypt.hashSync('5678', saltRounds);
+  const supervisorPin = bcrypt.hashSync('2222', saltRounds);
   insertUser.run('Lead Staff', 'supervisor', supervisorPin, supervisorPass, ROLES.ADMIN_STAFF);
 
   const cashierPass = bcrypt.hashSync('cashier123', saltRounds);
@@ -29,7 +29,7 @@ export function seedInitialData(db) {
   insertUser.run('Cashier 1', 'cashier', cashierPin, cashierPass, ROLES.STAFF);
 
   const cloudAdminPass = bcrypt.hashSync('cloudpass123', saltRounds);
-  const cloudAdminPin = bcrypt.hashSync('9999', saltRounds);
+  const cloudAdminPin = bcrypt.hashSync('4444', saltRounds);
   insertUser.run('Remote Franchise Executive', 'cloudadmin', cloudAdminPin, cloudAdminPass, ROLES.REMOTE_ADMIN);
 
 

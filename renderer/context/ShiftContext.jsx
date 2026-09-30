@@ -66,6 +66,18 @@ export function ShiftProvider({ children }) {
     }
   };
 
+  const recordCashMovement = async (type, amount, reason = '') => {
+    if (!currentShift) throw new Error('No active shift to record cash movement');
+    try {
+      const res = await window.api.cash.recordMovement(sessionId, currentShift.id, type, amount, reason);
+      if (!res.success) throw new Error(res.error || 'Failed to record cash movement');
+      await fetchCurrentShift();
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   return (
     <ShiftContext.Provider
       value={{
@@ -77,6 +89,7 @@ export function ShiftProvider({ children }) {
         setShowCloseModal,
         openShift,
         closeShift,
+        recordCashMovement,
         refreshShift: fetchCurrentShift,
       }}
     >

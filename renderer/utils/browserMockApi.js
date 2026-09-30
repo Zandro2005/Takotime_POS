@@ -117,10 +117,10 @@ const defaultCatalog = [
 ];
 
 const mockUsers = [
-  { id: 1, name: 'Store Admin', username: 'admin', pin: '1234', password: 'admin123', role: 'admin' },
-  { id: 2, name: 'Lead Staff', username: 'supervisor', pin: '5678', password: 'staff123', role: 'admin_staff' },
+  { id: 1, name: 'Store Admin', username: 'admin', pin: '3333', password: 'admin123', role: 'admin' },
+  { id: 2, name: 'Lead Staff', username: 'supervisor', pin: '2222', password: 'staff123', role: 'admin_staff' },
   { id: 3, name: 'Cashier 1', username: 'cashier', pin: '1111', password: 'cashier123', role: 'staff' },
-  { id: 4, name: 'Franchise Owner', username: 'cloudadmin', pin: '9999', password: 'cloudpass123', role: 'remote_admin' },
+  { id: 4, name: 'Franchise Owner', username: 'cloudadmin', pin: '4444', password: 'cloudpass123', role: 'remote_admin' },
 ];
 
 const defaultInventory = [
@@ -152,14 +152,8 @@ export function setupBrowserMockApi() {
 
   console.info('%c[TAKOTIME POS] Running in Browser Mode (Mock SQLite Active)', 'color: #ff5722; font-weight: bold; font-size: 14px;');
 
-  let currentShift = {
-    id: 1,
-    staff_id: 3,
-    status: 'open',
-    starting_cash: 1000,
-    last_queue_no: 0,
-    opened_at: new Date().toISOString(),
-  };
+  let shiftCounter = 1;
+  let currentShift = null;
 
   const orders = [];
   const cashMovements = [];
@@ -196,7 +190,7 @@ export function setupBrowserMockApi() {
       getCurrent: async () => ({ success: true, data: currentShift }),
       open: async (sessionId, startingCash, notes) => {
         currentShift = {
-          id: (currentShift?.id || 0) + 1,
+          id: shiftCounter++,
           staff_id: 3,
           status: 'open',
           starting_cash: Number(startingCash) || 0,
@@ -209,7 +203,10 @@ export function setupBrowserMockApi() {
       close: async (sessionId, shiftId, endingCash, notes) => {
         const cashSales = orders.filter(o => o.status === 'completed' && o.payment_method === 'cash').reduce((s, o) => s + o.total, 0);
         const cashlessSales = orders.filter(o => o.status === 'completed' && o.payment_method !== 'cash').reduce((s, o) => s + o.total, 0);
-        const expectedCash = (currentShift?.starting_cash || 0) + cashSales;
+        const shiftMovements = cashMovements.filter(m => m.shift_id === (currentShift?.id || shiftId));
+        const cashIn = shiftMovements.filter(m => m.type === 'cash_in').reduce((s, m) => s + m.amount, 0);
+        const cashOut = shiftMovements.filter(m => m.type === 'cash_out' || m.type === 'cash_drop').reduce((s, m) => s + m.amount, 0);
+        const expectedCash = (currentShift?.starting_cash || 0) + cashSales + cashIn - cashOut;
         const closed = {
           ...currentShift,
           status: 'closed',
@@ -222,11 +219,32 @@ export function setupBrowserMockApi() {
             cashSales,
             cashlessSales,
             gcashSales: cashlessSales,
+            cashIn,
+            cashOut,
             expectedCash,
           },
         };
         currentShift = null;
         return { success: true, data: closed };
+      },
+    },
+
+    cash: {
+      recordMovement: async (sessionId, shiftId, type, amount, reason) => {
+        const movement = {
+          id: cashMovements.length + 1,
+          shift_id: shiftId,
+          type,
+          amount: Number(amount),
+          reason: reason || '',
+          created_at: new Date().toISOString(),
+        };
+        cashMovements.push(movement);
+        return { success: true, data: movement };
+      },
+      listMovements: async (sessionId, shiftId) => {
+        const filtered = cashMovements.filter(m => m.shift_id === shiftId);
+        return { success: true, data: filtered };
       },
     },
 

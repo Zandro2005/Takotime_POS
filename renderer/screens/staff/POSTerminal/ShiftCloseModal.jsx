@@ -263,8 +263,8 @@ export function ShiftCloseModal({ onClose }) {
 
               <button
                 type="submit"
-                className="btn btn-danger"
-                style={{ flex: 2, padding: '12px' }}
+                className="btn btn-primary"
+                style={{ flex: 2, padding: '12px', backgroundColor: 'var(--brand-red)', borderColor: 'var(--brand-red)', color: '#ffffff', fontWeight: 700 }}
                 disabled={loading}
               >
                 {loading ? 'Reconciling...' : 'Confirm Shift Close'}
