@@ -15,6 +15,12 @@ const loginPayloadSchema = z.object({
 const orderItemSchema = z.object({
   variantId: z.number().int().positive('Item variant ID required'),
   qty: z.number().int().min(1, 'Item qty must be at least 1'),
+  modifierIds: z.preprocess((val) => {
+    if (!Array.isArray(val)) return [];
+    return val
+      .map(v => (typeof v === 'string' ? Number(v) : v))
+      .filter(v => typeof v === 'number' && Number.isInteger(v) && v > 0);
+  }, z.array(z.number().int().positive())).optional().nullable().default([]),
 });
 
 const orderPayloadSchema = z.object({
@@ -23,12 +29,16 @@ const orderPayloadSchema = z.object({
   orderType: z.enum(Object.values(ORDER_TYPES), { invalid_type_error: 'Invalid order type' }),
   paymentMethod: z.enum(Object.values(PAYMENT_METHODS), { invalid_type_error: 'Invalid payment method' }),
   items: z.array(orderItemSchema).min(1, 'Order must contain at least one item'),
-  discount: z.number().min(0).optional(),
-  discountType: z.enum(Object.values(DISCOUNT_TYPES)).optional(),
-  total: z.number().min(0),
-  amountTendered: z.number().min(0).optional(),
+  discount: z.number().min(0).optional().nullable(),
+  discountAmount: z.number().min(0).optional().nullable(),
+  discountType: z.enum(Object.values(DISCOUNT_TYPES)).optional().nullable(),
+  discountReason: z.string().optional().nullable(),
+  total: z.number().min(0).optional(),
+  amountTendered: z.number().min(0).optional().nullable(),
+  changeDue: z.number().min(0).optional().nullable(),
+  gcashRefNo: z.string().optional().nullable(),
 }).refine(data => {
-  if (data.paymentMethod === PAYMENT_METHODS.CASH && data.amountTendered !== undefined) {
+  if (data.total !== undefined && data.paymentMethod === PAYMENT_METHODS.CASH && data.amountTendered !== undefined && data.amountTendered !== null) {
     return data.amountTendered >= data.total;
   }
   return true;
@@ -54,7 +64,9 @@ function validateWithZod(schema, data) {
   if (result.success) {
     return { valid: true };
   }
-  return { valid: false, message: result.error.errors[0].message };
+  const firstIssue = result.error?.issues?.[0] || result.error?.errors?.[0];
+  const message = firstIssue?.message || result.error?.message || 'Validation failed';
+  return { valid: false, message };
 }
 
 export function validatePin(pin) {

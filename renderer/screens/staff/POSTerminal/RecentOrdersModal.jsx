@@ -1,6 +1,6 @@
 // renderer/screens/staff/POSTerminal/RecentOrdersModal.jsx
 import React, { useState, useEffect } from 'react';
-import { X, Receipt, Trash2, AlertTriangle } from 'lucide-react';
+import { X, Receipt, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { ORDER_STATUS } from '@shared/constants.js';
 
@@ -31,6 +31,13 @@ export function RecentOrdersModal({ shiftId, onClose }) {
 
   useEffect(() => {
     fetchOrders();
+
+    // Live cross-terminal poll: auto-refresh orders list every 4 seconds while modal is open
+    const interval = setInterval(() => {
+      fetchOrders();
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, [shiftId]);
 
   const handlePreviewReceipt = async (orderId) => {
@@ -95,9 +102,22 @@ export function RecentOrdersModal({ shiftId, onClose }) {
             <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>Recent Shift Orders</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Last 20 transactions for Shift #{shiftId}</p>
           </div>
-          <button type="button" className="btn btn-secondary" style={{ padding: '6px', borderRadius: '50%' }} onClick={onClose}>
-            <X size={18} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ padding: '6px 10px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+              onClick={fetchOrders}
+              disabled={loading}
+              title="Refresh Orders"
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              <span>Refresh</span>
+            </button>
+            <button type="button" className="btn btn-secondary" style={{ padding: '6px', borderRadius: '50%' }} onClick={onClose}>
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {error && <div className="error-banner">{error}</div>}

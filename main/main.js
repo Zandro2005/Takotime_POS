@@ -1,10 +1,13 @@
 // main/main.js
 // Electron main process entry point
 
+import './utils/initEnv.js';
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { autoUpdater } from 'electron-updater';
+import electronUpdaterPkg from 'electron-updater';
+const autoUpdater = electronUpdaterPkg.autoUpdater || electronUpdaterPkg.default?.autoUpdater;
 import { env } from '../config/env.js';
 import { initDatabase, closeDb, getDb } from './db/db.js';
 import { runMigrations } from './db/migrations/migrationRunner.js';
@@ -83,11 +86,8 @@ if (!gotTheLock) {
       // 2. Run Migrations
       const version = runMigrations(db);
 
-      // 3. Seed if database was freshly initialized
-      const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
-      if (userCount.count === 0) {
-        seedInitialData(db);
-      }
+      // 3. Seed initial / missing default users and catalog (idempotent)
+      seedInitialData(db);
 
       // 4. Register IPC Handlers
       registerAllIpcHandlers();
@@ -115,15 +115,17 @@ if (!gotTheLock) {
       // 8. Create Window
       createWindow();
 
-      // 9. Check for updates automatically in the background
-      if (app.isPackaged) {
+      // 9. Check for updates automatically in the background (only when update config is present)
+      const updateConfigPath = path.join(process.resourcesPath || '', 'app-update.yml');
+      if (app.isPackaged && fs.existsSync(updateConfigPath) && autoUpdater) {
         autoUpdater.checkForUpdatesAndNotify().catch(err => {
-          logger.error('Auto-updater error:', err.message);
+          logger.warn('Auto-updater notice:', err.message);
         });
       }
 
     } catch (err) {
-      logger.error('Fatal initialization error:', err);
+      console.error('Fatal initialization error:', err);
+      logger.error('Fatal initialization error:', err.stack || err.message || String(err));
     }
 
     app.on('activate', () => {

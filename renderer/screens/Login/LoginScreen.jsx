@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Lock, User, KeyRound, ArrowRight, Delete, Cloud, Eye, EyeOff } from 'lucide-react';
 import logoImg from '../../assets/logo.png';
@@ -14,39 +14,91 @@ export function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState('');
 
+  const pinRef = useRef(pin);
+  pinRef.current = pin;
+  const loadingRef = useRef(loading);
+  loadingRef.current = loading;
+
   const error = localError || authError;
 
   const handleNumpadPress = async (digit) => {
-    if (loading) return;
+    if (loadingRef.current) return;
     setLocalError('');
-    if (pin.length < 6) {
-      const nextPin = pin + digit;
+    const currentPin = pinRef.current;
+    if (currentPin.length < 6) {
+      const nextPin = currentPin + digit;
+      pinRef.current = nextPin;
       setPin(nextPin);
 
       // Auto-submit when 4 digits entered for fast store rush flow
       if (nextPin.length === 4) {
         setLoading(true);
+        loadingRef.current = true;
         try {
           await loginWithPin(nextPin);
         } catch (err) {
           setLocalError(err.message || 'Invalid PIN');
+          pinRef.current = '';
           setPin('');
         } finally {
           setLoading(false);
+          loadingRef.current = false;
         }
       }
     }
   };
 
   const handleClearPin = () => {
+    pinRef.current = '';
     setPin('');
     setLocalError('');
   };
 
   const handleDeleteDigit = () => {
-    setPin(prev => prev.slice(0, -1));
+    pinRef.current = pinRef.current.slice(0, -1);
+    setPin(pinRef.current);
     setLocalError('');
   };
+
+  // Enable physical keyboard entry for quick PIN mode (0-9, Backspace, Escape/C, Enter)
+  useEffect(() => {
+    if (mode !== 'pin') return;
+
+    const handleKeyDown = (e) => {
+      // Don't intercept if an input element or modal input is focused
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        handleNumpadPress(e.key);
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        handleDeleteDigit();
+      } else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        handleClearPin();
+      } else if (e.key === 'Enter') {
+        if (pinRef.current.length >= 4 && !loadingRef.current) {
+          e.preventDefault();
+          setLoading(true);
+          loadingRef.current = true;
+          loginWithPin(pinRef.current)
+            .catch(err => {
+              setLocalError(err.message || 'Invalid PIN');
+              pinRef.current = '';
+              setPin('');
+            })
+            .finally(() => {
+              setLoading(false);
+              loadingRef.current = false;
+            });
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mode]);
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();

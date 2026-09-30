@@ -4,7 +4,6 @@
 import { IPC_CHANNELS } from '../../shared/constants.js';
 import { registerIpcHandler } from '../utils/ipcWrapper.js';
 import { orderService } from '../services/orderService.js';
-import { receiptService } from '../services/receiptService.js';
 import { validateOrderPayload } from '../../shared/validators.js';
 
 export function registerOrderHandlers() {
@@ -36,10 +35,5 @@ export function registerOrderHandlers() {
   // Get recent orders for current shift
   registerIpcHandler(IPC_CHANNELS.ORDERS_RECENT, async (payload) => {
     return orderService.getRecentOrders(payload.shiftId, payload.limit || 20);
-  });
-
-  // Format / print receipt
-  registerIpcHandler(IPC_CHANNELS.PRINT_RECEIPT, async (payload) => {
-    return receiptService.formatReceipt(payload.orderId);
   });
 }

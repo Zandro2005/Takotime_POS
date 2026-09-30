@@ -11,9 +11,12 @@ import { logger } from '../utils/logger.js';
 export class BackupService {
   constructor(dbInstance = null, options = {}) {
     this._db = dbInstance;
-    this.backupDir = options.backupDir || path.join(getUserDataPath(), 'backups');
+    this._backupDir = options.backupDir || null;
     this.retentionDays = options.retentionDays || 30;
-    this.ensureBackupDir();
+  }
+
+  get backupDir() {
+    return this._backupDir || path.join(getUserDataPath(), 'backups');
   }
 
   get db() {

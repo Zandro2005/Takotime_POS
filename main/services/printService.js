@@ -27,9 +27,12 @@ export class PrintService {
   constructor(dbInstance = null, options = {}) {
     this._db = dbInstance;
     this.receiptService = options.receiptService || new ReceiptService(dbInstance);
-    this.spoolerDir = options.spoolerDir || path.join(getUserDataPath(), 'spooler');
+    this._spoolerDir = options.spoolerDir || null;
     this.paperWidth = options.paperWidth || 32; // 32 chars for 58mm, 48 chars for 80mm
-    this.ensureSpoolerDir();
+  }
+
+  get spoolerDir() {
+    return this._spoolerDir || path.join(getUserDataPath(), 'spooler');
   }
 
   ensureSpoolerDir() {

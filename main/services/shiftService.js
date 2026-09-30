@@ -15,19 +15,78 @@ export class ShiftService {
     return this._db || getDb();
   }
 
+  /**
+   * Automatically consolidates any duplicate open shifts into a single primary store shift.
+   * This guarantees that if multiple staff or terminals opened shifts concurrently, all orders,
+   * queue counters, and cash drawer movements are unified under the active store shift.
+   */
+  reconcileOpenShifts() {
+    const db = this.db;
+    try {
+      const openShifts = db.prepare(`
+        SELECT * FROM shifts WHERE status = 'open' ORDER BY id ASC
+      `).all();
+
+      if (!openShifts || openShifts.length <= 1) return;
+
+      // Select primary shift: the established shift with the most orders or starting cash
+      const orderCounts = new Map();
+      for (const s of openShifts) {
+        const cnt = db.prepare('SELECT COUNT(*) as c FROM orders WHERE shift_id = ?').get(s.id).c;
+        orderCounts.set(s.id, cnt);
+      }
+
+      openShifts.sort((a, b) => {
+        const cntA = orderCounts.get(a.id) || 0;
+        const cntB = orderCounts.get(b.id) || 0;
+        if (cntB !== cntA) return cntB - cntA; // Most orders first
+        if ((b.starting_cash || 0) !== (a.starting_cash || 0)) return (b.starting_cash || 0) - (a.starting_cash || 0);
+        return a.id - b.id; // Earliest opened first
+      });
+
+      const primaryShift = openShifts[0];
+
+      for (const shift of openShifts) {
+        if (shift.id === primaryShift.id) continue;
+
+        // Move any orphan orders from this duplicate shift to the primary store shift
+        const orphanOrders = db.prepare(`SELECT id, queue_no FROM orders WHERE shift_id = ? ORDER BY id ASC`).all(shift.id);
+        for (const ord of orphanOrders) {
+          primaryShift.last_queue_no += 1;
+          db.prepare(`
+            UPDATE orders
+            SET shift_id = ?, queue_no = ?
+            WHERE id = ?
+          `).run(primaryShift.id, primaryShift.last_queue_no, ord.id);
+        }
+
+        // Move any cash movements
+        db.prepare(`UPDATE cash_movements SET shift_id = ? WHERE shift_id = ?`).run(primaryShift.id, shift.id);
+
+        // Close the duplicate shift cleanly
+        db.prepare(`
+          UPDATE shifts
+          SET status = 'closed',
+              closed_at = datetime('now', 'localtime'),
+              notes = COALESCE(notes || ' ', '') || ' [Auto-consolidated into Store Shift #' || ? || ']'
+          WHERE id = ?
+        `).run(primaryShift.id, shift.id);
+
+        logger.info(`Consolidated duplicate open shift #${shift.id} into primary shift #${primaryShift.id}`);
+      }
+
+      // Update primary shift last_queue_no in database
+      db.prepare(`UPDATE shifts SET last_queue_no = ? WHERE id = ?`).run(primaryShift.last_queue_no, primaryShift.id);
+    } catch (err) {
+      logger.warn('Failed to reconcile open shifts:', err.message);
+    }
+  }
+
   getCurrentShift(staffId = null) {
     const db = this.db;
-    if (staffId) {
-      return db.prepare(`
-        SELECT s.*, u.name as staff_name, u.username as staff_username
-        FROM shifts s
-        JOIN users u ON s.staff_id = u.id
-        WHERE s.staff_id = ? AND s.status = 'open'
-        ORDER BY s.opened_at DESC
-        LIMIT 1
-      `).get(staffId) || null;
-    }
+    this.reconcileOpenShifts();
 
+    // Store shift: All terminals and operators share the store's active shift
     return db.prepare(`
       SELECT s.*, u.name as staff_name, u.username as staff_username
       FROM shifts s
@@ -40,11 +99,12 @@ export class ShiftService {
 
   openShift(staffId, startingCash = 0, notes = '') {
     const db = this.db;
+    this.reconcileOpenShifts();
 
-    // Check if there is already an open shift for this staff or store
-    const existing = this.getCurrentShift(staffId);
+    // Check if there is already an open shift in the store
+    const existing = this.getCurrentShift();
     if (existing) {
-      logger.warn(`Staff ${staffId} attempted to open shift, but shift #${existing.id} is already open.`);
+      logger.warn(`Shift #${existing.id} is already open for store. Returning existing shift.`);
       return existing;
     }
 
@@ -55,7 +115,12 @@ export class ShiftService {
 
     logger.info(`Opened new shift #${info.lastInsertRowid} for staff ID ${staffId} with starting cash ₱${startingCash}`);
 
-    return db.prepare('SELECT * FROM shifts WHERE id = ?').get(info.lastInsertRowid);
+    return db.prepare(`
+      SELECT s.*, u.name as staff_name, u.username as staff_username
+      FROM shifts s
+      JOIN users u ON s.staff_id = u.id
+      WHERE s.id = ?
+    `).get(info.lastInsertRowid);
   }
 
   computeExpectedCash(shiftId) {

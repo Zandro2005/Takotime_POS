@@ -32,6 +32,7 @@ export function ReportsScreen() {
   const [reportType, setReportType] = useState('daily_sales'); // 'daily_sales', 'shift_summary', 'product_mix', 'inventory'
   const [startDate, setStartDate] = useState(() => getLocalDateString());
   const [endDate, setEndDate] = useState(() => getLocalDateString());
+  const [selectedShiftId, setSelectedShiftId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reportData, setReportData] = useState(null);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
@@ -47,7 +48,7 @@ export function ReportsScreen() {
         if (reportType === 'daily_sales') {
           res = await window.api?.reports?.getDailySales?.(sessionId, startDate);
         } else if (reportType === 'shift_summary') {
-          res = await window.api?.reports?.getShiftSummary?.(sessionId, 1);
+          res = await window.api?.reports?.getShiftSummary?.(sessionId, selectedShiftId || null);
         } else if (reportType === 'product_mix') {
           res = await window.api?.reports?.getProductMix?.(sessionId, startDate, endDate);
         } else if (reportType === 'inventory') {
@@ -78,7 +79,7 @@ export function ReportsScreen() {
     return () => {
       isCancelled = true;
     };
-  }, [reportType, startDate, endDate, sessionId]);
+  }, [reportType, startDate, endDate, sessionId, selectedShiftId]);
 
   const handleTabChange = (newType) => {
     if (newType === reportType) return;

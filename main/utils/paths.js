@@ -2,38 +2,36 @@
 // Safe resolution of user data path across both Electron runtime and Node test runner
 
 import path from 'node:path';
-import { createRequire } from 'node:module';
-import fs from 'node:fs';
 
-function getElectronApp() {
-  try {
-    // In Electron's main process, require('electron') returns the real module with .app
-    // In plain Node (tests), require('electron') returns a string path to the binary
-    const require_ = createRequire(import.meta.url);
-    const electron = require_('electron');
-    
-    // Debug: write diagnostics to a temp file to understand electron module shape
-    const debugInfo = `typeof electron: ${typeof electron}\nisObject: ${typeof electron === 'object' && electron !== null}\nkeys: ${typeof electron === 'object' && electron !== null ? Object.keys(electron).join(',') : 'N/A'}\nhasApp: ${!!(typeof electron === 'object' && electron !== null && electron.app)}\nelectron value: ${String(electron).substring(0, 200)}\n`;
-    try {
-      fs.writeFileSync(path.join(process.env.APPDATA || 'C:\\Users\\ADMIN\\AppData\\Roaming', 'takotime-pos', 'paths-debug.txt'), debugInfo);
-    } catch { /* ignore */ }
-
-    if (typeof electron === 'object' && electron !== null && electron.app) {
-      return electron.app;
-    }
-  } catch (err) {
-    // Debug: log error
-    try {
-      fs.writeFileSync(path.join(process.env.APPDATA || 'C:\\Users\\ADMIN\\AppData\\Roaming', 'takotime-pos', 'paths-error.txt'), String(err));
-    } catch { /* ignore */ }
-  }
-  return null;
-}
-
+/**
+ * Returns the application user data directory.
+ * - If process.env.TAKOTIME_USER_DATA is set, uses that.
+ * - If running inside Electron (process.versions.electron is defined), resolves the
+ *   standard OS AppData / Application Support directory for 'takotime-pos'.
+ * - Otherwise (Node test runner), falls back to path.join(process.cwd(), 'data').
+ */
 export function getUserDataPath() {
-  const app = getElectronApp();
-  if (app && typeof app.getPath === 'function') {
-    return app.getPath('userData');
+  if (process.env.TAKOTIME_USER_DATA) {
+    return process.env.TAKOTIME_USER_DATA;
   }
-  return process.env.TAKOTIME_USER_DATA || path.join(process.cwd(), 'data');
+
+  // Detect if running inside Electron runtime
+  if (process.versions && process.versions.electron) {
+    if (process.platform === 'win32') {
+      const appData = process.env.APPDATA || (process.env.USERPROFILE ? path.join(process.env.USERPROFILE, 'AppData', 'Roaming') : null);
+      if (appData) {
+        return path.join(appData, 'takotime-pos');
+      }
+    } else if (process.platform === 'darwin') {
+      const home = process.env.HOME || '';
+      return path.join(home, 'Library', 'Application Support', 'takotime-pos');
+    } else {
+      const configHome = process.env.XDG_CONFIG_HOME || (process.env.HOME ? path.join(process.env.HOME, '.config') : null);
+      if (configHome) {
+        return path.join(configHome, 'takotime-pos');
+      }
+    }
+  }
+
+  return path.join(process.cwd(), 'data');
 }

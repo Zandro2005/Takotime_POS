@@ -152,11 +152,26 @@ export function setupBrowserMockApi() {
 
   console.info('%c[TAKOTIME POS] Running in Browser Mode (Mock SQLite Active)', 'color: #ff5722; font-weight: bold; font-size: 14px;');
 
-  let shiftCounter = 1;
-  let currentShift = null;
+  const loadState = (key, fallback) => {
+    try {
+      const item = localStorage.getItem(STORAGE_KEY_PREFIX + key);
+      return item ? JSON.parse(item) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
 
-  const orders = [];
-  const cashMovements = [];
+  const saveState = (key, val) => {
+    try {
+      if (val === null || val === undefined) {
+        localStorage.removeItem(STORAGE_KEY_PREFIX + key);
+      } else {
+        localStorage.setItem(STORAGE_KEY_PREFIX + key, JSON.stringify(val));
+      }
+    } catch (e) {
+      console.warn('Failed to save to localStorage:', e);
+    }
+  };
 
   window.api = {
     auth: {
@@ -187,20 +202,29 @@ export function setupBrowserMockApi() {
     },
 
     shifts: {
-      getCurrent: async () => ({ success: true, data: currentShift }),
+      getCurrent: async () => ({ success: true, data: loadState('currentShift', null) }),
       open: async (sessionId, startingCash, notes) => {
-        currentShift = {
-          id: shiftCounter++,
+        const existing = loadState('currentShift', null);
+        if (existing) {
+          return { success: true, data: existing };
+        }
+        const newShift = {
+          id: Date.now(),
           staff_id: 3,
+          staff_name: 'Store Staff',
           status: 'open',
           starting_cash: Number(startingCash) || 0,
           last_queue_no: 0,
           notes,
           opened_at: new Date().toISOString(),
         };
-        return { success: true, data: currentShift };
+        saveState('currentShift', newShift);
+        return { success: true, data: newShift };
       },
       close: async (sessionId, shiftId, endingCash, notes) => {
+        const currentShift = loadState('currentShift', null) || { id: shiftId, starting_cash: 0 };
+        const orders = loadState('orders', []);
+        const cashMovements = loadState('cashMovements', []);
         const cashSales = orders.filter(o => o.status === 'completed' && o.payment_method === 'cash').reduce((s, o) => s + o.total, 0);
         const cashlessSales = orders.filter(o => o.status === 'completed' && o.payment_method !== 'cash').reduce((s, o) => s + o.total, 0);
         const shiftMovements = cashMovements.filter(m => m.shift_id === (currentShift?.id || shiftId));
@@ -215,7 +239,7 @@ export function setupBrowserMockApi() {
           closed_at: new Date().toISOString(),
           discrepancy: Number(endingCash) - expectedCash,
           breakdown: {
-            startingCash: currentShift.starting_cash,
+            startingCash: currentShift?.starting_cash || 0,
             cashSales,
             cashlessSales,
             gcashSales: cashlessSales,
@@ -224,13 +248,14 @@ export function setupBrowserMockApi() {
             expectedCash,
           },
         };
-        currentShift = null;
+        saveState('currentShift', null);
         return { success: true, data: closed };
       },
     },
 
     cash: {
       recordMovement: async (sessionId, shiftId, type, amount, reason) => {
+        const cashMovements = loadState('cashMovements', []);
         const movement = {
           id: cashMovements.length + 1,
           shift_id: shiftId,
@@ -240,9 +265,11 @@ export function setupBrowserMockApi() {
           created_at: new Date().toISOString(),
         };
         cashMovements.push(movement);
+        saveState('cashMovements', cashMovements);
         return { success: true, data: movement };
       },
       listMovements: async (sessionId, shiftId) => {
+        const cashMovements = loadState('cashMovements', []);
         const filtered = cashMovements.filter(m => m.shift_id === shiftId);
         return { success: true, data: filtered };
       },
@@ -394,13 +421,17 @@ export function setupBrowserMockApi() {
 
     orders: {
       create: async (sessionId, orderData) => {
+        const currentShift = loadState('currentShift', null);
         if (!currentShift) return { success: false, error: 'No open shift' };
-        currentShift.last_queue_no += 1;
+        currentShift.last_queue_no = (currentShift.last_queue_no || 0) + 1;
+        saveState('currentShift', currentShift);
+
+        const orders = loadState('orders', []);
         const newOrder = {
           id: orders.length + 1,
           shift_id: currentShift.id,
           staff_id: orderData.staffId || 3,
-          staff_name: 'Cashier 1',
+          staff_name: 'Store Staff',
           queue_no: currentShift.last_queue_no,
           order_type: orderData.orderType,
           payment_method: orderData.paymentMethod,
@@ -433,6 +464,8 @@ export function setupBrowserMockApi() {
           }),
         };
         orders.unshift(newOrder);
+        saveState('orders', orders);
+
         return {
           success: true,
           data: {
@@ -447,14 +480,17 @@ export function setupBrowserMockApi() {
       },
 
       getRecent: async (sessionId, shiftId, limit) => {
+        const orders = loadState('orders', []);
         return { success: true, data: orders.slice(0, limit || 20) };
       },
 
       void: async (sessionId, orderId, reason) => {
+        const orders = loadState('orders', []);
         const ord = orders.find(o => o.id === orderId);
         if (ord) {
           ord.status = 'voided';
           ord.void_reason = reason;
+          saveState('orders', orders);
         }
         return { success: true };
       },

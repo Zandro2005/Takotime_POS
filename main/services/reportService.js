@@ -107,10 +107,19 @@ export class ReportService {
   }
 
   /**
-   * Comprehensive summary for a specific shift.
+   * Comprehensive summary for a specific shift. Defaults to latest/active shift if omitted.
    */
-  getShiftSummary(shiftId) {
+  getShiftSummary(shiftId = null) {
     const db = this.db;
+
+    let targetShiftId = shiftId;
+    if (!targetShiftId) {
+      const latest = db.prepare(`SELECT id FROM shifts ORDER BY (status = 'open') DESC, id DESC LIMIT 1`).get();
+      if (!latest) {
+        return null;
+      }
+      targetShiftId = latest.id;
+    }
 
     const shift = db.prepare(`
       SELECT
@@ -120,10 +129,10 @@ export class ReportService {
       FROM shifts s
       JOIN users u ON u.id = s.staff_id
       WHERE s.id = ?
-    `).get(shiftId);
+    `).get(targetShiftId);
 
     if (!shift) {
-      throw new Error(`Shift #${shiftId} not found`);
+      throw new Error(`Shift #${targetShiftId} not found`);
     }
 
     // Orders for this shift

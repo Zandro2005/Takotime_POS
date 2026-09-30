@@ -90,7 +90,7 @@ export class MenuService {
     `).all();
 
     const allProductModifiers = db.prepare(`
-      SELECT pm.product_id, m.id as modifier_id, m.name, m.price_delta
+      SELECT pm.product_id, m.id, m.id as modifier_id, m.name, m.price_delta
       FROM product_modifiers pm
       JOIN modifiers m ON pm.modifier_id = m.id
       WHERE m.active = 1

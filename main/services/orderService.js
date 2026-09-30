@@ -65,7 +65,9 @@ export class OrderService {
         const verifiedModifiers = [];
 
         if (Array.isArray(item.modifierIds) && item.modifierIds.length > 0) {
-          for (const modId of item.modifierIds) {
+          for (const rawModId of item.modifierIds) {
+            const modId = Number(rawModId);
+            if (!modId || isNaN(modId) || modId <= 0) continue;
             const mod = db.prepare('SELECT id, name, price_delta FROM modifiers WHERE id = ? AND active = 1').get(modId);
             if (mod) {
               modifierDeltaSum += mod.price_delta;
@@ -256,7 +258,7 @@ export class OrderService {
       FROM orders o
       JOIN users u ON o.staff_id = u.id
       WHERE o.shift_id = ?
-      ORDER BY o.created_at DESC
+      ORDER BY o.created_at DESC, o.id DESC
       LIMIT ?
     `).all(shiftId, limit);
 

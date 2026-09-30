@@ -9,7 +9,9 @@ export function VariantPickerModal({ product, onAddToCart, onClose }) {
   const [selectedModifierIds, setSelectedModifierIds] = useState([]);
   const [qty, setQty] = useState(1);
 
-  const toggleModifier = (modId) => {
+  const toggleModifier = (rawId) => {
+    const modId = Number(rawId);
+    if (!modId || isNaN(modId)) return;
     setSelectedModifierIds(prev =>
       prev.includes(modId) ? prev.filter(id => id !== modId) : [...prev, modId]
     );
@@ -19,7 +21,7 @@ export function VariantPickerModal({ product, onAddToCart, onClose }) {
     if (!selectedVariant) return 0;
     const basePrice = selectedVariant.price;
     const modifierTotal = selectedModifierIds.reduce((sum, modId) => {
-      const mod = product.modifiers.find(m => m.id === modId);
+      const mod = product.modifiers?.find(m => Number(m.id ?? m.modifier_id) === modId);
       return sum + (mod ? mod.price_delta : 0);
     }, 0);
     return (basePrice + modifierTotal) * qty;
@@ -27,14 +29,15 @@ export function VariantPickerModal({ product, onAddToCart, onClose }) {
 
   const handleAdd = () => {
     if (!selectedVariant) return;
+    const cleanModifierIds = selectedModifierIds.filter(id => typeof id === 'number' && id > 0);
     onAddToCart({
       productId: product.id,
       productName: product.name,
       variantId: selectedVariant.id,
       variantLabel: selectedVariant.label,
       unitPrice: selectedVariant.price,
-      modifierIds: selectedModifierIds,
-      modifiers: product.modifiers.filter(m => selectedModifierIds.includes(m.id)),
+      modifierIds: cleanModifierIds,
+      modifiers: (product.modifiers || []).filter(m => cleanModifierIds.includes(Number(m.id ?? m.modifier_id))),
       qty,
       lineTotal: calculateLineTotal(),
     });
@@ -127,10 +130,11 @@ export function VariantPickerModal({ product, onAddToCart, onClose }) {
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {product.modifiers.map((mod) => {
-                const isChecked = selectedModifierIds.includes(mod.id);
+                const modId = Number(mod.id ?? mod.modifier_id);
+                const isChecked = selectedModifierIds.includes(modId);
                 return (
                   <button
-                    key={mod.id}
+                    key={modId || mod.name}
                     type="button"
                     className="btn"
                     style={{
@@ -141,7 +145,7 @@ export function VariantPickerModal({ product, onAddToCart, onClose }) {
                       fontSize: '0.85rem',
                       fontWeight: 600,
                     }}
-                    onClick={() => toggleModifier(mod.id)}
+                    onClick={() => toggleModifier(modId)}
                   >
                     {isChecked ? <Check size={14} color="var(--brand-red)" /> : null}
                     <span>{mod.name}</span>

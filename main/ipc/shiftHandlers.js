@@ -6,9 +6,9 @@ import { registerIpcHandler } from '../utils/ipcWrapper.js';
 import { shiftService } from '../services/shiftService.js';
 
 export function registerShiftHandlers() {
-  // Get current open shift
-  registerIpcHandler(IPC_CHANNELS.SHIFTS_CURRENT, async (payload, { session }) => {
-    return shiftService.getCurrentShift(session?.user?.id);
+  // Get current open shift (store-wide active shift shared across all terminals & roles)
+  registerIpcHandler(IPC_CHANNELS.SHIFTS_CURRENT, async () => {
+    return shiftService.getCurrentShift();
   });
 
   // Open shift

@@ -39,7 +39,24 @@ export function ShiftProvider({ children }) {
 
   useEffect(() => {
     fetchCurrentShift();
-  }, [fetchCurrentShift]);
+
+    if (!sessionId || !user) return;
+
+    // Real-time cross-terminal sync: poll every 5 seconds so all terminals and roles share active shift state
+    const interval = setInterval(() => {
+      fetchCurrentShift();
+    }, 5000);
+
+    const handleFocus = () => {
+      fetchCurrentShift();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [fetchCurrentShift, sessionId, user]);
 
   const openShift = async (startingCash, notes = '') => {
     try {

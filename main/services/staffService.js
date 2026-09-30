@@ -95,9 +95,9 @@ export class StaffService {
       throw new Error('Username must be at least 3 characters');
     }
 
-    const validRoles = [ROLES.STAFF, ROLES.ADMIN_STAFF, ROLES.ADMIN];
+    const validRoles = [ROLES.STAFF, ROLES.ADMIN_STAFF, ROLES.ADMIN, ROLES.REMOTE_ADMIN];
     if (!validRoles.includes(role)) {
-      throw new Error(`Invalid role: ${role}. Must be staff, admin_staff, or admin.`);
+      throw new Error(`Invalid role: ${role}. Must be staff, admin_staff, admin, or remote_admin.`);
     }
 
     if (!password || password.length < 6) {

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     username        TEXT    NOT NULL UNIQUE,
     pin             TEXT,                              -- bcrypt hash of 4-6 digit PIN (staff fast-login)
     password_hash   TEXT    NOT NULL,                  -- bcrypt hash
-    role            TEXT    NOT NULL CHECK (role IN ('staff', 'admin_staff', 'admin')),
+    role            TEXT    NOT NULL CHECK (role IN ('staff', 'admin_staff', 'admin', 'remote_admin')),
     active          INTEGER NOT NULL DEFAULT 1,
     created_at      DATETIME NOT NULL DEFAULT (datetime('now', 'localtime')),
     updated_at      DATETIME NOT NULL DEFAULT (datetime('now', 'localtime'))

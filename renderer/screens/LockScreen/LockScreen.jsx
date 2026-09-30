@@ -1,5 +1,4 @@
-// renderer/screens/LockScreen/LockScreen.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Lock, User, Delete, LogOut } from 'lucide-react';
 import './LockScreen.css';
@@ -10,26 +9,85 @@ export function LockScreen() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const pinRef = useRef(pin);
+  pinRef.current = pin;
+  const loadingRef = useRef(loading);
+  loadingRef.current = loading;
+
   const handleNumpad = async (digit) => {
-    if (loading) return;
+    if (loadingRef.current) return;
     setError('');
-    if (pin.length < 6) {
-      const nextPin = pin + digit;
+    const currentPin = pinRef.current;
+    if (currentPin.length < 6) {
+      const nextPin = currentPin + digit;
+      pinRef.current = nextPin;
       setPin(nextPin);
 
       if (nextPin.length === 4) {
         setLoading(true);
+        loadingRef.current = true;
         try {
           await unlockWithPin(nextPin);
         } catch (err) {
           setError(err.message || 'Incorrect PIN');
+          pinRef.current = '';
           setPin('');
         } finally {
           setLoading(false);
+          loadingRef.current = false;
         }
       }
     }
   };
+
+  const handleClear = () => {
+    pinRef.current = '';
+    setPin('');
+    setError('');
+  };
+
+  const handleDelete = () => {
+    pinRef.current = pinRef.current.slice(0, -1);
+    setPin(pinRef.current);
+    setError('');
+  };
+
+  // Keyboard support for unlocking terminal (0-9, Backspace, Escape/C, Enter)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        handleNumpad(e.key);
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        handleDelete();
+      } else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        handleClear();
+      } else if (e.key === 'Enter') {
+        if (pinRef.current.length >= 4 && !loadingRef.current) {
+          e.preventDefault();
+          setLoading(true);
+          loadingRef.current = true;
+          unlockWithPin(pinRef.current)
+            .catch(err => {
+              setError(err.message || 'Incorrect PIN');
+              pinRef.current = '';
+              setPin('');
+            })
+            .finally(() => {
+              setLoading(false);
+              loadingRef.current = false;
+            });
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <div className="lockscreen-overlay animate-fade-in">

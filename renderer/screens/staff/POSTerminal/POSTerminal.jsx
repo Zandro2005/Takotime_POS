@@ -98,7 +98,7 @@ export function POSTerminal({ embedded = false }) {
     setCartItems(prev => {
       const existingIdx = prev.findIndex(item =>
         item.variantId === configuredItem.variantId &&
-        item.modifierIds.slice().sort().join(',') === configuredItem.modifierIds.slice().sort().join(',')
+        (item.modifierIds || []).slice().sort().join(',') === (configuredItem.modifierIds || []).slice().sort().join(',')
       );
 
       if (existingIdx >= 0) {
@@ -197,7 +197,7 @@ export function POSTerminal({ embedded = false }) {
       items: cartItems.map(item => ({
         variantId: item.variantId,
         qty: item.qty,
-        modifierIds: item.modifierIds,
+        modifierIds: (item.modifierIds || []).map(Number).filter(id => id && !isNaN(id) && id > 0),
       })),
     };
 

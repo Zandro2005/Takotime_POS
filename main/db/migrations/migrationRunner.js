@@ -60,10 +60,15 @@ export function runMigrations(db) {
       const filePath = path.join(migrationsDir, file);
       const sql = fs.readFileSync(filePath, 'utf8');
 
-      db.transaction(() => {
-        db.exec(sql);
-        db.pragma(`user_version = ${migrationVersion}`);
-      })();
+      db.pragma('foreign_keys = OFF');
+      try {
+        db.transaction(() => {
+          db.exec(sql);
+          db.pragma(`user_version = ${migrationVersion}`);
+        })();
+      } finally {
+        db.pragma('foreign_keys = ON');
+      }
 
       currentVersion = migrationVersion;
       logger.info(`Migration ${file} applied successfully. user_version is now ${currentVersion}.`);
