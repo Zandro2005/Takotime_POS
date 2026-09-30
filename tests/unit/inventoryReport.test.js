@@ -47,8 +47,8 @@ test('Phase 3 Inventory & Reports Suite', async (t) => {
     const items = inventoryService.getItemsForDate(today);
 
     assert.ok(items.length >= 10, 'Should have at least 10 seeded inventory items');
-    const flour = items.find(it => it.name.includes('Batter Premix'));
-    assert.ok(flour, 'Takoyaki Batter Premix should exist');
+    const flour = items.find(it => it.name.includes('Flour') || it.name.includes('Batter'));
+    assert.ok(flour, 'Takoyaki Flour/Batter should exist');
     assert.equal(flour.beginningQty, 0, 'Initial beginningQty without prior logs is 0');
     assert.equal(flour.stockIn, 0);
     assert.equal(flour.suggestedOut, 0);
@@ -59,20 +59,20 @@ test('Phase 3 Inventory & Reports Suite', async (t) => {
   await t.test('2. updateBeginningQty and recordStockIn update balances correctly', () => {
     // Flour (item #1): set morning beginning count to 10.0 kg
     inventoryService.updateBeginningQty(1, today, 10.0, 1);
-    // Octopus (item #2): set morning beginning count to 5.0 kg
-    inventoryService.updateBeginningQty(2, today, 5.0, 1);
+    // Seafood ingredient (item #4): set morning beginning count to 5.0 kg
+    inventoryService.updateBeginningQty(4, today, 5.0, 1);
 
     // Record delivery: stock in +5.0 kg flour
     inventoryService.recordStockIn(1, today, 5.0, 1);
 
     const items = inventoryService.getItemsForDate(today);
     const flour = items.find(it => it.itemId === 1);
-    const octopus = items.find(it => it.itemId === 2);
+    const seafood = items.find(it => it.itemId === 4);
 
     assert.equal(flour.beginningQty, 10.0);
     assert.equal(flour.stockIn, 5.0); // Total available = 15.0 kg
-    assert.equal(octopus.beginningQty, 5.0);
-    assert.equal(octopus.stockIn, 0);
+    assert.equal(seafood.beginningQty, 5.0);
+    assert.equal(seafood.stockIn, 0);
   });
 
   // 3. Create Orders and compute recipe-driven suggested out
@@ -81,9 +81,9 @@ test('Phase 3 Inventory & Reports Suite', async (t) => {
     const shift = shiftService.openShift(3, 1000, 'Morning Shift');
 
     // Order 1: 2x 8pcs Octopus Takoyaki (variant 2)
-    // Recipe for 8pcs Octopus: 0.16 kg batter, 0.08 kg octopus
+    // Recipe for 8pcs: 0.16 kg batter/flour, 0.08 kg seafood
     // 2 qty * 0.16 = 0.32 kg batter
-    // 2 qty * 0.08 = 0.16 kg octopus
+    // 2 qty * 0.08 = 0.16 kg seafood
     await orderService.createOrder({
       shiftId: shift.id,
       staffId: 3,
@@ -93,7 +93,7 @@ test('Phase 3 Inventory & Reports Suite', async (t) => {
     });
 
     // Order 2: 1x 4pcs Octopus Takoyaki (variant 1)
-    // Recipe for 4pcs: 0.08 kg batter, 0.04 kg octopus
+    // Recipe for 4pcs: 0.08 kg batter/flour, 0.04 kg seafood
     await orderService.createOrder({
       shiftId: shift.id,
       staffId: 3,
@@ -104,14 +104,14 @@ test('Phase 3 Inventory & Reports Suite', async (t) => {
 
     // Total expected depletion for today:
     // Batter: 0.32 + 0.08 = 0.40 kg
-    // Octopus: 0.16 + 0.04 = 0.20 kg
+    // Seafood: 0.16 + 0.04 = 0.20 kg
 
     const items = inventoryService.getItemsForDate(today);
     const batter = items.find(it => it.itemId === 1);
-    const octopus = items.find(it => it.itemId === 2);
+    const seafood = items.find(it => it.itemId === 4);
 
     assert.ok(Math.abs(batter.suggestedOut - 0.40) < 0.0001, `Expected 0.40 kg batter, got ${batter.suggestedOut}`);
-    assert.ok(Math.abs(octopus.suggestedOut - 0.20) < 0.0001, `Expected 0.20 kg octopus, got ${octopus.suggestedOut}`);
+    assert.ok(Math.abs(seafood.suggestedOut - 0.20) < 0.0001, `Expected 0.20 kg seafood, got ${seafood.suggestedOut}`);
   });
 
   // 4. Confirm Out & Shrinkage / Waste Tracking
@@ -127,10 +127,10 @@ test('Phase 3 Inventory & Reports Suite', async (t) => {
     // waste_qty = confirmed_out (0.45) - suggested_out (0.40) = +0.05 kg shrinkage
     assert.ok(Math.abs(batterRes.waste_qty - 0.05) < 0.0001);
 
-    // Octopus (item 2): Available was 5.0 kg.
+    // Seafood (item 4): Available was 5.0 kg.
     // Suggested was 0.20 kg.
     // Physical count confirms exact 0.20 kg used (zero waste).
-    const octRes = inventoryService.confirmOut(2, today, 0.20, 2);
+    const octRes = inventoryService.confirmOut(4, today, 0.20, 2);
     assert.equal(octRes.confirmed_out, 0.20);
     assert.ok(Math.abs(octRes.ending_qty - 4.80) < 0.0001);
     assert.ok(Math.abs(octRes.waste_qty - 0.0) < 0.0001);
@@ -142,10 +142,10 @@ test('Phase 3 Inventory & Reports Suite', async (t) => {
 
     const tomorrowItems = inventoryService.getItemsForDate(tomorrow);
     const tomorrowBatter = tomorrowItems.find(it => it.itemId === 1);
-    const tomorrowOctopus = tomorrowItems.find(it => it.itemId === 2);
+    const tomorrowSeafood = tomorrowItems.find(it => it.itemId === 4);
 
     assert.ok(Math.abs(tomorrowBatter.beginningQty - 14.55) < 0.0001, 'Batter carried forward 14.55 kg');
-    assert.ok(Math.abs(tomorrowOctopus.beginningQty - 4.80) < 0.0001, 'Octopus carried forward 4.80 kg');
+    assert.ok(Math.abs(tomorrowSeafood.beginningQty - 4.80) < 0.0001, 'Seafood carried forward 4.80 kg');
   });
 
   // 6. Daily Sales Report

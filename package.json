@@ -11,7 +11,7 @@
     "dev:web": "vite",
     "build:renderer": "vite build",
     "start": "electron .",
-    "test": "node --test tests/unit/*.test.js"
+    "test": "node --test --test-concurrency=1 tests/unit/*.test.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

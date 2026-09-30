@@ -560,6 +560,18 @@ Payment: ${ord.payment_method.toUpperCase()}
             shifts: [
               { id: 1, staff_name: 'Cashier 1', status: 'open', opened_at: '2026-09-27 08:00:00', starting_cash: 1000, ending_cash: null, expected_cash: 1000 + cash },
             ],
+            hourly: [
+              { hour: '09:00', order_count: 3, revenue: 380 },
+              { hour: '10:00', order_count: 5, revenue: 640 },
+              { hour: '11:00', order_count: 8, revenue: 1120 },
+              { hour: '12:00', order_count: 14, revenue: 1980 },
+              { hour: '13:00', order_count: 11, revenue: 1540 },
+              { hour: '14:00', order_count: 7, revenue: 920 },
+              { hour: '15:00', order_count: 9, revenue: 1250 },
+              { hour: '16:00', order_count: 12, revenue: 1680 },
+              { hour: '17:00', order_count: 16, revenue: 2240 },
+              { hour: '18:00', order_count: 10, revenue: 1390 },
+            ],
           },
         };
       },
