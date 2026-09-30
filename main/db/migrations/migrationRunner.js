@@ -3,7 +3,11 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { logger } from '../../utils/logger.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export function runMigrations(db) {
   logger.info('Starting database migration check...');
@@ -16,7 +20,7 @@ export function runMigrations(db) {
   // Base schema init if brand new database
   if (currentVersion === 0) {
     logger.info('Database is uninitialized. Applying base schema (schema.sql)...');
-    const schemaPath = path.join(process.cwd(), 'main', 'db', 'schema.sql');
+    const schemaPath = path.join(__dirname, '..', 'schema.sql');
     if (!fs.existsSync(schemaPath)) {
       throw new Error(`Base schema file not found at: ${schemaPath}`);
     }
@@ -27,7 +31,7 @@ export function runMigrations(db) {
     db.transaction(() => {
       db.exec(schemaSql);
       // Run seed data if seed.sql exists
-      const seedPath = path.join(process.cwd(), 'main', 'db', 'seed.sql');
+      const seedPath = path.join(__dirname, '..', 'seed.sql');
       if (fs.existsSync(seedPath)) {
         const seedSql = fs.readFileSync(seedPath, 'utf8');
         db.exec(seedSql);
@@ -40,10 +44,7 @@ export function runMigrations(db) {
   }
 
   // Check for subsequent migrations in migrations directory
-  const migrationsDir = path.join(process.cwd(), 'main', 'db', 'migrations');
-  if (!fs.existsSync(migrationsDir)) {
-    fs.mkdirSync(migrationsDir, { recursive: true });
-  }
+  const migrationsDir = __dirname;
 
   const migrationFiles = fs.readdirSync(migrationsDir)
     .filter(file => file.endsWith('.sql'))

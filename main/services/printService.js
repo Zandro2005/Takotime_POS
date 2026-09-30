@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { ReceiptService, receiptService } from './receiptService.js';
+import { getUserDataPath } from '../utils/paths.js';
 import { logger } from '../utils/logger.js';
 
 // Standard ESC/POS Control Codes
@@ -26,7 +27,7 @@ export class PrintService {
   constructor(dbInstance = null, options = {}) {
     this._db = dbInstance;
     this.receiptService = options.receiptService || new ReceiptService(dbInstance);
-    this.spoolerDir = options.spoolerDir || path.join(process.cwd(), 'spooler');
+    this.spoolerDir = options.spoolerDir || path.join(getUserDataPath(), 'spooler');
     this.paperWidth = options.paperWidth || 32; // 32 chars for 58mm, 48 chars for 80mm
     this.ensureSpoolerDir();
   }

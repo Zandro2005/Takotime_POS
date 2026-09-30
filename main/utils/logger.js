@@ -3,7 +3,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { app } from 'electron';
+import { getUserDataPath } from './paths.js';
 
 const LOG_LEVELS = {
   DEBUG: 0,
@@ -16,19 +16,32 @@ const LOG_LEVEL_NAMES = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
 
 class Logger {
   constructor() {
-    this.logsDir = path.join(app.getPath('userData'), 'logs');
-    this.currentLogFile = path.join(this.logsDir, 'app.log');
+    this._logsDir = null;
+    this._currentLogFile = null;
     this.maxFileSize = 5 * 1024 * 1024; // 5 MB
     this.maxFiles = 5;
     this.minLevel = LOG_LEVELS.DEBUG;
-
-    this.init();
   }
 
-  init() {
+  get logsDir() {
+    if (!this._logsDir) {
+      this._logsDir = path.join(getUserDataPath(), 'logs');
+      this._ensureDir();
+    }
+    return this._logsDir;
+  }
+
+  get currentLogFile() {
+    if (!this._currentLogFile) {
+      this._currentLogFile = path.join(this.logsDir, 'app.log');
+    }
+    return this._currentLogFile;
+  }
+
+  _ensureDir() {
     try {
-      if (!fs.existsSync(this.logsDir)) {
-        fs.mkdirSync(this.logsDir, { recursive: true });
+      if (!fs.existsSync(this._logsDir)) {
+        fs.mkdirSync(this._logsDir, { recursive: true });
       }
     } catch (err) {
       console.error('Failed to create logs directory:', err);

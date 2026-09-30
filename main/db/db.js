@@ -4,13 +4,13 @@
 import Database from 'better-sqlite3';
 import fs from 'node:fs';
 import path from 'node:path';
-import { app } from 'electron';
+import { getUserDataPath } from '../utils/paths.js';
 import { logger } from '../utils/logger.js';
 
 let dbInstance = null;
 
 export function getDatabasePath() {
-  const dataDir = path.join(app.getPath('userData'), 'data');
+  const dataDir = path.join(getUserDataPath(), 'data');
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }

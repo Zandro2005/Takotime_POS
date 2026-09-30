@@ -31,6 +31,7 @@ function createWindow() {
     minHeight: 600,
     backgroundColor: '#ffffff', // Clean white commercial background
     show: false,
+    icon: path.join(__dirname, '../build/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -51,7 +52,7 @@ function createWindow() {
       logger.warn(`Failed to connect to dev server at ${devUrl}, waiting...`);
     });
   } else {
-    mainWindow.loadFile(path.join(process.cwd(), 'dist', 'index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
   mainWindow.on('closed', () => {

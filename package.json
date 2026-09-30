@@ -12,16 +12,19 @@
     "build:renderer": "vite build",
     "start": "electron .",
     "test": "node --test --test-concurrency=1 tests/unit/*.test.js",
-    "package": "npm run build:renderer && electron-builder build --win",
-    "package:mac": "npm run build:renderer && electron-builder build --mac"
+    "package": "node scripts/generate-icons.js && npm run build:renderer && electron-builder build --win",
+    "package:mac": "node scripts/generate-icons.js && npm run build:renderer && electron-builder build --mac"
   },
   "build": {
     "appId": "com.takotime.pos",
     "productName": "TAKOTIME POS",
+    "npmRebuild": false,
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         "nsis"
       ]
@@ -29,13 +32,21 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true
+      "createDesktopShortcut": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
     },
     "files": [
       "dist/**/*",
       "main/**/*",
       "shared/**/*",
+      "config/**/*",
+      "build/icon.png",
+      "build/icon.ico",
       "package.json"
+    ],
+    "asarUnpack": [
+      "**/*.node"
     ]
   },
   "dependencies": {

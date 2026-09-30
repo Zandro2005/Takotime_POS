@@ -4,14 +4,14 @@
 import Database from 'better-sqlite3';
 import fs from 'node:fs';
 import path from 'node:path';
-import { app } from 'electron';
+import { getUserDataPath } from '../utils/paths.js';
 import { getDb } from '../db/db.js';
 import { logger } from '../utils/logger.js';
 
 export class BackupService {
   constructor(dbInstance = null, options = {}) {
     this._db = dbInstance;
-    this.backupDir = options.backupDir || path.join(app.getPath('userData'), 'backups');
+    this.backupDir = options.backupDir || path.join(getUserDataPath(), 'backups');
     this.retentionDays = options.retentionDays || 30;
     this.ensureBackupDir();
   }
