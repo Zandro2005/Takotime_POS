@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "checkJs": true,
+    "allowJs": true,
+    "moduleResolution": "bundler",
+    "strict": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["renderer/*"],
+      "@shared/*": ["shared/*"]
+    }
+  },
+  "include": ["main/**/*", "renderer/**/*", "shared/**/*"]
+}

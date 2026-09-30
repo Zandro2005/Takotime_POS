@@ -130,8 +130,7 @@ contextBridge.exposeInMainWorld('api', {
 
   logs: {
     getRecent: (sessionId, limit) => ipcRenderer.invoke('pos:logs:recent', { sessionId, limit }),
+    clientError: (errorData) => ipcRenderer.invoke('pos:logs:client', errorData),
   },
-
-  invoke: (channel, payload = {}) => ipcRenderer.invoke(channel, payload),
 });
 

@@ -17,6 +17,7 @@ import { registerSyncHandlers } from './syncHandlers.js';
 import { registerHealthHandlers } from './healthHandlers.js';
 import { registerBackupHandlers } from './backupHandlers.js';
 import { registerPrintHandlers } from './printHandlers.js';
+import { registerLogHandlers } from './logHandlers.js';
 import { logger } from '../utils/logger.js';
 
 export function registerAllIpcHandlers() {
@@ -37,6 +38,7 @@ export function registerAllIpcHandlers() {
   registerHealthHandlers();
   registerBackupHandlers();
   registerPrintHandlers();
+  registerLogHandlers();
   logger.info('All IPC handlers successfully registered.');
 }
 

@@ -1,83 +1,78 @@
 // shared/validators.js
-// Shared input validation routines
+// Shared input validation routines using Zod
 
+import { z } from 'zod';
 import { ORDER_TYPES, PAYMENT_METHODS, DISCOUNT_TYPES, CASH_MOVEMENT_TYPES, ROLES } from './constants.js';
 
+// Schemas
+const pinSchema = z.string().regex(/^\d{4,6}$/, 'PIN must be 4 to 6 digits');
+
+const loginPayloadSchema = z.object({
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+const orderItemSchema = z.object({
+  variantId: z.number().int().positive('Item variant ID required'),
+  qty: z.number().int().min(1, 'Item qty must be at least 1'),
+});
+
+const orderPayloadSchema = z.object({
+  shiftId: z.number().int().positive('Shift ID is required'),
+  staffId: z.number().int().positive('Staff ID is required'),
+  orderType: z.enum(Object.values(ORDER_TYPES), { invalid_type_error: 'Invalid order type' }),
+  paymentMethod: z.enum(Object.values(PAYMENT_METHODS), { invalid_type_error: 'Invalid payment method' }),
+  items: z.array(orderItemSchema).min(1, 'Order must contain at least one item'),
+  discount: z.number().min(0).optional(),
+  discountType: z.enum(Object.values(DISCOUNT_TYPES)).optional(),
+  total: z.number().min(0),
+  amountTendered: z.number().min(0).optional(),
+}).refine(data => {
+  if (data.paymentMethod === PAYMENT_METHODS.CASH && data.amountTendered !== undefined) {
+    return data.amountTendered >= data.total;
+  }
+  return true;
+}, { message: 'Amount tendered is less than order total' });
+
+const cashMovementSchema = z.object({
+  shiftId: z.number().int().positive('Shift ID required'),
+  type: z.enum(Object.values(CASH_MOVEMENT_TYPES), { invalid_type_error: 'Invalid cash movement type' }),
+  amount: z.number().positive('Amount must be greater than zero'),
+});
+
+const userCreateSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(4, 'Password must be at least 4 characters'),
+  role: z.enum(Object.values(ROLES), { invalid_type_error: 'Invalid role' }),
+  pin: pinSchema.optional().nullable(),
+});
+
+// Wrapper to match previous API
+function validateWithZod(schema, data) {
+  const result = schema.safeParse(data);
+  if (result.success) {
+    return { valid: true };
+  }
+  return { valid: false, message: result.error.errors[0].message };
+}
+
 export function validatePin(pin) {
-  if (!pin || typeof pin !== 'string') return { valid: false, message: 'PIN must be a string' };
-  if (!/^\d{4,6}$/.test(pin)) return { valid: false, message: 'PIN must be 4 to 6 digits' };
-  return { valid: true };
+  return validateWithZod(pinSchema, pin);
 }
 
 export function validateLoginPayload(payload) {
-  if (!payload || typeof payload !== 'object') return { valid: false, message: 'Invalid payload' };
-  if (!payload.username?.trim()) return { valid: false, message: 'Username is required' };
-  if (!payload.password) return { valid: false, message: 'Password is required' };
-  return { valid: true };
+  return validateWithZod(loginPayloadSchema, payload);
 }
 
 export function validateOrderPayload(order) {
-  if (!order || typeof order !== 'object') return { valid: false, message: 'Order data required' };
-  if (!order.shiftId) return { valid: false, message: 'Shift ID is required' };
-  if (!order.staffId) return { valid: false, message: 'Staff ID is required' };
-  
-  if (!Object.values(ORDER_TYPES).includes(order.orderType)) {
-    return { valid: false, message: `Invalid order type: ${order.orderType}` };
-  }
-
-  if (!Object.values(PAYMENT_METHODS).includes(order.paymentMethod)) {
-    return { valid: false, message: `Invalid payment method: ${order.paymentMethod}` };
-  }
-
-  if (!Array.isArray(order.items) || order.items.length === 0) {
-    return { valid: false, message: 'Order must contain at least one item' };
-  }
-
-  for (const item of order.items) {
-    if (!item.variantId) return { valid: false, message: 'Item variant ID required' };
-    if (!item.qty || item.qty < 1) return { valid: false, message: 'Item qty must be at least 1' };
-  }
-
-  if (order.discount > 0 && order.discountType) {
-    if (!Object.values(DISCOUNT_TYPES).includes(order.discountType)) {
-      return { valid: false, message: `Invalid discount type: ${order.discountType}` };
-    }
-  }
-
-  if (order.paymentMethod === PAYMENT_METHODS.CASH) {
-    if (order.amountTendered !== undefined && order.amountTendered < order.total) {
-      return { valid: false, message: 'Amount tendered is less than order total' };
-    }
-  }
-
-  return { valid: true };
+  return validateWithZod(orderPayloadSchema, order);
 }
 
 export function validateCashMovement(payload) {
-  if (!payload || typeof payload !== 'object') return { valid: false, message: 'Payload required' };
-  if (!payload.shiftId) return { valid: false, message: 'Shift ID required' };
-  if (!Object.values(CASH_MOVEMENT_TYPES).includes(payload.type)) {
-    return { valid: false, message: `Invalid cash movement type: ${payload.type}` };
-  }
-  if (typeof payload.amount !== 'number' || payload.amount <= 0) {
-    return { valid: false, message: 'Amount must be greater than zero' };
-  }
-  return { valid: true };
+  return validateWithZod(cashMovementSchema, payload);
 }
 
 export function validateUserCreate(payload) {
-  if (!payload || typeof payload !== 'object') return { valid: false, message: 'Payload required' };
-  if (!payload.name?.trim()) return { valid: false, message: 'Name is required' };
-  if (!payload.username?.trim()) return { valid: false, message: 'Username is required' };
-  if (!payload.password || payload.password.length < 4) {
-    return { valid: false, message: 'Password must be at least 4 characters' };
-  }
-  if (!Object.values(ROLES).includes(payload.role)) {
-    return { valid: false, message: `Invalid role: ${payload.role}` };
-  }
-  if (payload.pin) {
-    const pinCheck = validatePin(payload.pin);
-    if (!pinCheck.valid) return pinCheck;
-  }
-  return { valid: true };
+  return validateWithZod(userCreateSchema, payload);
 }

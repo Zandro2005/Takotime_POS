@@ -4,6 +4,8 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { autoUpdater } from 'electron-updater';
+import { env } from '../config/env.js';
 import { initDatabase, closeDb, getDb } from './db/db.js';
 import { runMigrations } from './db/migrations/migrationRunner.js';
 import { seedInitialData } from './db/seed.js';
@@ -33,7 +35,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: true,
     },
   });
 
@@ -111,6 +113,14 @@ if (!gotTheLock) {
 
       // 8. Create Window
       createWindow();
+
+      // 9. Check for updates automatically in the background
+      if (app.isPackaged) {
+        autoUpdater.checkForUpdatesAndNotify().catch(err => {
+          logger.error('Auto-updater error:', err.message);
+        });
+      }
+
     } catch (err) {
       logger.error('Fatal initialization error:', err);
     }
@@ -127,6 +137,15 @@ if (!gotTheLock) {
       logger.info('All windows closed. Quitting application.');
       app.quit();
     }
+  });
+
+  process.on('uncaughtException', (err) => {
+    logger.error('FATAL: Uncaught Exception', { error: err.message, stack: err.stack });
+    // Optional: could add an app.quit() here depending on fail-safe preferences
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    logger.error('FATAL: Unhandled Promise Rejection', { reason, promise });
   });
 
   app.on('before-quit', () => {

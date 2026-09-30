@@ -3,6 +3,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { app } from 'electron';
 
 const LOG_LEVELS = {
   DEBUG: 0,
@@ -15,7 +16,7 @@ const LOG_LEVEL_NAMES = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
 
 class Logger {
   constructor() {
-    this.logsDir = path.join(process.cwd(), 'logs');
+    this.logsDir = path.join(app.getPath('userData'), 'logs');
     this.currentLogFile = path.join(this.logsDir, 'app.log');
     this.maxFileSize = 5 * 1024 * 1024; // 5 MB
     this.maxFiles = 5;

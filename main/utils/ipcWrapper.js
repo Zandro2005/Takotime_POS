@@ -62,9 +62,20 @@ export function registerIpcHandler(channel, handler, requiredPermission = null) 
         stack: error.stack,
       });
 
+      let userMessage = error.message || 'An unexpected error occurred';
+      if (error.code && error.code.startsWith('SQLITE_')) {
+        if (error.code === 'SQLITE_CONSTRAINT_FOREIGNKEY') {
+          userMessage = 'Operation failed: This record is linked to other active records and cannot be modified or deleted.';
+        } else if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+          userMessage = 'Operation failed: A record with this value already exists.';
+        } else {
+          userMessage = 'A database error occurred while processing your request.';
+        }
+      }
+
       return {
         success: false,
-        error: error.message || 'An unexpected error occurred',
+        error: userMessage,
       };
     }
   });
