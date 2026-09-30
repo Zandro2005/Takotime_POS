@@ -21,6 +21,7 @@ export const ORDER_STATUS = {
 export const PAYMENT_METHODS = {
   CASH: 'cash',
   GCASH: 'gcash',
+  CASHLESS: 'cashless',
 };
 
 export const SHIFT_STATUS = {

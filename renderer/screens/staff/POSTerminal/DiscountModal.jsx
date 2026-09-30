@@ -46,14 +46,16 @@ export function DiscountModal({ currentDiscount, subtotal, onApply, onClose }) {
       <div style={{
         width: '100%',
         maxWidth: '460px',
+        maxHeight: '90vh',
+        overflowY: 'auto',
         backgroundColor: '#ffffff',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
-        padding: '28px',
+        padding: '24px',
         boxShadow: 'var(--shadow-lg)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '20px',
+        gap: '16px',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>

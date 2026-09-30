@@ -36,7 +36,7 @@ export class ReportService {
         COALESCE(SUM(CASE WHEN status = 'completed' THEN total ELSE 0 END), 0) as total_net,
         COALESCE(SUM(CASE WHEN status = 'voided' THEN subtotal ELSE 0 END), 0) as total_voided_amount,
         COALESCE(SUM(CASE WHEN status = 'completed' AND payment_method = 'cash' THEN total ELSE 0 END), 0) as cash_total,
-        COALESCE(SUM(CASE WHEN status = 'completed' AND payment_method = 'gcash' THEN total ELSE 0 END), 0) as gcash_total
+        COALESCE(SUM(CASE WHEN status = 'completed' AND payment_method != 'cash' THEN total ELSE 0 END), 0) as gcash_total
       FROM orders
       WHERE DATE(created_at) = DATE(?)
     `).get(dateStr);
@@ -135,7 +135,7 @@ export class ReportService {
         COALESCE(SUM(CASE WHEN status = 'completed' THEN discount ELSE 0 END), 0) as total_discounts,
         COALESCE(SUM(CASE WHEN status = 'completed' THEN total ELSE 0 END), 0) as net_sales,
         COALESCE(SUM(CASE WHEN status = 'completed' AND payment_method = 'cash' THEN total ELSE 0 END), 0) as cash_sales,
-        COALESCE(SUM(CASE WHEN status = 'completed' AND payment_method = 'gcash' THEN total ELSE 0 END), 0) as gcash_sales,
+        COALESCE(SUM(CASE WHEN status = 'completed' AND payment_method != 'cash' THEN total ELSE 0 END), 0) as gcash_sales,
         COALESCE(SUM(CASE WHEN status = 'voided' THEN total ELSE 0 END), 0) as voided_amount
       FROM orders
       WHERE shift_id = ?
@@ -370,7 +370,7 @@ export class ReportService {
         COALESCE(SUM(CASE WHEN status = 'completed' THEN discount ELSE 0 END), 0) as total_discounts,
         COALESCE(SUM(CASE WHEN status = 'completed' THEN total ELSE 0 END), 0) as total_net,
         COALESCE(SUM(CASE WHEN status = 'completed' AND payment_method = 'cash' THEN total ELSE 0 END), 0) as cash_total,
-        COALESCE(SUM(CASE WHEN status = 'completed' AND payment_method = 'gcash' THEN total ELSE 0 END), 0) as gcash_total
+        COALESCE(SUM(CASE WHEN status = 'completed' AND payment_method != 'cash' THEN total ELSE 0 END), 0) as gcash_total
       FROM orders
       WHERE shift_id = ?
     `).get(shiftId);

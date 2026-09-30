@@ -33,22 +33,24 @@ export function OrderConfirmationModal({ order, onNewOrder }) {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: showReceiptPreview ? '750px' : '480px',
+        maxWidth: showReceiptPreview ? '750px' : '460px',
+        maxHeight: '90vh',
+        overflowY: 'auto',
         backgroundColor: '#ffffff',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
-        padding: '32px',
+        padding: '22px 24px',
         boxShadow: 'var(--shadow-lg)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '24px',
+        gap: '16px',
         transition: 'max-width 0.2s ease',
       }}>
         {/* Success Icon & Queue # */}
-        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
           <div style={{
-            width: '60px',
-            height: '60px',
+            width: '52px',
+            height: '52px',
             borderRadius: '50%',
             backgroundColor: 'rgba(5, 150, 105, 0.1)',
             border: '2px solid var(--brand-green)',
@@ -57,10 +59,10 @@ export function OrderConfirmationModal({ order, onNewOrder }) {
             justifyContent: 'center',
             color: 'var(--brand-green)',
           }}>
-            <CheckCircle2 size={34} />
+            <CheckCircle2 size={30} />
           </div>
 
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
             Sale Successfully Recorded
           </span>
 
@@ -69,13 +71,13 @@ export function OrderConfirmationModal({ order, onNewOrder }) {
             background: 'var(--bg-app)',
             border: '2px dashed var(--brand-red)',
             borderRadius: 'var(--radius-md)',
-            padding: '16px 36px',
+            padding: '12px 28px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
           }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em' }}>QUEUE NUMBER</span>
-            <span style={{ fontSize: '3.6rem', fontWeight: 900, fontFamily: 'var(--font-mono)', color: 'var(--brand-red)', lineHeight: 1 }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.04em' }}>QUEUE NUMBER</span>
+            <span style={{ fontSize: '3.2rem', fontWeight: 900, fontFamily: 'var(--font-mono)', color: 'var(--brand-red)', lineHeight: 1 }}>
               #{String(order.queueNo || 0).padStart(3, '0')}
             </span>
           </div>
@@ -86,21 +88,25 @@ export function OrderConfirmationModal({ order, onNewOrder }) {
           background: 'var(--bg-surface-elevated)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
-          padding: '16px 20px',
+          padding: '12px 16px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px',
-          fontSize: '0.9rem',
+          gap: '6px',
+          fontSize: '0.88rem',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-muted)' }}>Order Type:</span>
             <span style={{ fontWeight: 700, textTransform: 'uppercase' }}>{order.orderType?.replace('_', ' ')}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Payment Method:</span>
+            <span style={{ fontWeight: 700, textTransform: 'uppercase' }}>{order.paymentMethod === 'cashless' ? 'CASHLESS / QR' : order.paymentMethod}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-muted)' }}>Total Charged:</span>
             <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--brand-red)' }}>₱{order.total.toFixed(2)}</span>
           </div>
-          {order.paymentMethod === 'cash' && (
+          {order.changeDue > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>Change Given:</span>
               <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--brand-green)' }}>

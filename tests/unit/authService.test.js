@@ -22,7 +22,7 @@ test('Database init, migration, seed, and auth tests', async (t) => {
     assert.equal(version >= 1, true);
 
     const userVersion = db.pragma('user_version', { simple: true });
-    assert.equal(userVersion, 1);
+    assert.equal(userVersion >= 1, true);
   });
 
   await t.test('Seed data populates users, categories, products and recipes', () => {

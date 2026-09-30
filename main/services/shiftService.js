@@ -70,6 +70,15 @@ export class ShiftService {
       WHERE shift_id = ? AND status = 'completed' AND payment_method = 'cash'
     `).get(shiftId);
 
+    // Sum of completed cashless / paper QR sales (GCash, Maya, MariBank, etc.)
+    const cashlessRow = db.prepare(`
+      SELECT
+        COALESCE(SUM(total), 0) as cashless_sales,
+        COALESCE(SUM(change_due), 0) as cashless_change_given
+      FROM orders
+      WHERE shift_id = ? AND status = 'completed' AND payment_method != 'cash'
+    `).get(shiftId);
+
     // Sum of cash movements (cash_in adds, cash_out / cash_drop subtracts)
     const movements = db.prepare(`
       SELECT
@@ -81,15 +90,21 @@ export class ShiftService {
 
     const startingCash = shift.starting_cash || 0;
     const cashSales = salesRow.cash_sales || 0;
+    const cashlessSales = cashlessRow.cashless_sales || 0;
+    const cashlessChangeGiven = cashlessRow.cashless_change_given || 0;
     const totalCashIn = movements.total_cash_in || 0;
     const totalCashOut = movements.total_cash_out || 0;
 
-    const expectedCash = startingCash + cashSales + totalCashIn - totalCashOut;
+    // Expected cash in drawer = starting float + cash sales - any cash change given for cashless overpayments + cash in - cash out
+    const expectedCash = startingCash + cashSales - cashlessChangeGiven + totalCashIn - totalCashOut;
 
     return {
       shiftId,
       startingCash,
       cashSales,
+      cashlessSales,
+      cashlessChangeGiven,
+      gcashSales: cashlessSales,
       totalCashIn,
       totalCashOut,
       expectedCash,

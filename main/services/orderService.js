@@ -103,6 +103,7 @@ export class OrderService {
       // 4. Validate payment
       let changeDue = 0;
       let finalAmountTendered = amountTendered;
+      let finalGcashRefNo = null;
 
       if (paymentMethod === PAYMENT_METHODS.CASH) {
         finalAmountTendered = Number(amountTendered);
@@ -110,11 +111,14 @@ export class OrderService {
           throw new Error(`Amount tendered (₱${finalAmountTendered}) is less than order total (₱${total})`);
         }
         changeDue = finalAmountTendered - total;
-      } else if (paymentMethod === PAYMENT_METHODS.GCASH) {
-        finalAmountTendered = total;
-        if (!gcashRefNo?.trim()) {
-          throw new Error('GCash reference number is required for GCash payments');
+      } else if (paymentMethod === PAYMENT_METHODS.CASHLESS || paymentMethod === PAYMENT_METHODS.GCASH) {
+        finalAmountTendered = (amountTendered !== undefined && amountTendered !== null) ? Number(amountTendered) : total;
+        if (isNaN(finalAmountTendered) || finalAmountTendered < total) {
+          throw new Error(`Amount transferred (₱${finalAmountTendered}) is less than order total (₱${total})`);
         }
+        changeDue = finalAmountTendered - total;
+        // Reference number or last 4 digits (optional for general cashless / QR counter flow)
+        finalGcashRefNo = gcashRefNo?.trim() || null;
       }
 
       // 5. Insert into orders table
@@ -138,7 +142,7 @@ export class OrderService {
         discountReason || null,
         total,
         paymentMethod,
-        gcashRefNo || null,
+        finalGcashRefNo,
         finalAmountTendered,
         changeDue
       );
@@ -176,6 +180,7 @@ export class OrderService {
         discountType,
         total,
         paymentMethod,
+        gcashRefNo: finalGcashRefNo,
         amountTendered: finalAmountTendered,
         changeDue,
         items: verifiedItems,

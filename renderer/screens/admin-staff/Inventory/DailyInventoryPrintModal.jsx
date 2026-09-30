@@ -289,19 +289,27 @@ export function DailyInventoryPrintModal({
         )}
 
         {/* Scrollable Preview Area */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', justifyContent: 'center', backgroundColor: '#94a3b8' }}>
+        <div style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '24px 16px',
+          backgroundColor: '#64748b',
+        }}>
           {/* Printable Document Container */}
           <div
             id="daily-inventory-print-sheet"
             style={{
               width: '100%',
-              maxWidth: '800px',
+              maxWidth: '820px',
+              margin: '0 auto 24px auto',
               backgroundColor: '#ffffff',
-              padding: '24px 30px',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+              padding: '28px 36px 36px 36px',
+              borderRadius: '4px',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2)',
               fontFamily: 'Calibri, "Segoe UI", Arial, sans-serif',
               color: '#000000',
               boxSizing: 'border-box',
+              minHeight: 'fit-content',
             }}
           >
             {/* Title Section */}
@@ -338,6 +346,7 @@ export function DailyInventoryPrintModal({
               borderCollapse: 'collapse',
               fontSize: '0.85rem',
               tableLayout: 'fixed',
+              backgroundColor: '#ffffff',
             }}>
               <colgroup>
                 <col style={{ width: '30%' }} />

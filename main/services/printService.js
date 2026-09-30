@@ -77,8 +77,8 @@ export class PrintService {
     const receiptText = formatted.formattedText;
     chunks.push(Buffer.from(receiptText, 'utf8'));
 
-    // 6. Cash drawer pulse on cash checkout
-    if (order.payment_method === 'cash') {
+    // 6. Cash drawer pulse on cash checkout or when cash change is due
+    if (order.payment_method === 'cash' || (order.change_due && order.change_due > 0)) {
       chunks.push(ESC_POS.DRAWER_KICK);
     }
 

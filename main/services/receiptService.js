@@ -80,12 +80,19 @@ export class ReceiptService {
     lines.push(`${pad('TOTAL DUE:', 18)}${padRight(`${currency}${order.total.toFixed(2)}`, 14)}`);
     lines.push(doubleDivider);
 
-    lines.push(`Payment: ${order.payment_method.toUpperCase()}`);
-    if (order.payment_method === 'cash') {
+    const isCash = order.payment_method === 'cash';
+    lines.push(`Payment: ${isCash ? 'CASH' : 'CASHLESS (QR)'}`);
+    if (isCash) {
       lines.push(`${pad('Amount Tendered:', 20)}${padRight(`${currency}${(order.amount_tendered || 0).toFixed(2)}`, 12)}`);
       lines.push(`${pad('Change Due:', 20)}${padRight(`${currency}${(order.change_due || 0).toFixed(2)}`, 12)}`);
-    } else if (order.payment_method === 'gcash') {
-      lines.push(`GCash Ref #: ${order.gcash_ref_no || 'N/A'}`);
+    } else {
+      if ((order.amount_tendered || 0) > order.total) {
+        lines.push(`${pad('Transferred:', 20)}${padRight(`${currency}${(order.amount_tendered || 0).toFixed(2)}`, 12)}`);
+        lines.push(`${pad('Change Due:', 20)}${padRight(`${currency}${(order.change_due || 0).toFixed(2)}`, 12)}`);
+      }
+      if (order.gcash_ref_no) {
+        lines.push(`Ref #:    ${order.gcash_ref_no}`);
+      }
     }
 
     lines.push(divider);

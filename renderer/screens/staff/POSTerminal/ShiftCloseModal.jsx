@@ -48,14 +48,16 @@ export function ShiftCloseModal({ onClose }) {
       <div style={{
         width: '100%',
         maxWidth: '500px',
+        maxHeight: '90vh',
+        overflowY: 'auto',
         backgroundColor: '#ffffff',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-lg)',
-        padding: '32px',
+        padding: '24px 28px',
         boxShadow: 'var(--shadow-lg)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '20px',
+        gap: '16px',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -118,6 +120,14 @@ export function ShiftCloseModal({ onClose }) {
                 <span style={{ color: 'var(--text-muted)' }}>Cash Sales:</span>
                 <span style={{ fontFamily: 'var(--font-mono)' }}>+₱{(closedResult.breakdown?.cashSales || 0).toFixed(2)}</span>
               </div>
+              {closedResult.breakdown?.cashlessChangeGiven > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#b45309' }}>
+                  <span>Cash Change for Cashless:</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                    -₱{closedResult.breakdown.cashlessChangeGiven.toFixed(2)}
+                  </span>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px' }}>
                 <span style={{ fontWeight: 700 }}>Expected Drawer Cash:</span>
                 <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--brand-red)' }}>
@@ -143,6 +153,36 @@ export function ShiftCloseModal({ onClose }) {
                   {closedResult.discrepancy >= 0 ? `+₱${closedResult.discrepancy.toFixed(2)}` : `-₱${Math.abs(closedResult.discrepancy).toFixed(2)}`}
                 </span>
               </div>
+
+              {/* Cashless Breakdown */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                borderTop: '1px dashed var(--border-subtle)',
+                paddingTop: '10px',
+                marginTop: '4px',
+              }}>
+                <span style={{ color: '#2563eb', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  📱 Cashless / QR (GCash, Maya, Banks):
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#2563eb' }}>
+                  ₱{(closedResult.breakdown?.cashlessSales ?? closedResult.breakdown?.gcashSales ?? 0).toFixed(2)}
+                </span>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                borderTop: '1px solid var(--border-subtle)',
+                paddingTop: '8px',
+                marginTop: '2px',
+                fontSize: '0.95rem',
+              }}>
+                <span style={{ fontWeight: 800, color: 'var(--text-main)' }}>Total Shift Revenue:</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 900, color: 'var(--text-main)' }}>
+                  ₱{((closedResult.breakdown?.cashSales || 0) + (closedResult.breakdown?.cashlessSales ?? closedResult.breakdown?.gcashSales ?? 0)).toFixed(2)}
+                </span>
+              </div>
             </div>
 
             <button
@@ -159,9 +199,12 @@ export function ShiftCloseModal({ onClose }) {
           /* Ending Cash Input Form */
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                 Counted Cash Drawer Balance (₱)
               </label>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                Count physical bills & coins only. Cashless payments (GCash, Maya, MariBank, etc.) went to store accounts and do not belong in the cash drawer.
+              </p>
               <div style={{ position: 'relative' }}>
                 <span style={{
                   position: 'absolute',

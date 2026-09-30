@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS orders (
     discount_type   TEXT,                              -- 'senior', 'pwd', 'promo', 'manual'
     discount_reason TEXT,
     total           REAL    NOT NULL,
-    payment_method  TEXT    NOT NULL CHECK (payment_method IN ('cash', 'gcash')),
+    payment_method  TEXT    NOT NULL CHECK (payment_method IN ('cash', 'gcash', 'cashless')),
     gcash_ref_no    TEXT,
     amount_tendered REAL,                              -- for cash: how much customer gave
     change_due      REAL,                              -- for cash: change returned

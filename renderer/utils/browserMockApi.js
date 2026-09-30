@@ -207,7 +207,9 @@ export function setupBrowserMockApi() {
         return { success: true, data: currentShift };
       },
       close: async (sessionId, shiftId, endingCash, notes) => {
-        const expectedCash = (currentShift?.starting_cash || 0) + orders.filter(o => o.status === 'completed' && o.payment_method === 'cash').reduce((s, o) => s + o.total, 0);
+        const cashSales = orders.filter(o => o.status === 'completed' && o.payment_method === 'cash').reduce((s, o) => s + o.total, 0);
+        const cashlessSales = orders.filter(o => o.status === 'completed' && o.payment_method !== 'cash').reduce((s, o) => s + o.total, 0);
+        const expectedCash = (currentShift?.starting_cash || 0) + cashSales;
         const closed = {
           ...currentShift,
           status: 'closed',
@@ -217,7 +219,9 @@ export function setupBrowserMockApi() {
           discrepancy: Number(endingCash) - expectedCash,
           breakdown: {
             startingCash: currentShift.starting_cash,
-            cashSales: orders.filter(o => o.status === 'completed' && o.payment_method === 'cash').reduce((s, o) => s + o.total, 0),
+            cashSales,
+            cashlessSales,
+            gcashSales: cashlessSales,
             expectedCash,
           },
         };
@@ -529,7 +533,7 @@ Payment: ${ord.payment_method.toUpperCase()}
         const gross = completed.reduce((sum, o) => sum + o.subtotal, 0);
         const net = completed.reduce((sum, o) => sum + o.total, 0);
         const cash = completed.filter(o => o.payment_method === 'cash').reduce((sum, o) => sum + o.total, 0);
-        const gcash = completed.filter(o => o.payment_method === 'gcash').reduce((sum, o) => sum + o.total, 0);
+        const gcash = completed.filter(o => o.payment_method !== 'cash').reduce((sum, o) => sum + o.total, 0);
         const voided = orders.filter(o => o.status === 'voided');
 
         return {
