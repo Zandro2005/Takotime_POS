@@ -1,6 +1,6 @@
 // renderer/screens/admin/Menu/MenuManagement.jsx
 // Clean, direct-to-the-point Menu & Recipe Management with Category Add-ons
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import {
   UtensilsCrossed,

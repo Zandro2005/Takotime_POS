@@ -3,14 +3,14 @@
     "target": "ES2022",
     "module": "ESNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "checkJs": true,
+    "jsx": "react-jsx",
+    "checkJs": false,
     "allowJs": true,
     "moduleResolution": "bundler",
     "strict": false,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["renderer/*"],
-      "@shared/*": ["shared/*"]
+      "@/*": ["./renderer/*"],
+      "@shared/*": ["./shared/*"]
     }
   },
   "include": ["main/**/*", "renderer/**/*", "shared/**/*"]
