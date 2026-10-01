@@ -450,17 +450,6 @@ export function MenuManagement() {
             <FolderPlus size={16} color="var(--brand-gold)" />
             + New Category
           </button>
-
-          <button
-            type="button"
-            className="btn btn-primary"
-            style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
-            onClick={() => setProductModal({ open: true, data: null, categoryId: selectedCategoryId })}
-            title={`Add a new product under category "${selectedCategory?.name || 'Category'}"`}
-          >
-            <Plus size={16} />
-            + Add Product to <strong style={{ textDecoration: 'underline' }}>{selectedCategory?.name || 'Category'}</strong>
-          </button>
         </div>
       </div>
 
@@ -633,7 +622,7 @@ export function MenuManagement() {
               title={`Add a new product inside "${selectedCategory.name}"`}
             >
               <Plus size={15} />
-              + Add Product to {selectedCategory.name}
+              Add Product to {selectedCategory.name}
             </button>
           </div>
         </div>
@@ -671,7 +660,7 @@ export function MenuManagement() {
               title={`Add first product to ${selectedCategory.name}`}
             >
               <Plus size={16} />
-              + Add Product to {selectedCategory.name}
+              Add Product to {selectedCategory.name}
             </button>
           </div>
         ) : (
