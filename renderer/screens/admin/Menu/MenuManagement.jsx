@@ -454,11 +454,12 @@ export function MenuManagement() {
           <button
             type="button"
             className="btn btn-primary"
-            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+            style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
             onClick={() => setProductModal({ open: true, data: null, categoryId: selectedCategoryId })}
+            title={`Add a new product under category "${selectedCategory?.name || 'Category'}"`}
           >
             <Plus size={16} />
-            + Add Product
+            + Add Product to <strong style={{ textDecoration: 'underline' }}>{selectedCategory?.name || 'Category'}</strong>
           </button>
         </div>
       </div>
@@ -525,28 +526,47 @@ export function MenuManagement() {
         })}
       </div>
 
-      {/* Category Toolbar: Direct Category Add-ons Access */}
+      {/* Category Toolbar: Direct Category Workspace */}
       {selectedCategory && (
         <div style={{
-          backgroundColor: '#fbfbfb',
-          borderBottom: '1px solid var(--border-subtle)',
-          padding: '10px 24px',
+          backgroundColor: '#f8fafc',
+          borderBottom: '2px solid #e2e8f0',
+          padding: '12px 24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '10px',
+          gap: '12px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-main)' }}>
-              {selectedCategory.name}
-            </span>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-              ({selectedCategory.products.length} product{selectedCategory.products.length === 1 ? '' : 's'})
-            </span>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              backgroundColor: '#ffffff',
+              border: '1px solid var(--border-subtle)',
+              padding: '4px 12px',
+              borderRadius: 'var(--radius-md)',
+            }}>
+              <span style={{
+                fontSize: '0.72rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                color: 'var(--text-muted)',
+              }}>
+                Current Category:
+              </span>
+              <span style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--brand-red)' }}>
+                {selectedCategory.name}
+              </span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                ({selectedCategory.products.length} product{selectedCategory.products.length === 1 ? '' : 's'})
+              </span>
+            </div>
 
             {/* Category Add-ons Quick Summary */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
               {(selectedCategory.modifiers || []).slice(0, 3).map(m => (
                 <span
                   key={m.id ?? m.modifier_id}
@@ -579,7 +599,7 @@ export function MenuManagement() {
               type="button"
               className="btn btn-secondary"
               style={{
-                padding: '6px 12px',
+                padding: '7px 14px',
                 fontSize: '0.82rem',
                 fontWeight: 700,
                 display: 'flex',
@@ -589,19 +609,31 @@ export function MenuManagement() {
                 backgroundColor: (selectedCategory.modifiers?.length > 0) ? '#fffdf7' : '#ffffff',
               }}
               onClick={() => handleOpenCategoryModifiers(selectedCategory)}
+              title={`Manage add-ons for category "${selectedCategory.name}"`}
             >
               <Sparkles size={14} color="var(--brand-gold)" />
-              Category Add-ons ({selectedCategory.modifiers?.length || 0})
+              Add-ons for {selectedCategory.name} ({selectedCategory.modifiers?.length || 0})
             </button>
 
             <button
               type="button"
-              className="btn btn-secondary"
-              style={{ padding: '6px 12px', fontSize: '0.82rem' }}
-              onClick={() => setProductModal({ open: true, data: null, categoryId: selectedCategoryId })}
+              className="btn btn-primary"
+              style={{
+                padding: '7px 16px',
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                backgroundColor: 'var(--brand-red)',
+                color: '#ffffff',
+                boxShadow: '0 1px 3px rgba(224, 26, 34, 0.25)',
+              }}
+              onClick={() => setProductModal({ open: true, data: null, categoryId: selectedCategory.id })}
+              title={`Add a new product inside "${selectedCategory.name}"`}
             >
-              <Plus size={14} color="var(--brand-green)" />
-              + Add Product
+              <Plus size={15} />
+              + Add Product to {selectedCategory.name}
             </button>
           </div>
         </div>
@@ -620,21 +652,26 @@ export function MenuManagement() {
             borderRadius: 'var(--radius-lg)',
             padding: '48px',
             textAlign: 'center',
-            maxWidth: '500px',
+            maxWidth: '520px',
             margin: '40px auto',
             boxShadow: 'var(--shadow-sm)',
           }}>
-            <Package size={40} color="var(--brand-gold)" style={{ margin: '0 auto 12px' }} />
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '14px' }}>
-              No Products in this Category
+            <Package size={42} color="var(--brand-gold)" style={{ margin: '0 auto 12px' }} />
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
+              No Products in "{selectedCategory.name}"
             </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '18px', lineHeight: 1.5 }}>
+              This category has no items yet. Click below to add the first menu item directly under <strong>{selectedCategory.name}</strong>.
+            </p>
             <button
               type="button"
               className="btn btn-primary"
+              style={{ padding: '9px 20px', fontSize: '0.88rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               onClick={() => setProductModal({ open: true, data: null, categoryId: selectedCategoryId })}
+              title={`Add first product to ${selectedCategory.name}`}
             >
-              <Plus size={15} />
-              Add First Product
+              <Plus size={16} />
+              + Add Product to {selectedCategory.name}
             </button>
           </div>
         ) : (
@@ -691,11 +728,23 @@ export function MenuManagement() {
                     <button
                       type="button"
                       className="btn btn-secondary"
-                      style={{ padding: '3px 8px', fontSize: '0.74rem', marginLeft: '2px' }}
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '0.76rem',
+                        fontWeight: 700,
+                        marginLeft: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        backgroundColor: '#f0fdf4',
+                        borderColor: '#bbf7d0',
+                        color: 'var(--brand-green)',
+                      }}
                       onClick={() => setVariantModal({ open: true, data: null, productId: product.id })}
+                      title={`Add a size / price option to ${product.name}`}
                     >
-                      <Plus size={12} color="var(--brand-green)" />
-                      Size
+                      <Plus size={13} color="var(--brand-green)" />
+                      + Add Size / Price
                     </button>
                   </div>
                 </div>
@@ -704,7 +753,7 @@ export function MenuManagement() {
                 <div style={{ padding: '8px 16px', flex: 1 }}>
                   {product.variants.length === 0 ? (
                     <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                      No sizes added yet. Click <strong>+ Size</strong> above.
+                      No sizes added yet. Click <strong>+ Add Size / Price</strong> above to set prices.
                     </div>
                   ) : (
                     product.variants.map((variant) => {
@@ -1334,10 +1383,26 @@ export function MenuManagement() {
             flexDirection: 'column',
             gap: '14px',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                {productModal.data ? 'Edit Product' : 'Add New Product'}
-              </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                  {productModal.data ? 'Edit Product' : 'Add New Product'}
+                </h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                  <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>Target Category:</span>
+                  <span style={{
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    color: 'var(--brand-red)',
+                    backgroundColor: '#fff1f2',
+                    border: '1px solid #fecdd3',
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-xs)',
+                  }}>
+                    {catalog.find(c => c.id === (productModal.data?.category_id || productModal.categoryId || selectedCategoryId))?.name || 'Selected Category'}
+                  </span>
+                </div>
+              </div>
               <button
                 type="button"
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--text-muted)' }}
@@ -1371,7 +1436,7 @@ export function MenuManagement() {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '6px', color: 'var(--text-secondary)' }}>
-                  Category
+                  Assigned Category (Where this product will appear)
                 </label>
                 <select
                   name="productCategory"
@@ -1384,10 +1449,11 @@ export function MenuManagement() {
                     fontSize: '0.9rem',
                     backgroundColor: '#ffffff',
                     outline: 'none',
+                    fontWeight: 600,
                   }}
                 >
                   {catalog.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.id} value={c.id}>Category: {c.name}</option>
                   ))}
                 </select>
               </div>
@@ -1465,9 +1531,40 @@ export function MenuManagement() {
             flexDirection: 'column',
             gap: '14px',
           }}>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-              {variantModal.data ? 'Edit Size & Price' : 'Add Size / Variant'}
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                  {variantModal.data ? 'Edit Size & Price' : 'Add Size & Price Option'}
+                </h2>
+                {(() => {
+                  const targetProdId = variantModal.data?.product_id || variantModal.productId;
+                  const parentProd = catalog.flatMap(c => c.products || []).find(p => p.id === targetProdId);
+                  return parentProd ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                      <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>For Product:</span>
+                      <span style={{
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        color: 'var(--brand-green)',
+                        backgroundColor: '#f0fdf4',
+                        border: '1px solid #bbf7d0',
+                        padding: '1px 8px',
+                        borderRadius: 'var(--radius-xs)',
+                      }}>
+                        {parentProd.name}
+                      </span>
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+              <button
+                type="button"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--text-muted)' }}
+                onClick={() => setVariantModal({ open: false, data: null, productId: null })}
+              >
+                <X size={16} />
+              </button>
+            </div>
 
             <form onSubmit={handleSaveVariant} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
