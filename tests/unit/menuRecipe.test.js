@@ -91,19 +91,102 @@ test('Phase 4 Menu & Recipe Suite', async (t) => {
 
   // 4. Modifier Management & Linkage
   await t.test('4. Modifier CRUD and product modifier linking', () => {
+    // Create modifier
     const mod = menuService.createModifier({ name: 'Truffle Mayo', priceDelta: 15.0 });
     assert.ok(mod.id);
     newModifierId = mod.id;
 
+    // Read all modifiers
+    const allMods = menuService.getAllModifiers(true);
+    assert.ok(allMods.some(m => m.id === newModifierId && m.name === 'Truffle Mayo'));
+
+    // Update modifier name, price delta, and active state
+    const updated = menuService.updateModifier(newModifierId, {
+      name: 'Premium Truffle Mayo',
+      priceDelta: 20.0,
+      active: 1,
+    });
+    assert.equal(updated.name, 'Premium Truffle Mayo');
+    assert.equal(updated.price_delta, 20.0);
+    assert.equal(updated.active, 1);
+
     // Link to new product
     menuService.linkModifier(newProdId, newModifierId);
     const prodMods = menuService.getModifiers(newProdId);
-    assert.ok(prodMods.some(m => m.id === newModifierId && m.name === 'Truffle Mayo'));
+    assert.ok(prodMods.some(m => m.id === newModifierId && m.name === 'Premium Truffle Mayo'));
 
     // Set multiple modifiers
     menuService.setProductModifiers(newProdId, [1, 2, newModifierId]);
     const updatedMods = menuService.getModifiers(newProdId);
     assert.equal(updatedMods.length, 3);
+  });
+
+  // 4b. Modifier Safe Deletion (Hard delete vs Soft deactivate)
+  await t.test('4b. Modifier delete: hard deletes when unsold, soft deactivates when sold', async () => {
+    // Case 1: Unsold modifier -> hard delete
+    const tempMod = menuService.createModifier({ name: 'Temp Unsold Topping', priceDelta: 8.0 });
+    menuService.linkModifier(newProdId, tempMod.id);
+    assert.ok(menuService.getModifiers(newProdId).some(m => m.id === tempMod.id));
+
+    const deleteRes = menuService.deleteModifier(tempMod.id);
+    assert.equal(deleteRes.deleted, true);
+    assert.ok(!menuService.getAllModifiers(true).some(m => m.id === tempMod.id));
+    assert.ok(!menuService.getModifiers(newProdId).some(m => m.id === tempMod.id));
+
+    // Case 2: Sold modifier -> soft deactivation & unlinking from product
+    const soldMod = menuService.createModifier({ name: 'Historical Sold Dip', priceDelta: 12.0 });
+    menuService.linkModifier(newProdId, soldMod.id);
+
+    // Insert order & order_item with proper FKs to satisfy SQLite foreign keys
+    const dummyShift = shiftService.getCurrentShift() || shiftService.openShift(3, 1000);
+    const ordInfo = testDb.prepare(`
+      INSERT INTO orders (shift_id, staff_id, order_type, queue_no, subtotal, total, payment_method)
+      VALUES (?, 3, 'dine_in', 999, 100.0, 100.0, 'cash')
+    `).run(dummyShift.id);
+    const orderItemId = testDb.prepare(`
+      INSERT INTO order_items (order_id, variant_id, qty, unit_price, subtotal)
+      VALUES (?, ?, 1, 100.0, 100.0)
+    `).run(ordInfo.lastInsertRowid, newVariantId).lastInsertRowid;
+
+    testDb.prepare(`
+      INSERT INTO order_item_modifiers (order_item_id, modifier_id, price_delta)
+      VALUES (?, ?, 12.0)
+    `).run(orderItemId, soldMod.id);
+
+    const safeDeleteRes = menuService.deleteModifier(soldMod.id);
+    assert.equal(safeDeleteRes.deactivated, true);
+
+    // Verify still in database with active = 0 for historical records
+    const checkMod = testDb.prepare(`SELECT * FROM modifiers WHERE id = ?`).get(soldMod.id);
+    assert.ok(checkMod);
+    assert.equal(checkMod.active, 0);
+
+    // Verify unlinked from future product modifiers
+    const checkLinked = testDb.prepare(`SELECT * FROM product_modifiers WHERE modifier_id = ?`).all(soldMod.id);
+    assert.equal(checkLinked.length, 0);
+
+    // Clean up dummy records
+    testDb.prepare(`DELETE FROM order_item_modifiers WHERE modifier_id = ?`).run(soldMod.id);
+    testDb.prepare(`DELETE FROM order_items WHERE id = ?`).run(orderItemId);
+    testDb.prepare(`DELETE FROM orders WHERE id = ?`).run(ordInfo.lastInsertRowid);
+  });
+
+  // 4c. Product-Specific Modifier Creation & Clear All Deletion
+  await t.test('4c. Product-specific modifier creation and clearProductModifiers deletes modifiers', () => {
+    // Directly add a modifier to product
+    const pMod = menuService.createProductModifier(newProdId, { name: 'Garlic Crunch', priceDelta: 6.0 });
+    assert.ok(pMod.id);
+    const prodMods = menuService.getModifiers(newProdId);
+    assert.ok(prodMods.some(m => m.id === pMod.id && m.name === 'Garlic Crunch'));
+
+    // Clear all modifiers on this product -> unlinks and deletes them
+    const clearRes = menuService.clearProductModifiers(newProdId);
+    assert.ok(clearRes.success);
+    const modsAfterClear = menuService.getModifiers(newProdId);
+    assert.equal(modsAfterClear.length, 0);
+
+    // Verify Garlic Crunch was deleted because it was unsold
+    assert.ok(!menuService.getAllModifiers(true).some(m => m.id === pMod.id));
   });
 
   // 5. Recipe Management (BOM Linking)

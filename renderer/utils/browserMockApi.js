@@ -3,6 +3,13 @@
 
 const STORAGE_KEY_PREFIX = 'takotime_mock_';
 
+const defaultModifiers = [
+  { id: 1, name: 'Extra Takoyaki Sauce', price_delta: 5.0, active: 1 },
+  { id: 2, name: 'Extra Japanese Mayo', price_delta: 5.0, active: 1 },
+  { id: 3, name: 'Extra Bonito Flakes', price_delta: 10.0, active: 1 },
+  { id: 4, name: 'Chili Garlic Sauce', price_delta: 5.0, active: 1 },
+];
+
 const defaultCatalog = [
   {
     id: 1,
@@ -370,7 +377,77 @@ export function setupBrowserMockApi() {
         }
         return { success: true };
       },
+      getAllModifiers: async (s, includeInactive) => {
+        const mods = includeInactive ? defaultModifiers : defaultModifiers.filter(m => m.active);
+        return { success: true, data: JSON.parse(JSON.stringify(mods)) };
+      },
+      createModifier: async (s, data) => {
+        const newMod = {
+          id: Date.now(),
+          name: data.name.trim(),
+          price_delta: Number(data.priceDelta) || 0,
+          active: 1,
+        };
+        defaultModifiers.push(newMod);
+        if (data.productId) {
+          for (const c of defaultCatalog) {
+            const p = c.products.find(pr => pr.id === data.productId);
+            if (p) {
+              if (!p.modifiers) p.modifiers = [];
+              p.modifiers.push(newMod);
+            }
+          }
+        }
+        return { success: true, data: newMod };
+      },
+      updateModifier: async (s, data) => {
+        const mod = defaultModifiers.find(m => m.id === data.id);
+        if (mod) {
+          if (data.name !== undefined) mod.name = data.name.trim();
+          if (data.priceDelta !== undefined) mod.price_delta = Number(data.priceDelta);
+          if (data.active !== undefined) mod.active = data.active ? 1 : 0;
+          for (const c of defaultCatalog) {
+            for (const p of c.products) {
+              const pm = (p.modifiers || []).find(m => (m.id ?? m.modifier_id) === data.id);
+              if (pm) {
+                if (data.name !== undefined) pm.name = data.name.trim();
+                if (data.priceDelta !== undefined) pm.price_delta = Number(data.priceDelta);
+              }
+            }
+          }
+        }
+        return { success: true, data: mod };
+      },
+      deleteModifier: async (s, id) => {
+        const idx = defaultModifiers.findIndex(m => m.id === id);
+        if (idx !== -1) {
+          defaultModifiers.splice(idx, 1);
+        }
+        for (const c of defaultCatalog) {
+          for (const p of c.products) {
+            p.modifiers = (p.modifiers || []).filter(m => (m.id ?? m.modifier_id) !== id);
+          }
+        }
+        return { success: true };
+      },
+      clearProductModifiers: async (s, productId) => {
+        for (const c of defaultCatalog) {
+          const p = c.products.find(pr => pr.id === productId);
+          if (p) {
+            p.modifiers = [];
+          }
+        }
+        return { success: true };
+      },
       manageModifiers: async (s, data) => {
+        for (const c of defaultCatalog) {
+          const p = c.products.find(pr => pr.id === data.productId);
+          if (p) {
+            const ids = (data.modifierIds || []).map(Number);
+            p.modifiers = defaultModifiers.filter(m => ids.includes(m.id));
+            return { success: true, data: p.modifiers };
+          }
+        }
         return { success: true };
       },
       toggleActive: async (s, id, active) => {

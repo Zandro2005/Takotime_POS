@@ -51,9 +51,23 @@ export function registerMenuAdminHandlers() {
     return menuService.updateModifier(payload.id, payload);
   });
 
+  registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_DELETE_MODIFIER, async (payload) => {
+    if (!payload?.id) throw new Error('Modifier id is required');
+    return menuService.deleteModifier(payload.id);
+  });
+
+  registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_ALL_MODIFIERS, async (payload) => {
+    return menuService.getAllModifiers(payload?.includeInactive ?? true);
+  });
+
   registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_MANAGE_MODIFIERS, async (payload) => {
     if (!payload?.productId) throw new Error('productId is required');
     return menuService.setProductModifiers(payload.productId, payload.modifierIds || []);
+  });
+
+  registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_CLEAR_MODIFIERS, async (payload) => {
+    if (!payload?.productId) throw new Error('productId is required');
+    return menuService.clearProductModifiers(payload.productId);
   });
 
   registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_TOGGLE_ACTIVE, async (payload) => {

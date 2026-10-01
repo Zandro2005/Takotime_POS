@@ -81,7 +81,10 @@ export const IPC_CHANNELS = {
   MENU_ADMIN_DELETE_VARIANT: 'pos:menu-admin:delete-variant',
   MENU_ADMIN_CREATE_MODIFIER: 'pos:menu-admin:create-modifier',
   MENU_ADMIN_UPDATE_MODIFIER: 'pos:menu-admin:update-modifier',
+  MENU_ADMIN_DELETE_MODIFIER: 'pos:menu-admin:delete-modifier',
+  MENU_ADMIN_ALL_MODIFIERS: 'pos:menu-admin:all-modifiers',
   MENU_ADMIN_MANAGE_MODIFIERS: 'pos:menu-admin:manage-modifiers',
+  MENU_ADMIN_CLEAR_MODIFIERS: 'pos:menu-admin:clear-modifiers',
   MENU_ADMIN_REORDER: 'pos:menu-admin:reorder',
   MENU_ADMIN_TOGGLE_ACTIVE: 'pos:menu-admin:toggle-active',
 

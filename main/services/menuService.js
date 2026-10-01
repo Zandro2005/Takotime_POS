@@ -250,7 +250,7 @@ export class MenuService {
 
   // --- Modifier CRUD & Linkage ---
 
-  createModifier({ name, priceDelta = 0 }) {
+  createModifier({ name, priceDelta = 0, productId = null }) {
     if (!name || !name.trim()) throw new Error('Modifier name is required');
     const db = this.db;
     const stmt = db.prepare(`
@@ -258,7 +258,24 @@ export class MenuService {
       VALUES (?, ?, 1)
     `);
     const info = stmt.run(name.trim(), Number(priceDelta) || 0);
-    return { id: info.lastInsertRowid, name: name.trim(), price_delta: Number(priceDelta) || 0, active: 1 };
+    const modId = info.lastInsertRowid;
+    if (productId) {
+      this.linkModifier(productId, modId);
+    }
+    return { id: modId, name: name.trim(), price_delta: Number(priceDelta) || 0, active: 1 };
+  }
+
+  createProductModifier(productId, { name, priceDelta = 0 }) {
+    return this.createModifier({ name, priceDelta, productId });
+  }
+
+  clearProductModifiers(productId) {
+    const db = this.db;
+    const currentMods = db.prepare(`SELECT modifier_id FROM product_modifiers WHERE product_id = ?`).all(productId);
+    for (const row of currentMods) {
+      this.deleteModifier(row.modifier_id);
+    }
+    return { success: true, clearedCount: currentMods.length };
   }
 
   updateModifier(id, { name, priceDelta, active }) {
@@ -277,6 +294,26 @@ export class MenuService {
     `).run(newName, newDelta, newActive, id);
 
     return { id, name: newName, price_delta: newDelta, active: newActive };
+  }
+
+  deleteModifier(id) {
+    const db = this.db;
+    const existing = db.prepare(`SELECT * FROM modifiers WHERE id = ?`).get(id);
+    if (!existing) throw new Error(`Modifier #${id} not found`);
+
+    // Check if modifier has been used in order_item_modifiers
+    const salesCount = db.prepare(`SELECT COUNT(id) as count FROM order_item_modifiers WHERE modifier_id = ?`).get(id);
+    if (salesCount && salesCount.count > 0) {
+      // Soft deactivate to preserve historical sales reports & receipts
+      db.prepare(`UPDATE modifiers SET active = 0, updated_at = datetime('now', 'localtime') WHERE id = ?`).run(id);
+      db.prepare(`DELETE FROM product_modifiers WHERE modifier_id = ?`).run(id);
+      return { success: true, deactivated: true };
+    }
+
+    // Safe to hard delete if never ordered
+    db.prepare(`DELETE FROM product_modifiers WHERE modifier_id = ?`).run(id);
+    db.prepare(`DELETE FROM modifiers WHERE id = ?`).run(id);
+    return { success: true, deleted: true };
   }
 
   linkModifier(productId, modifierId) {

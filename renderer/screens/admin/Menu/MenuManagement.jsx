@@ -31,7 +31,12 @@ export function MenuManagement() {
   const [productModal, setProductModal] = useState({ open: false, data: null, categoryId: null });
   const [variantModal, setVariantModal] = useState({ open: false, data: null, productId: null });
   const [recipeModal, setRecipeModal] = useState({ open: false, variant: null, productName: '', ingredients: [] });
-  const [modifiersModal, setModifiersModal] = useState({ open: false, product: null, selectedModifierIds: [] });
+  const [productModifiersModal, setProductModifiersModal] = useState({ open: false, product: null });
+  const [newModName, setNewModName] = useState('');
+  const [newModPrice, setNewModPrice] = useState('');
+  const [editingModId, setEditingModId] = useState(null);
+  const [editModName, setEditModName] = useState('');
+  const [editModPrice, setEditModPrice] = useState('');
   const [toastMessage, setToastMessage] = useState('');
 
   const showToast = (msg) => {
@@ -59,7 +64,12 @@ export function MenuManagement() {
         }
       }
 
-      if (window.api?.menu?.getModifiers) {
+      if (window.api?.menuAdmin?.getAllModifiers) {
+        const modRes = await window.api.menuAdmin.getAllModifiers(sessionId, true);
+        if (modRes.success && modRes.data) {
+          setGlobalModifiers(modRes.data);
+        }
+      } else if (window.api?.menu?.getModifiers) {
         const modRes = await window.api.menu.getModifiers(sessionId, 1);
         if (modRes.success && modRes.data) {
           setGlobalModifiers(modRes.data);
@@ -249,6 +259,110 @@ export function MenuManagement() {
     }
   };
 
+  // Product-Specific Add-on Actions
+  const handleOpenProductModifiers = (product) => {
+    const latestProd = catalog.flatMap(c => c.products).find(p => p.id === product.id) || product;
+    setProductModifiersModal({ open: true, product: latestProd });
+    setNewModName('');
+    setNewModPrice('');
+    setEditingModId(null);
+  };
+
+  const handleAddProductModifier = async (e) => {
+    e.preventDefault();
+    if (!productModifiersModal.product) return;
+    const name = newModName.trim();
+    const priceDelta = Number(newModPrice);
+    if (!name) {
+      alert('Please enter an add-on name');
+      return;
+    }
+    if (isNaN(priceDelta) || priceDelta < 0) {
+      alert('Please enter a valid non-negative price');
+      return;
+    }
+
+    try {
+      await window.api?.menuAdmin?.createModifier?.(sessionId, {
+        productId: productModifiersModal.product.id,
+        name,
+        priceDelta,
+      });
+      showToast(`Added "${name}" to ${productModifiersModal.product.name}`);
+      setNewModName('');
+      setNewModPrice('');
+      await loadData();
+    } catch (err) {
+      alert('Error adding add-on: ' + err.message);
+    }
+  };
+
+  const handleSaveEditProductModifier = async (modId) => {
+    const name = editModName.trim();
+    const priceDelta = Number(editModPrice);
+    if (!name) {
+      alert('Please enter an add-on name');
+      return;
+    }
+    if (isNaN(priceDelta) || priceDelta < 0) {
+      alert('Please enter a valid non-negative price');
+      return;
+    }
+
+    try {
+      await window.api?.menuAdmin?.updateModifier?.(sessionId, {
+        id: modId,
+        name,
+        priceDelta,
+      });
+      showToast(`Updated add-on "${name}"`);
+      setEditingModId(null);
+      await loadData();
+    } catch (err) {
+      alert('Error updating add-on: ' + err.message);
+    }
+  };
+
+  const handleDeleteProductModifier = async (modId, modName) => {
+    if (!confirm(`Are you sure you want to delete add-on "${modName}"?`)) {
+      return;
+    }
+    try {
+      await window.api?.menuAdmin?.deleteModifier?.(sessionId, modId);
+      showToast(`Deleted add-on "${modName}"`);
+      if (editingModId === modId) setEditingModId(null);
+      await loadData();
+    } catch (err) {
+      alert('Error deleting add-on: ' + err.message);
+    }
+  };
+
+  const handleClearAllProductModifiers = async () => {
+    if (!productModifiersModal.product) return;
+    const prod = catalog.flatMap(c => c.products).find(p => p.id === productModifiersModal.product.id) || productModifiersModal.product;
+    const count = (prod.modifiers || []).length;
+    if (count === 0) return;
+
+    if (!confirm(`Are you sure you want to clear and delete all ${count} add-ons for "${prod.name}"?`)) {
+      return;
+    }
+
+    try {
+      if (window.api?.menuAdmin?.clearProductModifiers) {
+        await window.api.menuAdmin.clearProductModifiers(sessionId, prod.id);
+      } else {
+        for (const m of (prod.modifiers || [])) {
+          await window.api?.menuAdmin?.deleteModifier?.(sessionId, m.id ?? m.modifier_id);
+        }
+      }
+      showToast(`Cleared all add-ons for ${prod.name}`);
+      setEditingModId(null);
+      await loadData();
+    } catch (err) {
+      alert('Error clearing add-ons: ' + err.message);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', backgroundColor: 'var(--bg-app)' }}>
       {/* Top Header */}
@@ -288,6 +402,7 @@ export function MenuManagement() {
               {toastMessage}
             </span>
           )}
+
 
           <button
             type="button"
@@ -441,6 +556,16 @@ export function MenuManagement() {
                     <button
                       type="button"
                       className="btn btn-secondary"
+                      style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '5px' }}
+                      onClick={() => handleOpenProductModifiers(product)}
+                    >
+                      <Sparkles size={13} color="var(--brand-gold)" />
+                      Add-ons ({product.modifiers?.length || 0})
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
                       style={{ padding: '6px 12px', fontSize: '0.8rem' }}
                       onClick={() => setVariantModal({ open: true, data: null, productId: product.id })}
                     >
@@ -448,6 +573,59 @@ export function MenuManagement() {
                       + Add Size / Variant
                     </button>
                   </div>
+                </div>
+
+                {/* Product Add-ons Strip */}
+                <div style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#fbfbfb',
+                  borderBottom: '1px solid var(--border-subtle)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  fontSize: '0.82rem',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Sparkles size={13} color="var(--brand-gold)" />
+                      Assigned Add-ons:
+                    </span>
+                    {(!product.modifiers || product.modifiers.length === 0) ? (
+                      <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>None (Customers cannot pick add-ons for this product)</span>
+                    ) : (
+                      product.modifiers.map(m => (
+                        <span
+                          key={m.id ?? m.modifier_id}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '3px 8px',
+                            borderRadius: 'var(--radius-sm)',
+                            backgroundColor: '#ffffff',
+                            border: '1px solid var(--border-subtle)',
+                            color: 'var(--text-main)',
+                            fontWeight: 600,
+                            fontSize: '0.78rem',
+                          }}
+                        >
+                          <span>{m.name}</span>
+                          <span style={{ color: 'var(--brand-red)', fontWeight: 700 }}>+₱{Number(m.price_delta).toFixed(2)}</span>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    onClick={() => handleOpenProductModifiers(product)}
+                  >
+                    <SlidersHorizontal size={12} />
+                    Customize Add-ons
+                  </button>
                 </div>
 
                 {/* Variants Table */}
@@ -975,6 +1153,311 @@ export function MenuManagement() {
           </div>
         </div>
       )}
+
+      {/* Product-Specific Add-ons Modal */}
+      {productModifiersModal.open && productModifiersModal.product && (() => {
+        const prod = catalog.flatMap(c => c.products).find(p => p.id === productModifiersModal.product.id) || productModifiersModal.product;
+        const currentMods = prod.modifiers || [];
+
+        return (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.5)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px',
+          }}>
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--border-subtle)',
+              padding: '24px',
+              maxWidth: '620px',
+              width: '100%',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: 'var(--shadow-xl)',
+              overflow: 'hidden',
+            }}>
+              {/* Modal Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid var(--border-subtle)' }}>
+                <div>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Sparkles size={20} color="var(--brand-gold)" />
+                    Customize Add-ons: {prod.name}
+                  </h2>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                    Add, edit, or remove add-on choices specifically for this product.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '6px', borderRadius: '50%' }}
+                  onClick={() => {
+                    setProductModifiersModal({ open: false, product: null });
+                    setEditingModId(null);
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Scrollable Content */}
+              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '18px', paddingRight: '4px' }}>
+                {/* Form to Add New Add-on for THIS Product */}
+                <div style={{
+                  backgroundColor: 'var(--bg-surface-elevated)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '14px 16px',
+                }}>
+                  <h3 style={{ fontSize: '0.88rem', fontWeight: 800, margin: '0 0 10px 0', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Plus size={15} color="var(--brand-green)" />
+                    + Add New Add-on to {prod.name}
+                  </h3>
+
+                  <form onSubmit={handleAddProductModifier}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr auto', gap: '10px', alignItems: 'flex-end' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                          Add-on Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Extra Bonito Flakes, Spicy Sauce"
+                          value={newModName}
+                          onChange={(e) => setNewModName(e.target.value)}
+                          required
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--border-light)',
+                            fontSize: '0.88rem',
+                            outline: 'none',
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                          Extra Price (+₱)
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          min="0"
+                          placeholder="0.00"
+                          value={newModPrice}
+                          onChange={(e) => setNewModPrice(e.target.value)}
+                          required
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--border-light)',
+                            fontSize: '0.88rem',
+                            fontFamily: 'var(--font-mono)',
+                            fontWeight: 700,
+                            color: 'var(--brand-red)',
+                            outline: 'none',
+                          }}
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="btn btn-primary"
+                        style={{ padding: '8px 16px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
+                      >
+                        <Plus size={14} />
+                        Add Add-on
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                {/* List of Add-ons on this Product */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <h3 style={{ fontSize: '0.9rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+                      Current Add-ons ({currentMods.length})
+                    </h3>
+                    {currentMods.length > 0 && (
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        onClick={handleClearAllProductModifiers}
+                        title="Clear and delete all add-ons for this product"
+                      >
+                        <Trash2 size={12} />
+                        Clear All Add-ons
+                      </button>
+                    )}
+                  </div>
+
+                  {currentMods.length === 0 ? (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: '30px 20px',
+                      backgroundColor: 'var(--bg-surface-elevated)',
+                      borderRadius: 'var(--radius-md)',
+                      color: 'var(--text-muted)',
+                      fontSize: '0.85rem',
+                      border: '1px dashed var(--border-light)',
+                    }}>
+                      No add-ons assigned to <strong>{prod.name}</strong> yet. Use the form above to add customized add-ons for this item.
+                    </div>
+                  ) : (
+                    <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.86rem' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: 'var(--bg-surface-elevated)', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                            <th style={{ padding: '10px 14px', textAlign: 'left' }}>Add-on Name</th>
+                            <th style={{ padding: '10px 14px', textAlign: 'right' }}>Extra Price</th>
+                            <th style={{ padding: '10px 14px', textAlign: 'right' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentMods.map(mod => {
+                            const modId = mod.id ?? mod.modifier_id;
+                            const isEditing = editingModId === modId;
+
+                            if (isEditing) {
+                              return (
+                                <tr key={modId} style={{ backgroundColor: '#fffbeb', borderBottom: '1px solid var(--border-subtle)' }}>
+                                  <td style={{ padding: '8px 14px' }}>
+                                    <input
+                                      type="text"
+                                      value={editModName}
+                                      onChange={(e) => setEditModName(e.target.value)}
+                                      style={{
+                                        width: '100%',
+                                        padding: '6px 10px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--border-light)',
+                                        fontSize: '0.85rem',
+                                        fontWeight: 700,
+                                      }}
+                                      autoFocus
+                                    />
+                                  </td>
+                                  <td style={{ padding: '8px 14px', textAlign: 'right' }}>
+                                    <input
+                                      type="number"
+                                      step="any"
+                                      min="0"
+                                      value={editModPrice}
+                                      onChange={(e) => setEditModPrice(e.target.value)}
+                                      style={{
+                                        width: '90px',
+                                        padding: '6px 10px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--border-light)',
+                                        fontSize: '0.85rem',
+                                        fontFamily: 'var(--font-mono)',
+                                        fontWeight: 700,
+                                        color: 'var(--brand-red)',
+                                        textAlign: 'right',
+                                      }}
+                                    />
+                                  </td>
+                                  <td style={{ padding: '8px 14px', textAlign: 'right' }}>
+                                    <div style={{ display: 'inline-flex', gap: '6px' }}>
+                                      <button
+                                        type="button"
+                                        className="btn btn-primary"
+                                        style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                                        onClick={() => handleSaveEditProductModifier(modId)}
+                                      >
+                                        <Save size={12} />
+                                        Save
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                                        onClick={() => setEditingModId(null)}
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            }
+
+                            return (
+                              <tr key={modId} style={{ borderBottom: '1px solid var(--border-subtle)', backgroundColor: '#ffffff' }}>
+                                <td style={{ padding: '10px 14px', fontWeight: 700, color: 'var(--text-main)' }}>
+                                  {mod.name}
+                                </td>
+                                <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--brand-red)' }}>
+                                  +₱{Number(mod.price_delta || 0).toFixed(2)}
+                                </td>
+                                <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                                  <div style={{ display: 'inline-flex', gap: '6px' }}>
+                                    <button
+                                      type="button"
+                                      className="btn btn-secondary"
+                                      style={{ padding: '4px 8px', fontSize: '0.75rem' }}
+                                      onClick={() => {
+                                        setEditingModId(modId);
+                                        setEditModName(mod.name);
+                                        setEditModPrice(String(mod.price_delta));
+                                      }}
+                                      title="Edit Add-on Name & Price"
+                                    >
+                                      <Edit2 size={13} />
+                                      Edit
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn btn-danger"
+                                      style={{ padding: '4px 8px', fontSize: '0.75rem' }}
+                                      onClick={() => handleDeleteProductModifier(modId, mod.name)}
+                                      title="Delete Add-on"
+                                    >
+                                      <Trash2 size={13} />
+                                      Delete
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 22px' }}
+                  onClick={() => {
+                    setProductModifiersModal({ open: false, product: null });
+                    setEditingModId(null);
+                  }}
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

@@ -43,7 +43,10 @@ contextBridge.exposeInMainWorld('api', {
     deleteVariant: (sessionId, id) => ipcRenderer.invoke('pos:menu-admin:delete-variant', { sessionId, id }),
     createModifier: (sessionId, data) => ipcRenderer.invoke('pos:menu-admin:create-modifier', { sessionId, ...data }),
     updateModifier: (sessionId, data) => ipcRenderer.invoke('pos:menu-admin:update-modifier', { sessionId, ...data }),
+    deleteModifier: (sessionId, id) => ipcRenderer.invoke('pos:menu-admin:delete-modifier', { sessionId, id }),
+    getAllModifiers: (sessionId, includeInactive) => ipcRenderer.invoke('pos:menu-admin:all-modifiers', { sessionId, includeInactive }),
     manageModifiers: (sessionId, data) => ipcRenderer.invoke('pos:menu-admin:manage-modifiers', { sessionId, ...data }),
+    clearProductModifiers: (sessionId, productId) => ipcRenderer.invoke('pos:menu-admin:clear-modifiers', { sessionId, productId }),
     toggleActive: (sessionId, id, active) => ipcRenderer.invoke('pos:menu-admin:toggle-active', { sessionId, id, active }),
   },
 
