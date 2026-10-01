@@ -15,6 +15,12 @@ const defaultCatalog = [
     id: 1,
     name: 'Takoyaki',
     sort_order: 1,
+    modifiers: [
+      { id: 1, name: 'Extra Takoyaki Sauce', price_delta: 5.0 },
+      { id: 2, name: 'Extra Japanese Mayo', price_delta: 5.0 },
+      { id: 3, name: 'Extra Bonito Flakes', price_delta: 10.0 },
+      { id: 4, name: 'Chili Garlic Sauce', price_delta: 5.0 },
+    ],
     products: [
       {
         id: 1,
@@ -54,6 +60,9 @@ const defaultCatalog = [
     id: 2,
     name: 'Siomai',
     sort_order: 2,
+    modifiers: [
+      { id: 4, name: 'Chili Garlic Sauce', price_delta: 5.0 },
+    ],
     products: [
       {
         id: 3,
@@ -85,6 +94,10 @@ const defaultCatalog = [
     id: 3,
     name: 'Drinks',
     sort_order: 3,
+    modifiers: [
+      { id: 5, name: 'Less Ice', price_delta: 0.0 },
+      { id: 6, name: 'Extra Ice', price_delta: 0.0 },
+    ],
     products: [
       {
         id: 5,
@@ -313,6 +326,13 @@ export function setupBrowserMockApi() {
         if (cat && data.name) cat.name = data.name;
         return { success: true, data: cat };
       },
+      deleteCategory: async (s, id) => {
+        const idx = defaultCatalog.findIndex(c => c.id === id);
+        if (idx !== -1) {
+          defaultCatalog.splice(idx, 1);
+        }
+        return { success: true, deleted: true };
+      },
       createProduct: async (s, data) => {
         const cat = defaultCatalog.find(c => c.id === data.categoryId);
         const newProd = {
@@ -334,6 +354,12 @@ export function setupBrowserMockApi() {
             if (data.categoryId) p.category_id = data.categoryId;
             return { success: true, data: p };
           }
+        }
+        return { success: true };
+      },
+      deleteProduct: async (s, id) => {
+        for (const c of defaultCatalog) {
+          c.products = (c.products || []).filter(pr => pr.id !== id);
         }
         return { success: true };
       },
@@ -381,6 +407,12 @@ export function setupBrowserMockApi() {
         const mods = includeInactive ? defaultModifiers : defaultModifiers.filter(m => m.active);
         return { success: true, data: JSON.parse(JSON.stringify(mods)) };
       },
+      getCategoryModifiers: async (s, categoryId, includeInactive) => {
+        const cat = defaultCatalog.find(c => c.id === categoryId);
+        const mods = cat?.modifiers || [];
+        const filtered = includeInactive ? mods : mods.filter(m => m.active !== 0);
+        return { success: true, data: JSON.parse(JSON.stringify(filtered)) };
+      },
       createModifier: async (s, data) => {
         const newMod = {
           id: Date.now(),
@@ -389,6 +421,17 @@ export function setupBrowserMockApi() {
           active: 1,
         };
         defaultModifiers.push(newMod);
+        if (data.categoryId) {
+          const cat = defaultCatalog.find(c => c.id === data.categoryId);
+          if (cat) {
+            if (!cat.modifiers) cat.modifiers = [];
+            cat.modifiers.push(newMod);
+            for (const p of (cat.products || [])) {
+              if (!p.modifiers) p.modifiers = [];
+              p.modifiers.push(newMod);
+            }
+          }
+        }
         if (data.productId) {
           for (const c of defaultCatalog) {
             const p = c.products.find(pr => pr.id === data.productId);
@@ -407,6 +450,11 @@ export function setupBrowserMockApi() {
           if (data.priceDelta !== undefined) mod.price_delta = Number(data.priceDelta);
           if (data.active !== undefined) mod.active = data.active ? 1 : 0;
           for (const c of defaultCatalog) {
+            const cm = (c.modifiers || []).find(m => (m.id ?? m.modifier_id) === data.id);
+            if (cm) {
+              if (data.name !== undefined) cm.name = data.name.trim();
+              if (data.priceDelta !== undefined) cm.price_delta = Number(data.priceDelta);
+            }
             for (const p of c.products) {
               const pm = (p.modifiers || []).find(m => (m.id ?? m.modifier_id) === data.id);
               if (pm) {
@@ -424,8 +472,19 @@ export function setupBrowserMockApi() {
           defaultModifiers.splice(idx, 1);
         }
         for (const c of defaultCatalog) {
+          c.modifiers = (c.modifiers || []).filter(m => (m.id ?? m.modifier_id) !== id);
           for (const p of c.products) {
             p.modifiers = (p.modifiers || []).filter(m => (m.id ?? m.modifier_id) !== id);
+          }
+        }
+        return { success: true };
+      },
+      clearCategoryModifiers: async (s, categoryId) => {
+        const cat = defaultCatalog.find(c => c.id === categoryId);
+        if (cat) {
+          cat.modifiers = [];
+          for (const p of (cat.products || [])) {
+            p.modifiers = [];
           }
         }
         return { success: true };

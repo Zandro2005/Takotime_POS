@@ -49,13 +49,36 @@ export class MenuService {
 
   getModifiers(productId) {
     const db = this.db;
-    return db.prepare(`
-      SELECT m.id, m.name, m.price_delta, m.active
+    const prodMods = db.prepare(`
+      SELECT m.id, m.id as modifier_id, m.name, m.price_delta, m.active
       FROM modifiers m
       JOIN product_modifiers pm ON m.id = pm.modifier_id
       WHERE pm.product_id = ? AND m.active = 1
       ORDER BY m.price_delta ASC, m.name ASC
     `).all(productId);
+
+    if (prodMods.length > 0) {
+      return prodMods;
+    }
+
+    const prod = db.prepare(`SELECT category_id FROM products WHERE id = ?`).get(productId);
+    if (prod && prod.category_id) {
+      return this.getCategoryModifiers(prod.category_id);
+    }
+
+    return [];
+  }
+
+  getCategoryModifiers(categoryId, includeInactive = false) {
+    const db = this.db;
+    const filter = includeInactive ? '' : 'AND m.active = 1';
+    return db.prepare(`
+      SELECT m.id, m.id as modifier_id, m.name, m.price_delta, m.active
+      FROM modifiers m
+      JOIN category_modifiers cm ON m.id = cm.modifier_id
+      WHERE cm.category_id = ? ${filter}
+      ORDER BY m.price_delta ASC, m.name ASC
+    `).all(categoryId);
   }
 
   getAllModifiers(includeInactive = false) {
@@ -89,13 +112,28 @@ export class MenuService {
       ORDER BY sort_order ASC, price ASC
     `).all();
 
+    const allCategoryModifiers = db.prepare(`
+      SELECT cm.category_id, m.id, m.id as modifier_id, m.name, m.price_delta, m.active
+      FROM category_modifiers cm
+      JOIN modifiers m ON cm.modifier_id = m.id
+      WHERE m.active = 1
+      ORDER BY m.price_delta ASC, m.name ASC
+    `).all();
+
     const allProductModifiers = db.prepare(`
-      SELECT pm.product_id, m.id, m.id as modifier_id, m.name, m.price_delta
+      SELECT pm.product_id, m.id, m.id as modifier_id, m.name, m.price_delta, m.active
       FROM product_modifiers pm
       JOIN modifiers m ON pm.modifier_id = m.id
       WHERE m.active = 1
       ORDER BY m.price_delta ASC, m.name ASC
     `).all();
+
+    // Group modifiers by category
+    const modifiersByCat = {};
+    for (const cm of allCategoryModifiers) {
+      if (!modifiersByCat[cm.category_id]) modifiersByCat[cm.category_id] = [];
+      modifiersByCat[cm.category_id].push(cm);
+    }
 
     // Assemble catalog hierarchy
     const productsByCat = {};
@@ -103,7 +141,10 @@ export class MenuService {
       if (!productsByCat[p.category_id]) productsByCat[p.category_id] = [];
 
       const variants = allVariants.filter(v => v.product_id === p.id);
-      const modifiers = allProductModifiers.filter(pm => pm.product_id === p.id);
+      const catMods = modifiersByCat[p.category_id] || [];
+      const modifiers = catMods.length > 0
+        ? catMods
+        : allProductModifiers.filter(pm => pm.product_id === p.id);
 
       productsByCat[p.category_id].push({
         ...p,
@@ -114,6 +155,7 @@ export class MenuService {
 
     return categories.map(cat => ({
       ...cat,
+      modifiers: modifiersByCat[cat.id] || [],
       products: productsByCat[cat.id] || [],
     }));
   }
@@ -149,6 +191,69 @@ export class MenuService {
     return { id, name: newName, sort_order: newSort, active: newActive };
   }
 
+  deleteCategory(id) {
+    const db = this.db;
+    const existing = db.prepare(`SELECT * FROM categories WHERE id = ?`).get(id);
+    if (!existing) throw new Error(`Category #${id} not found`);
+
+    // Check if any variant of any product in this category has historical sales in order_items
+    const salesCount = db.prepare(`
+      SELECT COUNT(oi.id) as count
+      FROM order_items oi
+      JOIN product_variants pv ON oi.variant_id = pv.id
+      JOIN products p ON pv.product_id = p.id
+      WHERE p.category_id = ?
+    `).get(id);
+
+    if (salesCount && salesCount.count > 0) {
+      // Soft deactivate category and its products/variants to preserve past receipts & sales reports
+      db.prepare(`UPDATE categories SET active = 0, updated_at = datetime('now', 'localtime') WHERE id = ?`).run(id);
+      db.prepare(`UPDATE products SET active = 0, updated_at = datetime('now', 'localtime') WHERE category_id = ?`).run(id);
+      db.prepare(`
+        UPDATE product_variants
+        SET active = 0, updated_at = datetime('now', 'localtime')
+        WHERE product_id IN (SELECT id FROM products WHERE category_id = ?)
+      `).run(id);
+      return { success: true, deactivated: true };
+    }
+
+    // Safe to hard delete if never sold in any order
+    return db.transaction(() => {
+      // 1. Delete recipes for all product variants in this category
+      db.prepare(`
+        DELETE FROM recipes
+        WHERE product_variant_id IN (
+          SELECT pv.id FROM product_variants pv
+          JOIN products p ON pv.product_id = p.id
+          WHERE p.category_id = ?
+        )
+      `).run(id);
+
+      // 2. Delete product_modifiers for all products in this category
+      db.prepare(`
+        DELETE FROM product_modifiers
+        WHERE product_id IN (SELECT id FROM products WHERE category_id = ?)
+      `).run(id);
+
+      // 3. Delete product_variants for all products in this category
+      db.prepare(`
+        DELETE FROM product_variants
+        WHERE product_id IN (SELECT id FROM products WHERE category_id = ?)
+      `).run(id);
+
+      // 4. Delete products in this category
+      db.prepare(`DELETE FROM products WHERE category_id = ?`).run(id);
+
+      // 5. Delete category_modifiers
+      db.prepare(`DELETE FROM category_modifiers WHERE category_id = ?`).run(id);
+
+      // 6. Delete category
+      db.prepare(`DELETE FROM categories WHERE id = ?`).run(id);
+
+      return { success: true, deleted: true };
+    })();
+  }
+
   // --- Product CRUD ---
 
   createProduct({ name, categoryId, sortOrder = 0 }) {
@@ -164,7 +269,16 @@ export class MenuService {
       VALUES (?, ?, ?, 1)
     `);
     const info = stmt.run(name.trim(), categoryId, Number(sortOrder) || 0);
-    return { id: info.lastInsertRowid, name: name.trim(), category_id: categoryId, sort_order: Number(sortOrder) || 0, active: 1 };
+    const newProdId = info.lastInsertRowid;
+
+    // Inherit any existing category modifiers
+    const catMods = db.prepare(`SELECT modifier_id FROM category_modifiers WHERE category_id = ?`).all(categoryId);
+    const linkProd = db.prepare(`INSERT OR IGNORE INTO product_modifiers (product_id, modifier_id) VALUES (?, ?)`);
+    for (const cm of catMods) {
+      linkProd.run(newProdId, cm.modifier_id);
+    }
+
+    return { id: newProdId, name: name.trim(), category_id: categoryId, sort_order: Number(sortOrder) || 0, active: 1 };
   }
 
   updateProduct(id, { name, categoryId, sortOrder, active }) {
@@ -184,6 +298,47 @@ export class MenuService {
     `).run(newName, newCat, newSort, newActive, id);
 
     return { id, name: newName, category_id: newCat, sort_order: newSort, active: newActive };
+  }
+
+  deleteProduct(id) {
+    const db = this.db;
+    const existing = db.prepare(`SELECT * FROM products WHERE id = ?`).get(id);
+    if (!existing) throw new Error(`Product #${id} not found`);
+
+    // Check if any variant of this product has historical sales in order_items
+    const salesCount = db.prepare(`
+      SELECT COUNT(oi.id) as count
+      FROM order_items oi
+      JOIN product_variants pv ON oi.variant_id = pv.id
+      WHERE pv.product_id = ?
+    `).get(id);
+
+    if (salesCount && salesCount.count > 0) {
+      // Soft deactivate product and its variants to preserve past receipts & sales reports
+      db.prepare(`UPDATE products SET active = 0, updated_at = datetime('now', 'localtime') WHERE id = ?`).run(id);
+      db.prepare(`UPDATE product_variants SET active = 0, updated_at = datetime('now', 'localtime') WHERE product_id = ?`).run(id);
+      return { success: true, deactivated: true };
+    }
+
+    // Safe to hard delete if never sold in any order
+    return db.transaction(() => {
+      // 1. Delete recipes for all variants of this product
+      db.prepare(`
+        DELETE FROM recipes
+        WHERE product_variant_id IN (SELECT id FROM product_variants WHERE product_id = ?)
+      `).run(id);
+
+      // 2. Delete product_modifiers
+      db.prepare(`DELETE FROM product_modifiers WHERE product_id = ?`).run(id);
+
+      // 3. Delete product_variants
+      db.prepare(`DELETE FROM product_variants WHERE product_id = ?`).run(id);
+
+      // 4. Delete the product itself
+      db.prepare(`DELETE FROM products WHERE id = ?`).run(id);
+
+      return { success: true, deleted: true };
+    })();
   }
 
   // --- Variant CRUD ---
@@ -250,7 +405,7 @@ export class MenuService {
 
   // --- Modifier CRUD & Linkage ---
 
-  createModifier({ name, priceDelta = 0, productId = null }) {
+  createModifier({ name, priceDelta = 0, productId = null, categoryId = null }) {
     if (!name || !name.trim()) throw new Error('Modifier name is required');
     const db = this.db;
     const stmt = db.prepare(`
@@ -259,14 +414,31 @@ export class MenuService {
     `);
     const info = stmt.run(name.trim(), Number(priceDelta) || 0);
     const modId = info.lastInsertRowid;
+    if (categoryId) {
+      this.linkCategoryModifier(categoryId, modId);
+    }
     if (productId) {
       this.linkModifier(productId, modId);
     }
     return { id: modId, name: name.trim(), price_delta: Number(priceDelta) || 0, active: 1 };
   }
 
+  createCategoryModifier(categoryId, { name, priceDelta = 0 }) {
+    if (!categoryId) throw new Error('Category ID is required');
+    return this.createModifier({ name, priceDelta, categoryId });
+  }
+
   createProductModifier(productId, { name, priceDelta = 0 }) {
     return this.createModifier({ name, priceDelta, productId });
+  }
+
+  clearCategoryModifiers(categoryId) {
+    const db = this.db;
+    const currentMods = db.prepare(`SELECT modifier_id FROM category_modifiers WHERE category_id = ?`).all(categoryId);
+    for (const row of currentMods) {
+      this.deleteModifier(row.modifier_id);
+    }
+    return { success: true, clearedCount: currentMods.length };
   }
 
   clearProductModifiers(productId) {
@@ -306,14 +478,47 @@ export class MenuService {
     if (salesCount && salesCount.count > 0) {
       // Soft deactivate to preserve historical sales reports & receipts
       db.prepare(`UPDATE modifiers SET active = 0, updated_at = datetime('now', 'localtime') WHERE id = ?`).run(id);
+      db.prepare(`DELETE FROM category_modifiers WHERE modifier_id = ?`).run(id);
       db.prepare(`DELETE FROM product_modifiers WHERE modifier_id = ?`).run(id);
       return { success: true, deactivated: true };
     }
 
     // Safe to hard delete if never ordered
+    db.prepare(`DELETE FROM category_modifiers WHERE modifier_id = ?`).run(id);
     db.prepare(`DELETE FROM product_modifiers WHERE modifier_id = ?`).run(id);
     db.prepare(`DELETE FROM modifiers WHERE id = ?`).run(id);
     return { success: true, deleted: true };
+  }
+
+  linkCategoryModifier(categoryId, modifierId) {
+    const db = this.db;
+    db.prepare(`
+      INSERT OR IGNORE INTO category_modifiers (category_id, modifier_id)
+      VALUES (?, ?)
+    `).run(categoryId, modifierId);
+
+    // Also link to existing products in this category
+    const prods = db.prepare('SELECT id FROM products WHERE category_id = ?').all(categoryId);
+    const linkStmt = db.prepare('INSERT OR IGNORE INTO product_modifiers (product_id, modifier_id) VALUES (?, ?)');
+    for (const p of prods) {
+      linkStmt.run(p.id, modifierId);
+    }
+    return { success: true };
+  }
+
+  unlinkCategoryModifier(categoryId, modifierId) {
+    const db = this.db;
+    db.prepare(`
+      DELETE FROM category_modifiers
+      WHERE category_id = ? AND modifier_id = ?
+    `).run(categoryId, modifierId);
+
+    const prods = db.prepare('SELECT id FROM products WHERE category_id = ?').all(categoryId);
+    const unlinkStmt = db.prepare('DELETE FROM product_modifiers WHERE product_id = ? AND modifier_id = ?');
+    for (const p of prods) {
+      unlinkStmt.run(p.id, modifierId);
+    }
+    return { success: true };
   }
 
   linkModifier(productId, modifierId) {

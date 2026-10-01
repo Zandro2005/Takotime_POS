@@ -84,7 +84,23 @@ export function seedInitialData(db) {
   insertModifier.run(5, 'Less Ice', 0.0);
   insertModifier.run(6, 'Extra Ice', 0.0);
 
-  // 6. Link Modifiers to Products
+  // 6. Link Modifiers to Categories and Products
+  const linkCategoryModifier = db.prepare(`
+    INSERT OR IGNORE INTO category_modifiers (category_id, modifier_id) VALUES (?, ?)
+  `);
+  // Takoyaki (category 1)
+  linkCategoryModifier.run(1, 1);
+  linkCategoryModifier.run(1, 2);
+  linkCategoryModifier.run(1, 3);
+  linkCategoryModifier.run(1, 4);
+
+  // Siomai (category 2)
+  linkCategoryModifier.run(2, 4);
+
+  // Drinks (category 3)
+  linkCategoryModifier.run(3, 5);
+  linkCategoryModifier.run(3, 6);
+
   const linkModifier = db.prepare(`
     INSERT OR IGNORE INTO product_modifiers (product_id, modifier_id) VALUES (?, ?)
   `);

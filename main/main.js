@@ -44,8 +44,9 @@ function createWindow() {
   });
 
   mainWindow.once('ready-to-show', () => {
+    mainWindow.maximize();
     mainWindow.show();
-    logger.info('Main window is now visible.');
+    logger.info('Main window is now visible (maximized).');
   });
 
   // In development, load from Vite dev server. In production, load index.html from dist

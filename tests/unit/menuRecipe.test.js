@@ -52,6 +52,40 @@ test('Phase 4 Menu & Recipe Suite', async (t) => {
     assert.ok(all.some(c => c.id === newCatId && c.name === 'Party Platters'));
   });
 
+  // 1b. Category Deletion (Hard delete vs Soft deactivate)
+  await t.test('1b. Category delete: hard deletes when unsold/empty, soft deactivates when sold', () => {
+    // 1. Unsold / empty category -> hard deletes
+    const tempCat = menuService.createCategory({ name: 'Seasonal Promo Category' });
+    const tempCatProd = menuService.createProduct({ name: 'Seasonal Item', categoryId: tempCat.id });
+    menuService.createVariant({ productId: tempCatProd.id, label: 'Single', price: 99.0 });
+
+    const delRes = menuService.deleteCategory(tempCat.id);
+    assert.equal(delRes.deleted, true);
+    assert.ok(!menuService.getCategories(true).some(c => c.id === tempCat.id));
+
+    // 2. Category with historical sales -> soft deactivates
+    const soldCat = menuService.createCategory({ name: 'Historical Sold Category' });
+    const soldCatProd = menuService.createProduct({ name: 'Historical Drink', categoryId: soldCat.id });
+    const soldCatVar = menuService.createVariant({ productId: soldCatProd.id, label: 'Large', price: 55.0 });
+
+    const dummyShift = shiftService.getCurrentShift() || shiftService.openShift(3, 1000);
+    const ordInfo = testDb.prepare(`
+      INSERT INTO orders (shift_id, staff_id, order_type, queue_no, subtotal, total, payment_method)
+      VALUES (?, 3, 'dine_in', 997, 55.0, 55.0, 'cash')
+    `).run(dummyShift.id);
+    testDb.prepare(`
+      INSERT INTO order_items (order_id, variant_id, qty, unit_price, subtotal)
+      VALUES (?, ?, 1, 55.0, 55.0)
+    `).run(ordInfo.lastInsertRowid, soldCatVar.id);
+
+    const soldCatRes = menuService.deleteCategory(soldCat.id);
+    assert.equal(soldCatRes.deactivated, true);
+    // Active category catalog should exclude it
+    assert.ok(!menuService.getCategories(false).some(c => c.id === soldCat.id));
+    // Inactive query retains it
+    assert.ok(menuService.getCategories(true).some(c => c.id === soldCat.id && c.active === 0));
+  });
+
   // 2. Product Management
   await t.test('2. Product CRUD creates and updates products', () => {
     const prod = menuService.createProduct({
@@ -65,6 +99,58 @@ test('Phase 4 Menu & Recipe Suite', async (t) => {
 
     const updated = menuService.updateProduct(newProdId, { name: 'Mega Party Platter (24pcs)' });
     assert.equal(updated.name, 'Mega Party Platter (24pcs)');
+  });
+
+  // 2b. Product Deletion (Hard delete vs Soft deactivate)
+  await t.test('2b. Product delete: hard deletes when unsold, soft deactivates when sold', () => {
+    // 1. Create a dummy product with variant (unsold)
+    const tempProd = menuService.createProduct({
+      name: 'Temporary Unsold Product',
+      categoryId: newCatId,
+    });
+    menuService.createVariant({
+      productId: tempProd.id,
+      label: 'Regular',
+      price: 50.0,
+    });
+
+    // Delete unsold product -> hard deletes
+    const res = menuService.deleteProduct(tempProd.id);
+    assert.equal(res.deleted, true);
+    assert.ok(!menuService.getProductsByCategory(newCatId, true).some(p => p.id === tempProd.id));
+
+    // 2. Product with historical sales -> soft deactivates
+    const soldProd = menuService.createProduct({
+      name: 'Historical Sold Product',
+      categoryId: newCatId,
+    });
+    const soldVar = menuService.createVariant({
+      productId: soldProd.id,
+      label: 'Single',
+      price: 60.0,
+    });
+
+    const dummyShift = shiftService.getCurrentShift() || shiftService.openShift(3, 1000);
+    const ordInfo = testDb.prepare(`
+      INSERT INTO orders (shift_id, staff_id, order_type, queue_no, subtotal, total, payment_method)
+      VALUES (?, 3, 'dine_in', 998, 60.0, 60.0, 'cash')
+    `).run(dummyShift.id);
+    const orderItemId = testDb.prepare(`
+      INSERT INTO order_items (order_id, variant_id, qty, unit_price, subtotal)
+      VALUES (?, ?, 1, 60.0, 60.0)
+    `).run(ordInfo.lastInsertRowid, soldVar.id).lastInsertRowid;
+
+    const soldRes = menuService.deleteProduct(soldProd.id);
+    assert.equal(soldRes.deactivated, true);
+
+    // Active products should not include it
+    assert.ok(!menuService.getProductsByCategory(newCatId, false).some(p => p.id === soldProd.id));
+    // Inactive lookup includes it with active = 0
+    assert.ok(menuService.getProductsByCategory(newCatId, true).some(p => p.id === soldProd.id && p.active === 0));
+
+    // Clean up
+    testDb.prepare(`DELETE FROM order_items WHERE id = ?`).run(orderItemId);
+    testDb.prepare(`DELETE FROM orders WHERE id = ?`).run(ordInfo.lastInsertRowid);
   });
 
   // 3. Variant Management
@@ -187,6 +273,32 @@ test('Phase 4 Menu & Recipe Suite', async (t) => {
 
     // Verify Garlic Crunch was deleted because it was unsold
     assert.ok(!menuService.getAllModifiers(true).some(m => m.id === pMod.id));
+  });
+
+  // 4d. Category-Level Modifier Management
+  await t.test('4d. Category-level modifier CRUD and catalog inheritance', () => {
+    // 1. Create a category modifier for category 2 (Siomai)
+    const catMod = menuService.createCategoryModifier(2, { name: 'Fried Garlic Topping', priceDelta: 7.0 });
+    assert.ok(catMod.id);
+
+    // 2. Query category modifiers for category 2
+    const siomaiMods = menuService.getCategoryModifiers(2);
+    assert.ok(siomaiMods.some(m => m.id === catMod.id && m.name === 'Fried Garlic Topping'));
+
+    // 3. Catalog includes category modifiers on the category object
+    const catalog = menuService.getFullCatalog();
+    const siomaiCat = catalog.find(c => c.id === 2);
+    assert.ok(siomaiCat);
+    assert.ok(siomaiCat.modifiers.some(m => m.id === catMod.id));
+
+    // 4. Products in this category inherit the category modifiers
+    const porkSiomai = siomaiCat.products.find(p => p.id === 3);
+    assert.ok(porkSiomai.modifiers.some(m => m.id === catMod.id));
+
+    // 5. Clean up category modifier
+    const delRes = menuService.deleteModifier(catMod.id);
+    assert.equal(delRes.deleted, true);
+    assert.ok(!menuService.getCategoryModifiers(2).some(m => m.id === catMod.id));
   });
 
   // 5. Recipe Management (BOM Linking)

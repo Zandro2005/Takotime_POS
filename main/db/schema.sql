@@ -69,6 +69,12 @@ CREATE TABLE IF NOT EXISTS product_modifiers (
     PRIMARY KEY (product_id, modifier_id)
 );
 
+CREATE TABLE IF NOT EXISTS category_modifiers (
+    category_id     INTEGER NOT NULL REFERENCES categories(id),
+    modifier_id     INTEGER NOT NULL REFERENCES modifiers(id),
+    PRIMARY KEY (category_id, modifier_id)
+);
+
 -- ──────────────────────────────────────────────
 -- Shifts & Cash Tracking
 -- ──────────────────────────────────────────────

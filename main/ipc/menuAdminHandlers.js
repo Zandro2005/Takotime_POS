@@ -16,6 +16,11 @@ export function registerMenuAdminHandlers() {
     return menuService.updateCategory(payload.id, payload);
   });
 
+  registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_DELETE_CATEGORY, async (payload) => {
+    if (!payload?.id) throw new Error('Category id is required');
+    return menuService.deleteCategory(payload.id);
+  });
+
   // Products
   registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_CREATE_PRODUCT, async (payload) => {
     return menuService.createProduct(payload);
@@ -24,6 +29,11 @@ export function registerMenuAdminHandlers() {
   registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_UPDATE_PRODUCT, async (payload) => {
     if (!payload?.id) throw new Error('Product id is required');
     return menuService.updateProduct(payload.id, payload);
+  });
+
+  registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_DELETE_PRODUCT, async (payload) => {
+    if (!payload?.id) throw new Error('Product id is required');
+    return menuService.deleteProduct(payload.id);
   });
 
   // Variants
@@ -43,6 +53,9 @@ export function registerMenuAdminHandlers() {
 
   // Modifiers
   registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_CREATE_MODIFIER, async (payload) => {
+    if (payload?.categoryId) {
+      return menuService.createCategoryModifier(payload.categoryId, payload);
+    }
     return menuService.createModifier(payload);
   });
 
@@ -60,14 +73,27 @@ export function registerMenuAdminHandlers() {
     return menuService.getAllModifiers(payload?.includeInactive ?? true);
   });
 
+  registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_CATEGORY_MODIFIERS, async (payload) => {
+    if (!payload?.categoryId) throw new Error('categoryId is required');
+    return menuService.getCategoryModifiers(payload.categoryId, payload?.includeInactive ?? false);
+  });
+
   registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_MANAGE_MODIFIERS, async (payload) => {
-    if (!payload?.productId) throw new Error('productId is required');
+    if (payload?.categoryId) {
+      return menuService.linkCategoryModifier(payload.categoryId, payload.modifierId);
+    }
+    if (!payload?.productId) throw new Error('productId or categoryId is required');
     return menuService.setProductModifiers(payload.productId, payload.modifierIds || []);
   });
 
   registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_CLEAR_MODIFIERS, async (payload) => {
-    if (!payload?.productId) throw new Error('productId is required');
-    return menuService.clearProductModifiers(payload.productId);
+    if (payload?.categoryId) {
+      return menuService.clearCategoryModifiers(payload.categoryId);
+    }
+    if (payload?.productId) {
+      return menuService.clearProductModifiers(payload.productId);
+    }
+    throw new Error('categoryId or productId is required');
   });
 
   registerIpcHandler(IPC_CHANNELS.MENU_ADMIN_TOGGLE_ACTIVE, async (payload) => {

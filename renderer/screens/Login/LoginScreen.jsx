@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Lock, User, KeyRound, ArrowRight, Delete, Cloud, Eye, EyeOff } from 'lucide-react';
+import { Lock, User, KeyRound, ArrowRight, Delete, Eye, EyeOff } from 'lucide-react';
 import logoImg from '../../assets/logo.png';
 import './LoginScreen.css';
 
@@ -114,27 +114,6 @@ export function LoginScreen() {
       setLocalError(err.message || 'Login failed');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fillDemo = (demoType) => {
-    if (demoType === 'staff') {
-      setMode('pin');
-      setPin('1111');
-      handleNumpadPress(''); // triggers or quick-fills
-      loginWithPin('1111').catch(e => setLocalError(e.message));
-    } else if (demoType === 'supervisor') {
-      setMode('pin');
-      setPin('2222');
-      loginWithPin('2222').catch(e => setLocalError(e.message));
-    } else if (demoType === 'admin') {
-      setMode('password');
-      setUsername('admin');
-      setPassword('admin123');
-    } else if (demoType === 'cloud') {
-      setMode('password');
-      setUsername('cloudadmin');
-      setPassword('cloudpass123');
     }
   };
 
@@ -277,46 +256,6 @@ export function LoginScreen() {
             </button>
           </form>
         )}
-
-        {/* Demo Fast Access Pills for Developer / Owner Testing - Strictly One Line */}
-        <div className="demo-accounts">
-          <span className="demo-label">Demo:</span>
-          <div className="demo-pills">
-            <button
-              type="button"
-              className="demo-pill"
-              title="Staff"
-              onClick={() => fillDemo('staff')}
-            >
-              Staff
-            </button>
-            <button
-              type="button"
-              className="demo-pill"
-              title="Lead Staff"
-              onClick={() => fillDemo('supervisor')}
-            >
-              Lead
-            </button>
-            <button
-              type="button"
-              className="demo-pill"
-              title="Store Admin"
-              onClick={() => fillDemo('admin')}
-            >
-              Admin
-            </button>
-            <button
-              type="button"
-              className="demo-pill demo-pill-cloud"
-              title="Remote Cloud Admin"
-              onClick={() => fillDemo('cloud')}
-            >
-              <Cloud size={13} style={{ display: 'inline', verticalAlign: 'middle' }} />
-              Cloud
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

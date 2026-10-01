@@ -74,8 +74,10 @@ export const IPC_CHANNELS = {
   // Menu Admin
   MENU_ADMIN_CREATE_CATEGORY: 'pos:menu-admin:create-category',
   MENU_ADMIN_UPDATE_CATEGORY: 'pos:menu-admin:update-category',
+  MENU_ADMIN_DELETE_CATEGORY: 'pos:menu-admin:delete-category',
   MENU_ADMIN_CREATE_PRODUCT: 'pos:menu-admin:create-product',
   MENU_ADMIN_UPDATE_PRODUCT: 'pos:menu-admin:update-product',
+  MENU_ADMIN_DELETE_PRODUCT: 'pos:menu-admin:delete-product',
   MENU_ADMIN_CREATE_VARIANT: 'pos:menu-admin:create-variant',
   MENU_ADMIN_UPDATE_VARIANT: 'pos:menu-admin:update-variant',
   MENU_ADMIN_DELETE_VARIANT: 'pos:menu-admin:delete-variant',
@@ -83,6 +85,7 @@ export const IPC_CHANNELS = {
   MENU_ADMIN_UPDATE_MODIFIER: 'pos:menu-admin:update-modifier',
   MENU_ADMIN_DELETE_MODIFIER: 'pos:menu-admin:delete-modifier',
   MENU_ADMIN_ALL_MODIFIERS: 'pos:menu-admin:all-modifiers',
+  MENU_ADMIN_CATEGORY_MODIFIERS: 'pos:menu-admin:category-modifiers',
   MENU_ADMIN_MANAGE_MODIFIERS: 'pos:menu-admin:manage-modifiers',
   MENU_ADMIN_CLEAR_MODIFIERS: 'pos:menu-admin:clear-modifiers',
   MENU_ADMIN_REORDER: 'pos:menu-admin:reorder',
