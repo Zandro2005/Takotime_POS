@@ -26,8 +26,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "TAKOTIME",
-        "repo": "takotime-pos",
+        "owner": "Zandro2005",
+        "repo": "Takotime_POS",
         "releaseType": "release"
       }
     ],
