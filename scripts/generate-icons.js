@@ -34,8 +34,9 @@ $sizes = @(256, 128, 64, 48, 32, 16)
 $pngDataList = @()
 
 foreach ($s in $sizes) {
-    $targetBmp = New-Object System.Drawing.Bitmap($s, $s)
+    $targetBmp = New-Object System.Drawing.Bitmap($s, $s, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
     $g = [System.Drawing.Graphics]::FromImage($targetBmp)
+    $g.Clear([System.Drawing.Color]::Transparent)
     $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
     $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
     $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
