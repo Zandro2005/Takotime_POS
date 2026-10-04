@@ -23,10 +23,24 @@
       "output": "release",
       "buildResources": "build"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "TAKOTIME",
+        "repo": "takotime-pos",
+        "releaseType": "release"
+      }
+    ],
     "win": {
       "icon": "build/icon.ico",
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
       ]
     },
     "nsis": {
@@ -56,6 +70,7 @@
     "electron-updater": "^6.8.9",
     "exceljs": "^4.4.0",
     "lucide-react": "^1.48.0",
+    "node-thermal-printer": "^4.6.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "xlsx": "^0.18.5",

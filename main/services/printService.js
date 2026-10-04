@@ -97,28 +97,61 @@ export class PrintService {
     };
   }
 
+  sendBufferToPrinter(buffer, options = {}) {
+    let printerTarget = options.printerTarget;
+    if (!printerTarget && this._db) {
+      try {
+        const row = this._db.prepare("SELECT value FROM settings WHERE key = 'printer_target'").get();
+        if (row) printerTarget = row.value;
+      } catch (e) {
+        // Settings table might not exist in early tests
+      }
+    }
+
+    if (printerTarget && printerTarget.startsWith('tcp://')) {
+      const ip = printerTarget.replace('tcp://', '');
+      const net = require('node:net');
+      const client = new net.Socket();
+      client.connect(9100, ip, () => {
+        client.write(buffer);
+        client.destroy();
+      });
+      client.on('error', (err) => logger.error(`Network printer error: ${err.message}`));
+      logger.info(`Buffer sent directly to Network Printer: ${ip}`);
+      return true;
+    } else if (printerTarget && printerTarget.trim() !== '') {
+      try {
+        fs.writeFileSync(printerTarget, buffer);
+        logger.info(`Buffer sent directly to port: ${printerTarget}`);
+        return true;
+      } catch (e) {
+        logger.error(`Failed to write to printer port ${printerTarget}:`, e);
+        return false;
+      }
+    }
+    return false; // No printer configured, fallback to simulation
+  }
+
   printReceipt(orderId, options = {}) {
     try {
-      this.ensureSpoolerDir();
       logger.info(`Formatting thermal receipt for Order #${orderId}...`);
 
       const { buffer, formattedText, order } = this.generateEscPosBuffer(orderId);
 
-      // Write simulated spool file for hardware testing/preview
-      const timestamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0];
-      const spoolTextFile = path.join(this.spoolerDir, `receipt_${orderId}_${timestamp}.txt`);
-      const spoolBinFile = path.join(this.spoolerDir, `receipt_${orderId}_${timestamp}.bin`);
+      const isRealPrinter = this.sendBufferToPrinter(buffer, options);
 
-      fs.writeFileSync(spoolTextFile, formattedText, 'utf8');
-      fs.writeFileSync(spoolBinFile, buffer);
-
-      logger.info(`Receipt printed (simulated spooler): ${spoolTextFile}`);
+      if (!isRealPrinter) {
+        this.ensureSpoolerDir();
+        // Write a SINGLE simulated spool file (overwritten) to avoid infinite file spam
+        const spoolTextFile = path.join(this.spoolerDir, `last_receipt.txt`);
+        fs.writeFileSync(spoolTextFile, formattedText, 'utf8');
+        logger.info(`Receipt saved to simulated spooler: ${spoolTextFile}`);
+      }
 
       return {
         success: true,
-        simulated: true,
+        simulated: !isRealPrinter,
         orderId,
-        spoolFile: spoolTextFile,
         timestamp: new Date().toISOString(),
         receiptText: formattedText,
       };
@@ -135,12 +168,17 @@ export class PrintService {
     }
   }
 
-  openCashDrawer() {
+  openCashDrawer(options = {}) {
     try {
-      this.ensureSpoolerDir();
       logger.info('Sending cash drawer kick command...');
-      const logFile = path.join(this.spoolerDir, 'drawer_kick.log');
-      fs.appendFileSync(logFile, `[${new Date().toISOString()}] Cash drawer kick pulse issued\n`);
+      const isRealPrinter = this.sendBufferToPrinter(ESC_POS.DRAWER_KICK, options);
+      
+      if (!isRealPrinter) {
+        this.ensureSpoolerDir();
+        const logFile = path.join(this.spoolerDir, 'drawer_kick.log');
+        // Overwrite file instead of appending to avoid infinite growth
+        fs.writeFileSync(logFile, `[${new Date().toISOString()}] Cash drawer kick pulse issued\n`);
+      }
 
       return {
         success: true,
@@ -153,9 +191,8 @@ export class PrintService {
     }
   }
 
-  testPrint() {
+  testPrint(options = {}) {
     try {
-      this.ensureSpoolerDir();
       const chunks = [];
       chunks.push(ESC_POS.INIT);
       chunks.push(ESC_POS.ALIGN_CENTER);
@@ -176,14 +213,19 @@ export class PrintService {
       chunks.push(ESC_POS.CUT_PAPER);
 
       const buffer = Buffer.concat(chunks);
-      const testFile = path.join(this.spoolerDir, 'test_receipt.txt');
-      fs.writeFileSync(testFile, 'TAKOTIME POS TEST RECEIPT\nSTATUS: ONLINE\nDATE: ' + new Date().toLocaleString());
+      const isRealPrinter = this.sendBufferToPrinter(buffer, options);
+
+      if (!isRealPrinter) {
+        this.ensureSpoolerDir();
+        const testFile = path.join(this.spoolerDir, 'test_receipt.txt');
+        fs.writeFileSync(testFile, 'TAKOTIME POS TEST RECEIPT\nSTATUS: ONLINE\nDATE: ' + new Date().toLocaleString());
+      }
 
       logger.info('Test receipt successfully generated.');
       return {
         success: true,
-        simulated: true,
-        message: 'Thermal printer test receipt sent to spooler.',
+        simulated: !isRealPrinter,
+        message: 'Thermal printer test receipt sent.',
       };
     } catch (err) {
       logger.error('Test print failed', err);

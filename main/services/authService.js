@@ -50,7 +50,7 @@ export class AuthService {
     }
   }
 
-  getSession(sessionId) {
+  getSession(sessionId, touch = true) {
     if (!sessionId) return null;
     const session = activeSessions.get(sessionId);
     if (!session) return null;
@@ -67,7 +67,9 @@ export class AuthService {
       return null;
     }
 
-    session.lastActivityAt = new Date();
+    if (touch) {
+      session.lastActivityAt = new Date();
+    }
     return session;
   }
 

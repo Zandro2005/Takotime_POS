@@ -16,7 +16,10 @@
           ".write": "auth != null"
         },
         "admin_actions_queue": {
-          ".write": "auth != null"
+          ".read": "auth != null",
+          "$actionId": {
+            ".write": "auth != null && (auth.token.admin === true || (data.exists() && newData.child('status').val() === 'applied' && newData.child('action_type').val() === data.child('action_type').val()))"
+          }
         }
       }
     }

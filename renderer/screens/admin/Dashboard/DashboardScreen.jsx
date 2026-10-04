@@ -247,7 +247,7 @@ export function DashboardScreen({ onNavigate }) {
   const handleExportExcel = () => {
     if (!salesTrend || salesTrend.length === 0) return;
     const tfTitle = getTimeframeLabel(timeframe);
-    const dateStr = data?.date || new Date().toISOString().split('T')[0];
+    const dateStr = data?.date || new Date().toLocaleDateString('en-CA');
 
     const headers = ['"Period / Date"', '"Orders"', '"Net Sales (PHP)"', '"Sales Contribution %"'];
     const rows = salesTrend.map(d => {
@@ -313,7 +313,7 @@ export function DashboardScreen({ onNavigate }) {
               LIVE STORE METRICS
             </span>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Branch: Montalban • {data?.date || new Date().toISOString().split('T')[0]}
+              Branch: Montalban • {data?.date || new Date().toLocaleDateString('en-CA')}
             </span>
           </div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>

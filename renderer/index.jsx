@@ -6,7 +6,9 @@ import './index.css';
 import { setupBrowserMockApi } from './utils/browserMockApi';
 
 // If running in a standard web browser (e.g. Chrome/Edge live preview), initialize mock API
-setupBrowserMockApi();
+if (!window.api) {
+  setupBrowserMockApi();
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

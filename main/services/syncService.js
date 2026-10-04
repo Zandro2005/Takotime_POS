@@ -34,12 +34,24 @@ export class SyncService {
     const authToken = this.options.authToken || settings.firebase_auth_token || null;
     const isEnabled = this.options.enabled !== undefined ? this.options.enabled : (settings.cloud_sync_enabled !== '0');
 
+    let terminalId = settings.terminal_id;
+    if (!terminalId) {
+      const crypto = require('node:crypto');
+      terminalId = crypto.randomUUID();
+      try {
+        this.settingsService.updateSettings({ terminal_id: terminalId });
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
     // Clean trailing slash
     const cleanUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
 
     return {
       baseUrl: cleanUrl,
       branchId,
+      terminalId,
       authToken,
       isEnabled,
     };
@@ -64,7 +76,7 @@ export class SyncService {
    */
   async pushPendingOrders(limit = 100) {
     const db = this.db;
-    const { isEnabled } = this.getConfig();
+    const { isEnabled, terminalId } = this.getConfig();
     if (!isEnabled) {
       return { pushed: 0, skipped: true, reason: 'Sync disabled' };
     }
@@ -146,7 +158,7 @@ export class SyncService {
         items,
       };
 
-      const url = this.buildUrl(`/orders/${order.id}`);
+      const url = this.buildUrl(`/terminals/${terminalId}/orders/${order.id}`);
       const res = await this.fetchFn(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -168,9 +180,9 @@ export class SyncService {
   /**
    * Pushes daily sales metrics summary for the store.
    */
-  async pushDailySummary(dateStr = new Date().toISOString().split('T')[0]) {
+  async pushDailySummary(dateStr = new Date().toLocaleDateString('en-CA')) {
     const db = this.db;
-    const { isEnabled } = this.getConfig();
+    const { isEnabled, terminalId } = this.getConfig();
     if (!isEnabled) return { success: false, reason: 'Sync disabled' };
 
     const totals = db.prepare(`
@@ -192,7 +204,7 @@ export class SyncService {
       updated_at: new Date().toISOString(),
     };
 
-    const url = this.buildUrl(`/daily_summaries/${dateStr}`);
+    const url = this.buildUrl(`/terminals/${terminalId}/daily_summaries/${dateStr}`);
     const res = await this.fetchFn(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -211,10 +223,10 @@ export class SyncService {
    */
   async pushInventorySnapshot() {
     const db = this.db;
-    const { isEnabled } = this.getConfig();
+    const { isEnabled, terminalId } = this.getConfig();
     if (!isEnabled) return { success: false, reason: 'Sync disabled' };
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = new Date().toLocaleDateString('en-CA');
     const items = db.prepare(`
       SELECT 
         i.id,
@@ -242,7 +254,7 @@ export class SyncService {
       })),
     };
 
-    const url = this.buildUrl('/inventory_snapshot');
+    const url = this.buildUrl(`/terminals/${terminalId}/inventory_snapshot`);
     const res = await this.fetchFn(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -260,7 +272,7 @@ export class SyncService {
    * Pushes store heartbeat indicating store terminal is alive.
    */
   async pushHeartbeat() {
-    const { isEnabled, branchId } = this.getConfig();
+    const { isEnabled, branchId, terminalId } = this.getConfig();
     if (!isEnabled) return { success: false, reason: 'Sync disabled' };
 
     const payload = {
@@ -271,7 +283,7 @@ export class SyncService {
       terminal_os: process.platform,
     };
 
-    const url = this.buildUrl('/heartbeat');
+    const url = this.buildUrl(`/terminals/${terminalId}/heartbeat`);
     const res = await this.fetchFn(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

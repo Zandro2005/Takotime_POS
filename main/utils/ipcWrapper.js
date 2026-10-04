@@ -15,6 +15,14 @@ import { CHANNEL_PERMISSIONS } from '../../shared/permissions.js';
 export function registerIpcHandler(channel, handler, requiredPermission = null) {
   const perm = requiredPermission !== null ? requiredPermission : CHANNEL_PERMISSIONS[channel];
 
+  const PUBLIC_CHANNELS = [
+    'auth:login',
+    'auth:login_pin',
+    'auth:logout',
+    'auth:session',
+    'system:ping'
+  ];
+
   ipcMain.handle(channel, async (event, payload = {}) => {
     const startedAt = Date.now();
     const sessionId = payload?.sessionId || null;
@@ -23,26 +31,29 @@ export function registerIpcHandler(channel, handler, requiredPermission = null) 
 
     try {
       let session = null;
+      const isPublic = PUBLIC_CHANNELS.includes(channel);
 
-      // If a permission is required or channel isn't public, validate session
-      if (perm) {
+      // Validate session for all non-public channels, even if no specific permission is required
+      if (!isPublic || perm) {
         if (!sessionId) {
           throw new Error('Authentication required');
         }
 
-        session = authService.getSession(sessionId);
+        session = authService.getSession(sessionId, !payload?.isPolling);
         if (!session) {
           throw new Error('Session expired or invalid');
         }
 
-        // Check permission against user's role
-        const allowed = authService.checkUserPermission(session.user.role, perm);
-        if (!allowed) {
-          logger.warn(`Permission denied on ${channel} for user ${session.user.username} (role: ${session.user.role}, required: ${perm})`);
-          throw new Error('Forbidden: Insufficient permissions');
+        // Check specific permission against user's role if one is required
+        if (perm) {
+          const allowed = authService.checkUserPermission(session.user.role, perm);
+          if (!allowed) {
+            logger.warn(`Permission denied on ${channel} for user ${session.user.username} (role: ${session.user.role}, required: ${perm})`);
+            throw new Error('Forbidden: Insufficient permissions');
+          }
         }
       } else if (sessionId) {
-        session = authService.getSession(sessionId);
+        session = authService.getSession(sessionId, !payload?.isPolling);
       }
 
       // Execute handler

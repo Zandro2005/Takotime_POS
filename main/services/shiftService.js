@@ -232,7 +232,7 @@ export class ShiftService {
     const db = this.db;
     const staleShifts = db.prepare(`
       SELECT id FROM shifts
-      WHERE status = 'open' AND date(opened_at) < date('now', 'localtime')
+      WHERE status = 'open' AND opened_at < datetime('now', 'localtime', '-24 hours')
     `).all();
 
     for (const s of staleShifts) {

@@ -11,7 +11,7 @@ export function ShiftProvider({ children }) {
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
 
-  const fetchCurrentShift = useCallback(async () => {
+  const fetchCurrentShift = useCallback(async (isPolling = false) => {
     if (!sessionId || !user) {
       setCurrentShift(null);
       return;
@@ -20,7 +20,7 @@ export function ShiftProvider({ children }) {
     setIsLoadingShift(true);
     try {
       if (window.api?.shifts?.getCurrent) {
-        const res = await window.api.shifts.getCurrent(sessionId);
+        const res = await window.api.shifts.getCurrent(sessionId, isPolling);
         if (res.success && res.data) {
           setCurrentShift(res.data);
           setShowOpenModal(false);
@@ -38,17 +38,17 @@ export function ShiftProvider({ children }) {
   }, [sessionId, user]);
 
   useEffect(() => {
-    fetchCurrentShift();
+    fetchCurrentShift(false);
 
     if (!sessionId || !user) return;
 
     // Real-time cross-terminal sync: poll every 5 seconds so all terminals and roles share active shift state
     const interval = setInterval(() => {
-      fetchCurrentShift();
+      fetchCurrentShift(true);
     }, 5000);
 
     const handleFocus = () => {
-      fetchCurrentShift();
+      fetchCurrentShift(false);
     };
     window.addEventListener('focus', handleFocus);
 

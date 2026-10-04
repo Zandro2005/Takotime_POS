@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld('api', {
   },
 
   shifts: {
-    getCurrent: (sessionId) => ipcRenderer.invoke('pos:shifts:current', { sessionId }),
+    getCurrent: (sessionId, isPolling = false) => ipcRenderer.invoke('pos:shifts:current', { sessionId, isPolling }),
     open: (sessionId, startingCash, notes) => ipcRenderer.invoke('pos:shifts:open', { sessionId, startingCash, notes }),
     close: (sessionId, shiftId, endingCash, notes) => ipcRenderer.invoke('pos:shifts:close', { sessionId, shiftId, endingCash, notes }),
     forceClose: (sessionId) => ipcRenderer.invoke('pos:shifts:force-close', { sessionId }),

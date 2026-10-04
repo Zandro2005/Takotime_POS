@@ -540,7 +540,7 @@ export function RemoteCloudShell() {
   };
 
   const handleExportSalesCsv = () => {
-    const dateStr = overview?.date || new Date().toISOString().split('T')[0];
+    const dateStr = overview?.date || new Date().toLocaleDateString('en-CA');
     const headers = ['Period', 'Orders', 'Net Sales (PHP)'];
     const rows = salesTrend.map(d => [`"${d.label || d.date}"`, d.orderCount ?? d.orders ?? 0, (Number(d.revenue) || 0).toFixed(2)]);
     const csvContent = headers.join(',') + '\r\n' + rows.map(r => r.join(',')).join('\r\n');
@@ -548,7 +548,7 @@ export function RemoteCloudShell() {
   };
 
   const handleExportProductMixCsv = () => {
-    const dateStr = new Date().toISOString().split('T')[0];
+    const dateStr = new Date().toLocaleDateString('en-CA');
     const headers = ['Category', 'Product', 'Variant', 'Price', 'Sold', 'Revenue'];
     const rows = mixItems.map(it => [`"${it.category_name}"`, `"${it.product_name}"`, `"${it.variant_label}"`, it.unit_price, it.units_sold, it.total_revenue]);
     const csvContent = headers.join(',') + '\r\n' + rows.map(r => r.join(',')).join('\r\n');
@@ -556,7 +556,7 @@ export function RemoteCloudShell() {
   };
 
   const handleExportInventoryCsv = () => {
-    const dateStr = new Date().toISOString().split('T')[0];
+    const dateStr = new Date().toLocaleDateString('en-CA');
     const headers = ['ID', 'Item', 'Unit', 'Beginning', 'Stock In', 'Suggested Out', 'Confirmed Out', 'Ending', 'Waste'];
     const rows = inventoryRows.map(i => [i.id, `"${i.name}"`, `"${i.unit}"`, i.beginningQty, i.stockIn, i.suggestedOut, i.confirmedOut ?? '', i.endingQty, i.wasteQty]);
     const csvContent = headers.join(',') + '\r\n' + rows.map(r => r.join(',')).join('\r\n');
@@ -894,7 +894,7 @@ export function RemoteCloudShell() {
                   LIVE STORE TELEMETRY
                 </span>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  Branch: Montalban • {overview?.date || new Date().toISOString().split('T')[0]}
+                  Branch: Montalban • {overview?.date || new Date().toLocaleDateString('en-CA')}
                 </span>
               </div>
               <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px', letterSpacing: '-0.02em' }}>

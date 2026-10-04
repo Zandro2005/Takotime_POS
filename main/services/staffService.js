@@ -25,6 +25,16 @@ export class StaffService {
     return bcrypt.compareSync(plainText, hash);
   }
 
+  _checkPinUniqueness(newPin, excludeUserId = null) {
+    if (!newPin) return;
+    const users = this.db.prepare('SELECT id, pin FROM users WHERE active = 1 AND pin IS NOT NULL' + (excludeUserId ? ' AND id != ?' : '')).all(excludeUserId ? [excludeUserId] : []);
+    for (const u of users) {
+      if (this.verify(newPin, u.pin)) {
+        throw new Error('This PIN is already in use by another staff member.');
+      }
+    }
+  }
+
   /**
    * Retrieves all staff users with their metadata, omitting sensitive password/PIN hashes.
    */
@@ -113,6 +123,8 @@ export class StaffService {
       throw new Error(`Username "${cleanUsername}" is already taken`);
     }
 
+    if (pin) this._checkPinUniqueness(pin);
+
     const passwordHash = this.hash(password);
     const pinHash = pin ? this.hash(pin) : null;
 
@@ -138,7 +150,7 @@ export class StaffService {
     }
 
     const newRole = role !== undefined ? role : current.role;
-    const validRoles = [ROLES.STAFF, ROLES.ADMIN_STAFF, ROLES.ADMIN];
+    const validRoles = [ROLES.STAFF, ROLES.ADMIN_STAFF, ROLES.ADMIN, ROLES.REMOTE_ADMIN];
     if (!validRoles.includes(newRole)) {
       throw new Error(`Invalid role: ${newRole}`);
     }
@@ -217,6 +229,10 @@ export class StaffService {
 
     if (newPin !== null && newPin !== '' && !/^\d{4,6}$/.test(newPin)) {
       throw new Error('PIN must be 4 to 6 numeric digits');
+    }
+
+    if (newPin && newPin.trim()) {
+      this._checkPinUniqueness(newPin.trim(), userId);
     }
 
     const pinHash = (newPin && newPin.trim()) ? this.hash(newPin.trim()) : null;

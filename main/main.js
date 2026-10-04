@@ -2,7 +2,7 @@
 // Electron main process entry point
 
 import './utils/initEnv.js';
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, dialog } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -17,6 +17,7 @@ import { logger } from './utils/logger.js';
 import { backupService } from './services/backupService.js';
 import { healthService } from './services/healthService.js';
 import { shiftService } from './services/shiftService.js';
+import { syncService } from './services/syncService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,11 +85,18 @@ if (!gotTheLock) {
       // 1. Initialize SQLite Database
       const db = initDatabase();
 
+      const isNewDatabase = db.pragma('user_version', { simple: true }) === 0;
+
       // 2. Run Migrations
       const version = runMigrations(db);
 
       // 3. Seed initial / missing default users and catalog (idempotent)
-      seedInitialData(db);
+      if (isNewDatabase) {
+        seedInitialData(db);
+        logger.info('New database detected: Seed data applied.');
+      } else {
+        logger.info('Existing database detected: Skipped seed data.');
+      }
 
       // 4. Register IPC Handlers
       registerAllIpcHandlers();
@@ -113,6 +121,15 @@ if (!gotTheLock) {
         }
       }, SIX_HOURS_MS);
 
+      // 7.5 Background Cloud Sync
+      const syncIntervalRow = db.prepare("SELECT value FROM settings WHERE key = 'sync_interval_min'").get();
+      const syncMin = syncIntervalRow && !isNaN(parseInt(syncIntervalRow.value, 10)) ? parseInt(syncIntervalRow.value, 10) : 15;
+      if (syncMin > 0) {
+        setInterval(() => {
+          syncService.runSync().catch(err => logger.error('Auto-sync failed:', err?.message));
+        }, syncMin * 60 * 1000);
+      }
+
       // 8. Create Window
       createWindow();
 
@@ -127,6 +144,8 @@ if (!gotTheLock) {
     } catch (err) {
       console.error('Fatal initialization error:', err);
       logger.error('Fatal initialization error:', err.stack || err.message || String(err));
+      dialog.showErrorBox('Initialization Error', `Failed to start TAKOTIME POS:\n\n${err.message}`);
+      app.quit();
     }
 
     app.on('activate', () => {
