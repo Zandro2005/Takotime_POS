@@ -151,6 +151,7 @@ export class PrintService {
       return {
         success: true,
         simulated: !isRealPrinter,
+        spoolFile: !isRealPrinter ? path.join(this.spoolerDir, 'last_receipt.txt') : null,
         orderId,
         timestamp: new Date().toISOString(),
         receiptText: formattedText,

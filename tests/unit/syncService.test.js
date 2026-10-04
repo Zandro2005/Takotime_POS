@@ -117,15 +117,16 @@ test('Phase 6 Cloud Sync Bridge Suite', async (t) => {
     const res = await syncService.pushPendingOrders();
     assert.strictEqual(res.pushed, 2);
 
+    const cfg = syncService.getConfig();
     // Verify stored in mock Firebase
-    const remoteOrder1 = mockFirebaseDb.get(`/stores/montalban/orders/${order1.id}`);
+    const remoteOrder1 = mockFirebaseDb.get(`/stores/montalban/terminals/${cfg.terminalId}/orders/${order1.id}`);
     assert.ok(remoteOrder1);
     assert.strictEqual(remoteOrder1.order_id, order1.id);
     assert.strictEqual(remoteOrder1.total, 45);
     assert.strictEqual(remoteOrder1.items.length, 1);
     assert.strictEqual(remoteOrder1.items[0].product_name, 'Classic Octopus Takoyaki');
 
-    const remoteOrder2 = mockFirebaseDb.get(`/stores/montalban/orders/${order2.id}`);
+    const remoteOrder2 = mockFirebaseDb.get(`/stores/montalban/terminals/${cfg.terminalId}/orders/${order2.id}`);
     assert.ok(remoteOrder2);
     assert.strictEqual(remoteOrder2.payment_method, 'gcash');
     assert.strictEqual(remoteOrder2.gcash_ref_no, 'GCASH12345');
@@ -148,14 +149,15 @@ test('Phase 6 Cloud Sync Bridge Suite', async (t) => {
     const summaryRes = await syncService.pushDailySummary(todayStr);
     assert.strictEqual(summaryRes.success, true);
 
-    const remoteSummary = mockFirebaseDb.get(`/stores/montalban/daily_summaries/${todayStr}`);
+    const cfg = syncService.getConfig();
+    const remoteSummary = mockFirebaseDb.get(`/stores/montalban/terminals/${cfg.terminalId}/daily_summaries/${todayStr}`);
     assert.ok(remoteSummary);
     assert.strictEqual(remoteSummary.completed_orders, 2);
     assert.strictEqual(remoteSummary.net_sales, 215);
 
     const invRes = await syncService.pushInventorySnapshot();
     assert.strictEqual(invRes.success, true);
-    const remoteInv = mockFirebaseDb.get('/stores/montalban/inventory_snapshot');
+    const remoteInv = mockFirebaseDb.get(`/stores/montalban/terminals/${cfg.terminalId}/inventory_snapshot`);
     assert.ok(remoteInv);
     assert.strictEqual(remoteInv.items.length >= 10, true);
   });
@@ -209,7 +211,7 @@ test('Phase 6 Cloud Sync Bridge Suite', async (t) => {
           name: 'Remote Staff Cashier',
           username: 'remotestaff',
           password: 'password123',
-          pin: '3333',
+          pin: '7777',
           role: 'staff',
         },
         status: 'pending',

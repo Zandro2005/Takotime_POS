@@ -69,7 +69,7 @@ test('Phase 5 Staff, Settings & Dashboard Suite', async (t) => {
       name: 'Maria Santos',
       username: 'maria',
       password: 'password123',
-      pin: '2222',
+      pin: '5555',
       role: ROLES.STAFF,
     });
 
@@ -85,7 +85,7 @@ test('Phase 5 Staff, Settings & Dashboard Suite', async (t) => {
     const raw = db.prepare('SELECT password_hash, pin FROM users WHERE id = ?').get(newUser.id);
     assert.notStrictEqual(raw.password_hash, 'password123');
     assert.strictEqual(staffService.verify('password123', raw.password_hash), true);
-    assert.strictEqual(staffService.verify('2222', raw.pin), true);
+    assert.strictEqual(staffService.verify('5555', raw.pin), true);
   });
 
   await t.test('3. StaffService enforces duplicate username and validation rules', () => {

@@ -7,6 +7,7 @@ import { logger } from '../utils/logger.js';
 import { StaffService } from './staffService.js';
 import { SettingsService } from './settingsService.js';
 import { MenuService } from './menuService.js';
+import crypto from 'node:crypto';
 
 export class SyncService {
   constructor(dbInstance = null, options = {}) {
@@ -36,7 +37,6 @@ export class SyncService {
 
     let terminalId = settings.terminal_id;
     if (!terminalId) {
-      const crypto = require('node:crypto');
       terminalId = crypto.randomUUID();
       try {
         this.settingsService.updateSettings({ terminal_id: terminalId });
